@@ -95,7 +95,7 @@ function recupNameRess() {
     for (var i = 0; i < _a.getElementsByTagName("li").length; i++) {
       var _b = _a.getElementsByTagName("li")[i].getElementsByTagName("span");
       if (_b[1].id == text){
-        return _b[0].innerHTML;
+        return _b[0].textContent.replace(/:\s*/, "");
       }
     }
   }
@@ -205,19 +205,24 @@ function citizens() {
     var node = $X('//li[@class="'+ what +'"]/div[@class="amount"]');
     if (node) {
       var count = parseInt(node.innerHTML.match(/\d+/)[0], 10);
-      var sum = times ? times * count : "";
+      var sum = times ? Math.floor(times * count) : "";
       if (sum > 0) sum = "+"+ sum;
       unit.@style = "margin-bottom: -5px;";
       node.innerHTML += (sum ? " \xA0 "+ sum : " ") + (unit.toXMLString());
     }
   }
 
+  // wine:25x20, marble:25x19, glass:23x18, sulfur:25x19
+  var iconBase = "skin/resources/icon_", goods = recupNameRess().toLowerCase();
+  var w = goods == "glass" ? 23 : 25, h = { wine: 20, glass: 18 }[goods] || 19;
+  var luxe = <img src={iconBase + goods +".gif"} width={w} height={h}/>;
   var wood = <img src="skin/resources/icon_wood.gif" width="25" height="20"/>;
   var gold = <img src="skin/resources/icon_gold.gif" width="17" height="19"/>;
   var bulb = <img src="skin/layout/bulb-on.gif" width="14" height="21"/>;
 
   factor("citizens", gold, 4);
   factor("woodWorkers", wood);
+  factor("luxuryWorkers", luxe, 0.5);
   factor("scientists", bulb);
   factor("scientists", gold, -8);
 }
@@ -361,7 +366,7 @@ function principal() {
   [createLink(lang[wood] + ": +" + woodByHours,
               url("?view=resource&type=resource&id="+idIle)),
    createBr(),
-   createLink(nameLuxe + " +" +luxeByHours,
+   createLink(nameLuxe + ": +" +luxeByHours,
               url("?view=tradegood&type=tradegood&id="+idIle))].forEach(add);
   chemin.appendChild(list);
 
