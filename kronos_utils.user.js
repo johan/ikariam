@@ -14,34 +14,41 @@ Propriétés du script
 var DEBUT = new Date();
 
 // En fonction du language du naviguateur on va utiliser un langage associé.
-var finished = 0, langUsed = 10, execTime = 11, wood = 13;
+var language = 0, finished = 1, langUsed = 11, execTime = 12, wood = 14;
 var langs = {
-  "fr": [" Fini à ", "Fermer", "Upgrader plus tard.",
+  "fr": ["Français", " Fini à ", "Fermer", "Upgrader plus tard.",
          "File de construction", "Ajouter un bâtiment.", "Construire dans",
          "heures", "minutes et", "secondes",
          "valider", "Langue utilisée", "Temps d'exécution",
          "Pas de bâtiment en attente.", "Bois", "Luxe"],
-  "en": [" Finish at ", "Close", "Upgrade later.",
+  "en": ["English", " Finished ", "Close", "Upgrade later.",
          "Building list", "Add building.", "Build at",
          "hours", "minutes and", "seconds",
          "confirm", "Language used", "Time of execution",
          "No building in waiting.", "Wood", "Luxe"],
-  // Thanks to Tico:
-  "pt": [" acaba às ", "Fechar", "Evoluir mais tarde.",
+  // By Tico:
+  "pt": ["Portuguès", " acaba às ", "Fechar", "Evoluir mais tarde.",
          "Lista de construção", "Adicionar edificio.", "Construir em",
          "horas", "minutos e", "segundos",
          "confirmar", "Lingua usada", "Tempo de execução",
          "Nenhum Edificio em espera.", "Madeira", "Luxo"],
-  "da": [" Færdig kl. ", "Luk", "Opgrader senere.",
+  "da": ["Dansk", " Færdig kl. ", "Luk", "Opgrader senere.",
          "Bygnings liste", "Tilføj bygning.", "Byg kl.",
          "timer", "minutter og", "sekunder",
          "bekræft", "Sprog brugt", "Udførelsestid",
          "Ingen bygning venter.", "Træ", "Luxe"],
-  // Thank to A.Rosemary:
-  "sp": [" termina a las ", "Cerrar", "Actualizar más tarde.",
+  // By A.Rosemary:
+  "sp": ["Espagnol", " termina a las ", "Cerrar", "Actualizar más tarde.",
          "Lista de construcción", "Añadir edificio.", "Construir en",
          "horas", "minutos y", "segundos",
-         "confirmar", "Idioma usado", "Tiempo de ejecución"]
+         "confirmar", "Idioma usado", "Tiempo de ejecución",
+         "Nenhum Edificio em espera.", "Madera", "Luxe"],
+  // By Johan Sundström:
+  "sv": ["Svenska", " Färdigt klockan ", "Stäng", "Uppgradera senare",
+         "Byggnadslista", "Lägg till byggnad", "Bygg klockan",
+         "timmar", "minuter och", "sekunder",
+         "bekräfta", "Språk", "Exekveringstid",
+         "Inga byggnader väntar.", "Trä", "Lyx"]
 }, lang = langs[getLanguage()];
 var regex = /Terrain|construire/;
 
@@ -123,16 +130,6 @@ function createLink(nom, href) {
 
 function link(href) {
   location.href = href;
-}
-
-function createInput(name, type, size, value, id) { //fonction de création input
-  var input =  document.createElement('input');
-  input.setAttribute('name',name);
-  input.setAttribute('type',type);
-  if(size != '') input.setAttribute('size',size);
-  if(value != '') input.setAttribute('value',value);
-  input.setAttribute('id',id);
-  return input;
 }
 
 function createBr() { // fonction de création saut de ligne
@@ -222,10 +219,6 @@ function citizens() {
 /*--------------------------------------------------------
 Création des fonctions de temps.
 ---------------------------------------------------------*/
-function mktimeMini(d, h, m, s) { // Transforme des variables en temps
-  return d * 86400 + h * 3600 + m * 60 + s;
-}
-
 function getServerTime(offset) {
   var dmyhms = $("servertime").textContent.split(/[. :]+/g);
   var ymdhms = dmyhms.slice(0,3).reverse().concat(dmyhms.slice(3));
@@ -248,14 +241,6 @@ function secondsToHours(bySeconds) {
   if (!isNaN(bySeconds)) {
     var byHour = Math.ceil(bySeconds*3600);
     return byHour;
-  }
-}
-
-function showFinishTime(xpath) {
-  var node = $X(xpath);
-  if (node) {
-    var time = node.textContent; // Nd Nh Nm Ns
-
   }
 }
 
@@ -379,8 +364,12 @@ function principal() {
 
 ]]></>.toString());
 
-  chemin.appendChild(document.createTextNode(lang[langUsed] +": "+
-                                             getLanguage()));
+  var langPref = document.createTextNode(lang[langUsed] +": "+ lang[language]);
+  var langChoice = document.createElement("a");
+  langChoice.href = "#";
+  langChoice.appendChild(langPref);
+  langChoice.addEventListener("click", promptLanguage, false);
+  chemin.appendChild(langChoice);
 
   var FIN = new Date();
   chemin.appendChild(createBr());
@@ -399,15 +388,17 @@ principal(); //Appel de la fonction principal.
 GM_registerMenuCommand("Ikariam Kronos Tools: Your language", promptLanguage);
 
 function promptLanguage() {
+  var help = [];
+  for (var id in langs)
+    help.push(id+": "+langs[id][language]);
   while (!langs.hasOwnProperty(newLanguage)) {
-    var newLanguage = prompt(
-      "Ikariam Kronos Tools:\nWhat language do you speak?\n" +
-      "(fr:French; en:English; pt:Portuguese, da:Danish)",
-      getLanguage()
-    );
+    var newLanguage = prompt("Ikariam Kronos Tools: " +
+                             "Which language do you prefer?\n(" +
+                             help.join(", ") + ")", getLanguage());
     if (langs.hasOwnProperty(newLanguage))
       GM_setValue("KronosLanguage_", newLanguage);
   }
+  location.reload();
 }
 
 function getLanguage() {
