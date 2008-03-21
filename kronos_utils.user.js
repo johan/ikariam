@@ -15,17 +15,20 @@ var DEBUT = new Date();
 
 // En fonction du language du naviguateur on va utiliser un langage associé.
 var language = 0, finished = 1, langUsed = 11, execTime = 12, wood = 14;
+var researching = 16;
 var langs = {
   "fr": ["Français", " Fini à ", "Fermer", "Upgrader plus tard.",
          "File de construction", "Ajouter un bâtiment.", "Construire dans",
          "heures", "minutes et", "secondes",
          "valider", "Langue utilisée", "Temps d'exécution",
-         "Pas de bâtiment en attente.", "Bois", "Luxe"],
+         "Pas de bâtiment en attente.", "Bois", "Luxe",
+         "Recherches"],
   "en": ["English", " Finished ", "Close", "Upgrade later.",
          "Building list", "Add building.", "Build at",
          "hours", "minutes and", "seconds",
          "confirm", "Language used", "Time of execution",
-         "No building in waiting.", "Wood", "Luxe"],
+         "No building in waiting.", "Wood", "Luxe",
+         "Researching"],
   // By Tico:
   "pt": ["Portuguès", " acaba às ", "Fechar", "Evoluir mais tarde.",
          "Lista de construção", "Adicionar edificio.", "Construir em",
@@ -42,19 +45,23 @@ var langs = {
          "Lista de construcción", "Añadir edificio.", "Construir en",
          "horas", "minutos y", "segundos",
          "confirmar", "Idioma usado", "Tiempo de ejecución",
-         "Nenhum Edificio em espera.", "Madera", "Luxe"],
+         "Nenhum Edificio em espera.", "Madera", "Luxe",
+         "Investigación"],
   // By Johan Sundström:
-  "sv": ["Svenska", " Färdigt klockan ", "Stäng", "Uppgradera senare",
+  "sv": ["Svenska", " Färdigt ", "Stäng", "Uppgradera senare",
          "Byggnadslista", "Lägg till byggnad", "Bygg klockan",
          "timmar", "minuter och", "sekunder",
          "bekräfta", "Språk", "Exekveringstid",
-         "Inga byggnader väntar.", "Trä", "Lyx"]
+         "Inga byggnader väntar.", "Trä", "Lyx",
+         "Forskning"]
 }, lang = langs[getLanguage()];
 var regex = /Terrain|construire/;
 
 // en fonction de l'url on prend les regex(dépend de la langue du site).
 if (/org$/.test(location.hostname))
   regex = /Free|build/;
+if (/com.pt$/.test(location.hostname))
+  regex = /Livre|construir/;
 
 var name = "Kronos";
 var version = " 0.4";
@@ -221,6 +228,7 @@ Création des fonctions de temps.
 ---------------------------------------------------------*/
 function getServerTime(offset) {
   var dmyhms = $("servertime").textContent.split(/[. :]+/g);
+  dmyhms[1] = parseInt(dmyhms[1], 10) - 1;
   var ymdhms = dmyhms.slice(0,3).reverse().concat(dmyhms.slice(3));
   var date = new Date(Date.apply(Date, ymdhms));
   if (offset)
@@ -310,6 +318,10 @@ function idIleRecup() {
   }
 }
 
+function getCityId() {
+  return $X('//li[@class="viewCity"]/a').href.replace(/.*[?&]id=(\d+).*/, "$1");
+}
+
 /*------------------------
    / \
   / ! \    Function Principal.
@@ -327,11 +339,15 @@ function principal() {
 
   try {
     switch (urlParse("view")) {
+      case "CityScreen": // &function=build&id=...&position=4&building=13
       case "city": levelBat(); projectCompletion("cityCountdown"); break;
       case "island": levelTown(); break;
       case "townHall": citizens(); break;
       case "academy":
       case "researchAdvisor":
+        var research = $X('//div[@class="researchName"]/a');
+        if (research)
+          GM_setValue("research", research.title);
         projectCompletion("researchCountDown"); break;
     }
     projectCompletion("upgradeCountDown", "time");
@@ -364,6 +380,15 @@ function principal() {
 
 ]]></>.toString());
 
+  var research = GM_getValue("research", "");
+  if (research) {
+    var a = document.createElement("a");
+    a.href = url("?view=academy&id=" + getCityId());
+    a.textContent = lang[researching] + ": " + research;
+    chemin.appendChild(a);
+    chemin.appendChild(createBr());
+  }
+
   var langPref = document.createTextNode(lang[langUsed] +": "+ lang[language]);
   var langChoice = document.createElement("a");
   langChoice.href = "#";
@@ -371,10 +396,18 @@ function principal() {
   langChoice.addEventListener("click", promptLanguage, false);
   chemin.appendChild(langChoice);
 
+  var cityNav = $('cityNav');
+  if (cityNav) {
+    cityNav.addEventListener("click", function(e) {
+      if (e.target.id == "cityNav")
+        location.href = url("?view=townHall&id="+ getCityId() +"&position=0");
+    }, false);
+  }
+
   var FIN = new Date();
   chemin.appendChild(createBr());
   chemin.appendChild(document.createTextNode(lang[execTime] +": "+
-                                             (FIN - DEBUT) +"ms"));
+                                             (FIN - DEBUT) + "ms"));
   //$("Kronos").appendChild(document.createTextNode(myLanguage));
 }
 
