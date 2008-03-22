@@ -101,14 +101,6 @@ function recupNameRess() {
   }
 }
 
-function decodeQuery(q) {
-  var keys = {};
-  q.replace(/([^=&?]+)=([^&]*)/g, function(m, key, value) {
-    keys[decodeURIComponent(key)] = decodeURIComponent(value);
-  });
-  return keys;
-}
-
 // on récupére une des valeurs get d'une url(son nom est le param.
 function urlParse(param, url) {
   if (!url) url = location.search; // On récupére l'url du site.
