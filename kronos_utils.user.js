@@ -225,13 +225,10 @@ function citizens() {
 Création des fonctions de temps.
 ---------------------------------------------------------*/
 function getServerTime(offset) {
-  var dmyhms = $("servertime").textContent.split(/[. :]+/g);
-  dmyhms[1] = parseInt(dmyhms[1], 10) - 1;
-  var ymdhms = dmyhms.slice(0,3).reverse().concat(dmyhms.slice(3));
-  var date = new Date(Date.apply(Date, ymdhms));
-  if (offset)
-    date = new Date(date.valueOf() + offset*1e3);
-  return date;
+  var Y, M, D, h, m, s, t;
+  [D, M, Y, h, m, s] = $("servertime").textContent.split(/[. :]+/g);
+  t = new Date(Y, parseInt(M, 10)-1, D, h, m, s);
+  return offset ? new Date(t.valueOf() + offset*1e3) : t;
 }
 
 function resolveTime(seconds) { // Crée le temps de fin.
@@ -269,6 +266,10 @@ function parseTime(t) {
 function projectCompletion(id, className) {
   var node = $(id);
   if (node) {
+    console.log("T: %x", $("servertime").textContent);
+    console.log("L: %x", node.textContent);
+    console.log("D: %x", parseTime(node.textContent));
+    console.log("F: %x", resolveTime(parseTime(node.textContent)));
     var done = resolveTime(parseTime(node.textContent));
     var div = createNode("", className, done, node.nodeName.toLowerCase());
     node.parentNode.insertBefore(div, node.nextSibling);
