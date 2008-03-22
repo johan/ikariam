@@ -101,21 +101,22 @@ function recupNameRess() {
   }
 }
 
+function decodeQuery(q) {
+  var keys = {};
+  q.replace(/([^=&?]+)=([^&]*)/g, function(m, key, value) {
+    keys[decodeURIComponent(key)] = decodeURIComponent(value);
+  });
+  return keys;
+}
+
 // on récupére une des valeurs get d'une url(son nom est le param.
 function urlParse(param, url) {
-  var chaine = url || location.href; // On récupére l'url du site.
-
-  chaine = chaine.substring(1);
-  var dz = chaine.indexOf("#",0);
-  if (dz!=-1) {
-  chaine = chaine.substring(0,dz);}
-  chaine = chaine+"&";
-  if (chaine.indexOf(param,0)!=-1){
-  var pos = chaine.indexOf(param,0);
-  var pos2 = chaine.indexOf("=",pos);
-  var pos3 = chaine.indexOf("&",pos);
-  contenu = chaine.substring(pos2+1,pos3);}
-  return contenu;
+  if (!url) url = location.search; // On récupére l'url du site.
+  var keys = {};
+  url.replace(/([^=&?]+)=([^&]*)/g, function(m, key, value) {
+    keys[decodeURIComponent(key)] = decodeURIComponent(value);
+  });
+  return param ? keys[param] : keys;
 }
 
 function createNode(id, classN, html, tag) { // On ajoute un div
@@ -343,7 +344,7 @@ function principal() {
   var idIle = idIleRecup();
 
   try {
-    switch (urlParse("view")) {
+    switch (urlParse("view") || urlParse("action")) {
       case "CityScreen": // &function=build&id=...&position=4&building=13
       case "city": levelBat(); projectCompletion("cityCountdown"); break;
       case "island": levelTown(); break;
