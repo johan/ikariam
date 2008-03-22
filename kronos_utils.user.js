@@ -149,6 +149,7 @@ function levelBat() { // Ajout d'un du level sur les batiments.
   font-weight: bold;
   text-align: center;
   position: absolute;
+  white-space: pre;
   width: 18px;
   cursor: pointer;
   height: 15px;
@@ -340,6 +341,7 @@ function principal() {
     switch (urlParse("view") || urlParse("action")) {
       case "CityScreen": // &function=build&id=...&position=4&building=13
       case "city": levelBat(); projectCompletion("cityCountdown"); break;
+      case "port": projectCompletion("outgoingOwnCountDown"); break;
       case "island": levelTown(); break;
       case "townHall": citizens(); break;
       case "academy":
