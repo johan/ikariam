@@ -266,10 +266,10 @@ function parseTime(t) {
 function projectCompletion(id, className) {
   var node = $(id);
   if (node) {
-    console.log("T: %x", $("servertime").textContent);
-    console.log("L: %x", node.textContent);
-    console.log("D: %x", parseTime(node.textContent));
-    console.log("F: %x", resolveTime(parseTime(node.textContent)));
+    // console.log("T: %x", $("servertime").textContent);
+    // console.log("L: %x", node.textContent);
+    // console.log("D: %x", parseTime(node.textContent));
+    // console.log("F: %x", resolveTime(parseTime(node.textContent)));
     var done = resolveTime(parseTime(node.textContent));
     var div = createNode("", className, done, node.nodeName.toLowerCase());
     node.parentNode.insertBefore(div, node.nextSibling);
