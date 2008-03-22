@@ -54,8 +54,8 @@ var langs = {
          "bekräfta", "Språk", "Exekveringstid",
          "Inga byggnader väntar.", "Trä", "Lyx",
          "Forskning"]
-}, lang = langs[getLanguage()];
-var regex = /Terrain|construire/;
+};
+var lang, regex = /Terrain|construire/;
 
 // en fonction de l'url on prend les regex(dépend de la langue du site).
 if (/org$/.test(location.hostname))
@@ -422,7 +422,7 @@ function principal() {
       case "researchAdvisor":
         var research = $X('//div[@class="researchName"]/a');
         if (research)
-          GM_setValue("research", research.title);
+          config.set("research:"+location.hostname, research.title);
         projectCompletion("researchCountDown"); break;
     }
     projectCompletion("upgradeCountDown", "time");
@@ -455,7 +455,7 @@ function principal() {
 
 ]]></>.toString());
 
-  var research = GM_getValue("research", "");
+  var research = config.get("research:"+location.hostname, "");
   if (research) {
     var a = document.createElement("a");
     a.href = url("?view=academy&id=" + getCityId());
@@ -486,8 +486,6 @@ function principal() {
   //$("Kronos").appendChild(document.createTextNode(myLanguage));
 }
 
-principal(); //Appel de la fonction principal.
-
 
 
 
@@ -504,7 +502,7 @@ function promptLanguage() {
                              "Which language do you prefer?\n(" +
                              help.join(", ") + ")", getLanguage());
     if (langs.hasOwnProperty(newLanguage))
-      GM_setValue("KronosLanguage_", newLanguage);
+      config.set("language", newLanguage);
   }
   location.reload();
 }
@@ -514,7 +512,7 @@ function getLanguage() {
     var guess = navigator.language.replace(/-.*/,"");
     return langs.hasOwnProperty(guess) ? guess : "en";
   }
-  return GM_getValue("KronosLanguage_", guess());
+  return config.get("language", guess());
 }
 
 function $(id) {
@@ -543,68 +541,44 @@ function $X( xpath, root ) {
   return got instanceof Array ? got[0] : got;
 }
 
-function getViewOffset(elt, singleFrame) {
-  function addOffset(elt, coords, view) {
-    var p = elt.offsetParent;
-    coords.x += elt.offsetLeft - (p ? p.scrollLeft : 0);
-    coords.y += elt.offsetTop - (p ? p.scrollTop : 0);
-
-    if (p) {
-      if (p.nodeType == 1) {
-        var parentStyle = view.getComputedStyle(p, "");
-        if (parentStyle.position != "static") {
-          coords.x += parseInt(parentStyle.borderLeftWidth);
-          coords.y += parseInt(parentStyle.borderTopWidth);
-
-          if (p.localName == "TABLE") {
-            coords.x += parseInt(parentStyle.paddingLeft);
-            coords.y += parseInt(parentStyle.paddingTop);
-          }
-          else if (p.localName == "BODY") {
-            var style = view.getComputedStyle(elt, "");
-            coords.x += parseInt(style.marginLeft);
-            coords.y += parseInt(style.marginTop);
-          }
-        }
-        else if (p.localName == "BODY") {
-          coords.x += parseInt(parentStyle.borderLeftWidth);
-          coords.y += parseInt(parentStyle.borderTopWidth);
-        }
-
-        var parent = elt.parentNode;
-        while (p != parent) {
-          coords.x -= parent.scrollLeft;
-          coords.y -= parent.scrollTop;
-          parent = parent.parentNode;
-        }
-        addOffset(p, coords, view);
-      }
-    }
-    else {
-      if (elt.localName == "BODY") {
-        var style = view.getComputedStyle(elt, "");
-        coords.x += parseInt(style.borderLeftWidth);
-        coords.y += parseInt(style.borderTopWidth);
-
-        var htmlStyle = view.getComputedStyle(elt.parentNode, "");
-        coords.x -= parseInt(htmlStyle.paddingLeft);
-        coords.y -= parseInt(htmlStyle.paddingTop);
-      }
-
-      if (elt.scrollLeft)
-        coords.x += elt.scrollLeft;
-      if (elt.scrollTop)
-        coords.y += elt.scrollTop;
-
-      var win = elt.ownerDocument.defaultView;
-      if (win && (!singleFrame && win.frameElement))
-        addOffset(win.frameElement, coords, win);
-    }
+// config.get() and config.set() store config data in (near-)json in prefs.js.
+var config = (function(data) {
+  function get(name, value) {
+    return data.hasOwnProperty(name) ? data[name] : value;
   }
+  function set(name, value) {
+    if (value === undefined)
+      delete data[name];
+    else
+      data[name] = value;
+    GM_setValue("config", uneval(data));
+    return value;
+  }
+  function keys(re) {
+    re = re || /./;
+    var list = [];
+    for (var id in data)
+      if (data.hasOwnProperty(id) && id.test(re))
+        list.push(id);
+    return list;
+  }
+  function remove(id) {
+    if (/function|object/.test(typeof id)) {
+      var value = [], re = id;
+      for (id in data)
+        if (data.hasOwnProperty(id) && id.test(re)) {
+          value.push(data[id]);
+          delete data[id];
+        }
+    } else {
+      value = data[id];
+      delete data[id];
+    }
+    return value;
+  }
+  return { get:get, set:set, keys:keys, remove:remove };
+})(eval(GM_getValue("config", "({})")));
 
-  var coords = {x: 0, y: 0};
-  if (elt)
-    addOffset(elt, coords, elt.ownerDocument.defaultView);
+lang = langs[getLanguage()];
 
-  return coords;
-}
+principal(); // Appel de la fonction principal.
