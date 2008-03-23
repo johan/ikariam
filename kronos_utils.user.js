@@ -130,8 +130,9 @@ function createBr() { // fonction de création saut de ligne
   return document.createElement("br");
 }
 
-function css(e4x) {
-  GM_addStyle(e4x.toString());
+function css(rules) {
+  GM_addStyle(typeof rules == "string" ? rules : rules.toString());
+  return true;
 }
 
 function addCSSBubbles() { css(<><![CDATA[
@@ -293,7 +294,8 @@ function techinfo(what) {
     deps = deps ? deps.split(/,\s*/) : [];
     //points = points.replace(/,/g, "");
     spec = { name: name, does: does, time: time, points: points, deps: deps };
-    spec.known = $X('//a[.="'+ name +'"]/ancestor::ul/@class = "explored"');
+    if ((spec.a = $X('//a[.="'+ name +'"]')))
+      spec.known = $x('ancestor::ul/@class = "explored"', spec.a);
     return spec;
   }
 
@@ -318,19 +320,63 @@ function techinfo(what) {
     return true;
   }
 
+  function hilightDependencies(techName) {
+    function sum(a, b) { return a + b; }
+    function mark(name) {
+      if (done[name]) return 0;
+      var tech = byName[name];
+      done[name] = tech.depends = true;
+      var points = tech.known ? 0 : parseInt(tech.points.replace(/,/g, ""), 10);
+      return points + tech.deps.map(mark).reduce(sum, 0);
+    }
+
+    if (!hilightDependencies.cssed)
+      hilightDependencies.cssed = css(<><![CDATA[
+#researchOverview #container #mainview li { padding-left: 0; }
+a.dependent:before { content:"\2713 "; }
+a.independent { padding-left: 9px; }
+]]></>);
+
+    var done = {};
+    var points = mark(techName);
+    tree.forEach(show);
+    var tech = byName[techName];
+    tech.a.title = tech.does + " ("+ points +" points left)";
+  }
+
+  function show(tech) {
+    var a = tech.a;
+    if (a) {
+      a.className = (tech.depends ? "" : "in") + "dependent";
+      a.title = tech.does;
+    }
+    tech.depends = false;
+  }
+
+  function hover(e) {
+    //console.time("hilight");
+    var a = e.target;
+    if (a && "a" == a.nodeName.toLowerCase()) {
+      var name = a.textContent.replace(/:.*/, "");
+      hilightDependencies(name);
+    } else
+      tree.forEach(show);
+    //console.timeEnd("hilight");
+  }
+
   function isKnown(what) {
     return what.known;
   }
 
   function indent(what) {
+    byName[what.name] = what;
     var a = $X('//a[.="'+ what.name +'"]');
     a.style.marginLeft = (what.level * 10) + "px";
-    a.title = what.does;
     a.innerHTML += visualResources(": "+ what.points +" $bulb");
+    show(what);
   }
 
   function vr(level) {
-    var div = $X('id("mainview")/div/div[@class="content"]');
     var hr = document.createElement("hr");
     hr.style.position = "absolute";
     hr.style.height = (div.offsetHeight - 22) + "px";
@@ -443,12 +489,12 @@ Effect: Increases the satisfaction in all towns
 Market
 
 Helping Hands
-Allows: Overloading of resources and academy.
+Allows: Overloading of resources and academy
 25D 10h 54m 32s (13,440)
 Holiday
 
 Spirit Level
-Effect: 8% less costs for the construction of buildings.
+Effect: 8% less costs for the construction of buildings
 39D 18h 32m 43s (21,000)
 Helping Hands
 
@@ -502,7 +548,7 @@ Allows: Recruiting Doctors in the Barracks
 Cultural Exchange
 
 Glass
-Allows: Usage of crystal glass in order to accelerate research in the academy.
+Allows: Usage of crystal glass in order to accelerate research in the academy
 25D 10h 54m 32s (13,440)
 Anatomy, Market
 
@@ -604,11 +650,16 @@ The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
   if (what)
     return tree.filter(function(t) { return t.name == what; })[0];
 
-  var tech = {};
+  var tech = {}, byName = {};
   while (!tree.map(unwindDeps).every(I));
   tree.forEach(indent);
+
+  var div = $X('id("mainview")/div/div[@class="content"]');
   var maxLevel = Math.max.apply(Math, pluck(tree.filter(isKnown), "level"));
   vr(maxLevel);
+
+  var a = null;
+  div.addEventListener("mousemove", hover, false);
   return tree;
 }
 
