@@ -136,26 +136,7 @@ function createBr() { // fonction de création saut de ligne
   return document.createElement("br");
 }
 
-function levelBat() { // Ajout d'un du level sur les batiments.
-  function hoverHouse(e) {
-    var a = e.target;
-    if (a && a.search && a.title && a.title.match(/ Level \d+$/i)) {
-      var building = a.parentNode.className; //urlParse(a.search, "view");
-      var id = {
-        townHall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
-        warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11,
-        embassy: 12, branchOffice:13, "workshop-army": 15, safehouse: 16
-      }[building];
-      var level = parseInt(a.title.replace(/\D+/g, ""), 10);
-      hovering.innerHTML = visualResources(costs[id][level]);
-      hovering.style.top = e.clientY +"px";
-      hovering.style.left = e.clientX +"px";
-      hovering.style.display = "block";
-    } else
-      hovering.style.display = "none";
-  }
-
-  GM_addStyle(<><![CDATA[
+function addCSSBubbles() { GM_addStyle(<><![CDATA[
 
 .pointsLevelBat {
   background-color: #FDF8C1;
@@ -185,14 +166,56 @@ function levelBat() { // Ajout d'un du level sur les batiments.
   z-index: 1000;
 }
 
-]]></>.toString());
+#islandfeatures .wood .pointsLevelBat {
+  margin-top: -21px;
+  margin-left: 7px;
+}
+#islandfeatures .wine .pointsLevelBat {
+  margin-top: -38px;
+  margin-left: 35px;
+}
+#islandfeatures .marble .pointsLevelBat {
+  margin-top: -28px;
+  margin-left: 23px;
+}
+#islandfeatures .crystal .pointsLevelBat {
+  margin-top: -9px;
+  margin-left: 21px;
+}
+#islandfeatures .sulfur .pointsLevelBat {
+  margin-top: -33px;
+  margin-left: 35px;
+}
 
+]]></>.toString()); }
+
+function levelBat() { // Ajout d'un du level sur les batiments.
+  function hoverHouse(e) {
+    var a = e.target;
+    if (a && a.search && a.title && a.title.match(/ Level \d+$/i)) {
+      var building = a.parentNode.className; //urlParse(a.search, "view");
+      var id = {
+        townHall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
+        warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11,
+        embassy: 12, branchOffice:13, "workshop-army": 15, safehouse: 16
+      }[building];
+      var level = parseInt(a.title.replace(/\D+/g, ""), 10);
+      hovering.innerHTML = visualResources(costs[id][level]);
+      hovering.style.top = e.clientY +"px";
+      hovering.style.left = e.clientX +"px";
+      hovering.style.display = "block";
+    } else
+      hovering.style.display = "none";
+  }
+
+  addCSSBubbles();
   var divContent = $("locations");
   if (divContent) {
     var hovering = createNode("hovering", "pointsLevelBat toBuild");
     divContent.appendChild(hovering);
     hovering.style.display = "none";
     divContent.addEventListener("mouseover", hoverHouse, false);
+
     var href, node, title;
     for (var i = 0; i < 15; i++) {
       node = document.getElementById("position"+i).getElementsByTagName("a")[0];
@@ -213,6 +236,18 @@ function levelBat() { // Ajout d'un du level sur les batiments.
       }
     }
   }
+}
+
+function levelResources() {
+  function annotate(what) {
+    var node = $X('id("islandfeatures")/li['+ what +']');
+    var level = node.className.replace(/\D/g, "");
+    var div = createNode("", "pointsLevelBat", level);
+    node.appendChild(div);
+  }
+  addCSSBubbles();
+  annotate('contains(@class,"wood")');
+  annotate('not(contains(@class,"wood")) and not(@id)');
 }
 
 function levelTown() {
@@ -416,7 +451,7 @@ function principal() {
       case "CityScreen": // &function=build&id=...&position=4&building=13
       case "city": levelBat(); projectCompletion("cityCountdown"); break;
       case "port": projectCompletion("outgoingOwnCountDown"); break;
-      case "island": levelTown(); break;
+      case "island": levelTown(); levelResources(); break;
       case "townHall": citizens(); break;
       case "academy":
       case "researchAdvisor":
