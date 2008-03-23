@@ -55,13 +55,7 @@ var langs = {
          "Inga byggnader väntar.", "Trä", "Lyx",
          "Forskning"]
 };
-var lang, regex = /Terrain|construire/;
-
-// en fonction de l'url on prend les regex(dépend de la langue du site).
-if (/org$/.test(location.hostname))
-  regex = /Free|build/;
-if (/com.pt$/.test(location.hostname))
-  regex = /Livre|construir/;
+var lang;
 
 var name = "Kronos";
 var version = " 0.4";
@@ -192,7 +186,7 @@ function addCSSBubbles() { GM_addStyle(<><![CDATA[
 function levelBat() { // Ajout d'un du level sur les batiments.
   function hoverHouse(e) {
     var a = e.target;
-    if (a && a.search && a.title && a.title.match(/ Level \d+$/i)) {
+    if (a && a.search && a.title && a.title.match(/ \d+$/i)) {
       var building = a.parentNode.className; //urlParse(a.search, "view");
       var id = {
         townHall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
@@ -208,34 +202,25 @@ function levelBat() { // Ajout d'un du level sur les batiments.
       hovering.style.display = "none";
   }
 
-  addCSSBubbles();
-  var divContent = $("locations");
-  if (divContent) {
-    var hovering = createNode("hovering", "pointsLevelBat toBuild");
-    divContent.appendChild(hovering);
-    hovering.style.display = "none";
-    divContent.addEventListener("mouseover", hoverHouse, false);
-
-    var href, node, title;
-    for (var i = 0; i < 15; i++) {
-      node = document.getElementById("position"+i).getElementsByTagName("a")[0];
-      title = node.title;
-      href = node.href;
-      if (!regex.test(title)) {
-        var num = /[0-9]*$/.exec(title);
-        var href = node.href;
-        div = createNode("pointLevelBat" + i, "pointsLevelBat", num);
-        document.getElementById("position"+i).appendChild(div);
-        div.setAttribute("lien", href);
-        div.addEventListener("click",
-                             function() { link(this.getAttribute("lien")); },
-                             true);
-        //$("Kronos").appendChild(document.createTextNode(href));
-        div.style.visibility = "visible";
-        div.title = node.title;
-      }
-    }
+  function num(node) {
+    var a = $X('a', node);
+    var level = a.title.replace(/\D/g, "");
+    var div = createNode("", "pointsLevelBat", level);
+    div.title = a.title;
+    node.appendChild(div);
+    div.addEventListener("click", function() { link(a.href); }, true);
+    div.style.visibility = "visible";
   }
+
+  addCSSBubbles();
+
+  var node = $("locations");
+  var hovering = createNode("hovering", "pointsLevelBat toBuild");
+  hovering.style.display = "none";
+  node.appendChild(hovering);
+  node.addEventListener("mouseover", hoverHouse, false);
+
+  $x('id("locations")/li[not(contains(@class,"buildingGround"))]').map(num);
 }
 
 function levelResources() {
