@@ -130,7 +130,11 @@ function createBr() { // fonction de création saut de ligne
   return document.createElement("br");
 }
 
-function addCSSBubbles() { GM_addStyle(<><![CDATA[
+function css(e4x) {
+  GM_addStyle(e4x.toString());
+}
+
+function addCSSBubbles() { css(<><![CDATA[
 
 .pointsLevelBat {
   background-color: #FDF8C1;
@@ -181,13 +185,13 @@ function addCSSBubbles() { GM_addStyle(<><![CDATA[
   margin-left: 35px;
 }
 
-]]></>.toString()); }
+]]></>); }
 
 function levelBat() { // Ajout d'un du level sur les batiments.
   function hoverHouse(e) {
     var a = e.target;
     if (a && a.search && a.title && a.title.match(/ \d+$/i)) {
-      var building = a.parentNode.className; //urlParse(a.search, "view");
+      var building = a.parentNode.className; //urlParse("view", a.search);
       var id = {
         townHall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
         warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11,
@@ -269,6 +273,343 @@ function citizens() {
   factor("luxuryWorkers", luxe, 0.5);
   factor("scientists", bulb);
   factor("scientists", gold, -8);
+}
+
+function trim(str) {
+  return str.replace(/^\s+|\s+$/g, "");
+}
+
+function pluck(a, prop) {
+  return a.map(function(i) { return i[prop]; });
+}
+
+function I(i) { return i; }
+
+function techinfo(what) {
+  function makeTech(spec) {
+    var name, does, time, deps, points, junk;
+    [name, does, time, deps] = trim(spec).split("\n");
+    [junk, time, points] = /^(.*) \(([0-9,]+).*\)/.exec(time);
+    deps = deps ? deps.split(/,\s*/) : [];
+    //points = points.replace(/,/g, "");
+    spec = { name: name, does: does, time: time, points: points, deps: deps };
+    spec.known = $X('//a[.="'+ name +'"]/ancestor::ul/@class = "explored"');
+    return spec;
+  }
+
+  function unwindDeps(of) {
+    function isDefined(t) {
+      return "undefined" != typeof t;
+    }
+    function level(name) {
+      return tech[name];
+    }
+
+    if (of.hasOwnProperty("level")) // already unwound
+      return true;
+    if (!of.deps.length) // no dependencies
+      return !(of.level = tech[of.name] = 0);
+
+    var levels = of.deps.map(level);
+    if (!levels.every(isDefined)) // unresolved dependencies
+      return false;
+
+    of.level = tech[of.name] = 1 + Math.max.apply(Math, levels);
+    return true;
+  }
+
+  function isKnown(what) {
+    return what.known;
+  }
+
+  function indent(what) {
+    var a = $X('//a[.="'+ what.name +'"]');
+    a.style.marginLeft = (what.level * 10) + "px";
+    a.title = what.does;
+    a.innerHTML += visualResources(": "+ what.points +" $bulb");
+  }
+
+  function vr(level) {
+    var div = $X('id("mainview")/div/div[@class="content"]');
+    var hr = document.createElement("hr");
+    hr.style.position = "absolute";
+    hr.style.height = (div.offsetHeight - 22) + "px";
+    hr.style.width = "1px";
+    hr.style.top = "10px";
+    hr.style.left = (level*10 + 3) + "px";
+    hr.style.backgroundColor = "#E3AE87";
+    hr.style.opacity = "0.4";
+    div.appendChild(hr);
+  }
+
+  var tree = <>
+Deck Weapons
+Allows: Building ballista ships in the shipyard
+1h 5m 27s (24)
+Dry-Dock
+
+Ship Maintenance
+Effect: 2% less upkeep for ships
+1h 5m 27s (24)
+Deck Weapons
+
+Expansion
+Allows: Building palaces, founding colonies
+20h (440)
+Ship Maintenance, Wealth
+
+Foreign Cultures
+Allows: Construction of Embassies
+1D 10h 54m 32s (768)
+Expansion, Espionage
+
+Pitch
+Effect: 4% less upkeep for ships
+2D 4h (1,144)
+Foreign Cultures
+
+Greek Fire
+Allows: Building Flame Ships
+4D 12h (2,376)
+Pitch, Culinary Specialities
+
+Counterweight
+Allows: Building catapult-ships at the shipyard
+10D 4h 21m 49s (5,376)
+Greek Fire, Invention
+
+Diplomacy
+Allows: Military Treaties
+19D 2h 10m 54s (10,080)
+Counterweight
+
+Sea Charts
+Effect: 8% less upkeep for ships
+39D 18h 32m 43s (21,000)
+Diplomacy
+
+Paddle Wheel Engine
+Allows: Building steam rams in the shipyard
+136D 19h 38m 10s (72,240)
+Sea Charts, Helping Hands
+
+Mortar Attachment
+Allows: Building mortar ships in the shipyard
+231D 19h 38m 10s (122,400)
+Paddle Wheel Engine, Glass
+
+Seafaring Future
+Seafaring Future
+831D 19h 38m 10s (439,200)
+The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
+
+Conservation
+Allows: Building of Warehouses
+54m 32s (20)
+
+Pulley
+Effect: 2% less building costs
+1h 5m 27s (24)
+Conservation
+
+Wealth
+Effect: Allows the mining of trade goods and the building of trading posts
+6h 32m 43s (144)
+Pulley
+
+Wine Press
+Allows: Building of taverns
+16h (352)
+Wealth, Well Digging
+
+Culinary Specialities
+Allows: Training of chefs in the barracks
+1D 10h 54m 32s (768)
+Wine Press, Expansion, Professional Army
+
+Geometry
+Effect: 4% less building costs
+2D 4h (1,144)
+Culinary Specialities
+
+Market
+Allows: Trade Agreements
+4D 12h (2,376)
+Geometry, Foreign Cultures
+
+Holiday
+Effect: Increases the satisfaction in all towns
+11D 10h 54m 32s (6,048)
+Market
+
+Helping Hands
+Allows: Overloading of resources and academy.
+25D 10h 54m 32s (13,440)
+Holiday
+
+Spirit Level
+Effect: 8% less costs for the construction of buildings.
+39D 18h 32m 43s (21,000)
+Helping Hands
+
+Bureaucracy
+Allows: An additional building space in the towns
+117D 6h 32m 43s (61,920)
+Spirit Level
+
+Utopia
+Utopia
+606D 19h 38m 10s (320,400)
+Bureaucracy, Diplomacy, Letter Chute, Gunpowder
+
+Economy Future
+Economy Future
+831D 19h 38m 10s (439,200)
+The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
+
+Well Digging
+Effect: +50 housing space, +50 happiness in the capital
+1h 27m 16s (32)
+
+Paper
+Effect: 2% more research points
+1h 21m 49s (30)
+Well Digging
+
+Espionage
+Allows: Building hideouts
+16h (352)
+Paper, Wealth
+
+Invention
+Allows: Building of workshops
+1D 16h 43m 38s (896)
+Espionage, Wine Press, Professional Army
+
+Ink
+Effect: 4% more research points
+2D 4h (1,144)
+Invention
+
+Cultural Exchange
+Allows: building museums
+5D 12h (2,904)
+Ink, Culinary Specialities
+
+Anatomy
+Allows: Recruiting Doctors in the Barracks
+11D 10h 54m 32s (6,048)
+Cultural Exchange
+
+Glass
+Allows: Usage of crystal glass in order to accelerate research in the academy.
+25D 10h 54m 32s (13,440)
+Anatomy, Market
+
+Mechanical Pen
+Effect: 8% more research points
+39D 18h 32m 43s (21,000)
+Glass
+
+Bird´s Flight
+Allows: Gyrocopter
+127D 1h 5m 27s (67,080)
+Mechanical Pen, Governor
+
+Letter Chute
+Effect: 1 Gold upkeep less per scientist
+313D 15h 16m 21s (165,600)
+Bird´s Flight, Helping Hands
+
+Pressure Chamber
+Allows: Building diving boats in the shipyard
+404D 13h 5m 27s (213,600)
+Letter Chute, Utopia, Robotics
+
+The Archimedic Principle
+Allows: Building Bombardiers in the Barracks
+272D 17h 27m 16s (144,000)
+Pressure Chamber
+
+Knowledge Future
+Knowledge Future
+831D 19h 38m 10s (439,200)
+The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
+
+Dry-Dock
+Allows: Building Shipyards
+1h 5m 27s (24)
+
+Maps
+Effect: 2% less upkeep for soldiers
+1h 5m 27s (24)
+Dry-Dock
+
+Professional Army
+Allows: Training swordsmen and phalanxes in the barracks
+20h (440)
+Maps, Wealth
+
+Siege
+Allows: Building battering rams in the barracks
+1D 10h 54m 32s (768)
+Professional Army, Espionage
+
+Code of Honour
+Effect: 4% less upkeep
+2D 4h (1,144)
+Siege
+
+Ballistics
+Allows: Archers
+4D 12h (2,376)
+Code of Honour, Culinary Specialities
+
+Law of the Lever
+Allows: Building catapults in the barracks
+10D 4h 21m 49s (5,376)
+Ballistics, Invention
+
+Governor
+Allows: Occupation
+19D 2h 10m 54s (10,080)
+Law of the Lever, Market
+
+Logistics
+Effect: 8% less upkeep for soldiers
+39D 18h 32m 43s (21,000)
+Governor
+
+Gunpowder
+Allows: Building marksmen in the barracks
+127D 1h 5m 27s (67,080)
+Logistics, Glass
+
+Robotics
+Allows: Building steam giants in the barracks
+272D 17h 27m 16s (144,000)
+Gunpowder
+
+Canon Casting
+Allows: Building mortars in the barracks
+404D 13h 5m 27s (213,600)
+Robotics, Greek Fire
+
+Military Future
+Military Future
+831D 19h 38m 10s (439,200)
+The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
+</>.toString().split(/\n\n+/).map(makeTech);
+
+  if (what)
+    return tree.filter(function(t) { return t.name == what; })[0];
+
+  var tech = {};
+  while (!tree.map(unwindDeps).every(I));
+  tree.forEach(indent);
+  var maxLevel = Math.max.apply(Math, pluck(tree.filter(isKnown), "level"));
+  vr(maxLevel);
+  return tree;
 }
 
 var costs = [
@@ -388,32 +729,19 @@ function panelInfo() { // Ajoute un element en plus dans le menu.
   panel.appendChild(corps);
   panel.appendChild(footer);
 
-  if ($("container2")) {
-    $("container2").insertBefore(panel, $("mainview"));
+  var sidepane = $("container2"), mainview = $("mainview");
+  if (sidepane) {
+    sidepane.insertBefore(panel, mainview);
   }
   return corps;
 }
 
-function idIleRecup() {
-  // récupération de l'id de la ville :
-  if ($("cityNav")) {
-    var text = $("cityNav").innerHTML;
-    var debut = text.indexOf("view=island&amp;id=");
-    if (debut != -1) {
-      var fin = text.length;
-      text = text.substr(debut, fin);
-
-      var fin = text.indexOf('" tabindex');
-      var href = text.substr(19, fin - 19);
-    }
-    else
-      var href;
-    return href;
-  }
+function islandID() {
+  return urlParse("id", $X('//li[@class="viewIsland"]/a').search);
 }
 
-function getCityId() {
-  return $X('//li[@class="viewCity"]/a').href.replace(/.*[?&]id=(\d+).*/, "$1");
+function cityID() {
+  return urlParse("id", $X('//li[@class="viewCity"]/a').search);
 }
 
 /*------------------------
@@ -423,13 +751,12 @@ function getCityId() {
 ------------------------*/
 
 function principal() {
-  recupNameRess();
   var luxeByHours = secondsToHours(valueRecupJS("startTradegoodDelta"));
   var woodByHours = secondsToHours(valueRecupJS("startResourcesDelta"));
   var nameLuxe = recupNameRess();
 
   var chemin = panelInfo();
-  var idIle = idIleRecup();
+  var island = islandID();
 
   try {
     switch (urlParse("view") || urlParse("action")) {
@@ -438,6 +765,12 @@ function principal() {
       case "port": projectCompletion("outgoingOwnCountDown"); break;
       case "island": levelTown(); levelResources(); break;
       case "townHall": citizens(); break;
+      case "shipyard":
+        css(<><![CDATA[
+#container #mainview .unit .resources li { float: none; padding-bottom: 5px; }
+        ]]></>);
+        projectCompletion("buildCountDown"); break;
+      case "researchOverview": techinfo(); break;
       case "academy":
       case "researchAdvisor":
         var research = $X('//div[@class="researchName"]/a');
@@ -448,38 +781,21 @@ function principal() {
     projectCompletion("upgradeCountDown", "time");
   } catch(e) {}
 
-  var list = document.createElement("div"); // List des batiments.
-  var add = function(node) {
-    list.appendChild(node);
-  };
-
   [createLink(lang[wood] + ": +" + woodByHours,
-              url("?view=resource&type=resource&id="+idIle)),
+              url("?view=resource&type=resource&id=" + island)),
    createBr(),
    createLink(nameLuxe + ": +" +luxeByHours,
-              url("?view=tradegood&type=tradegood&id="+idIle))].forEach(add);
-  chemin.appendChild(list);
-
-  GM_addStyle(<><![CDATA[
-
-.popup {
-  z-index: 1000;
-  position: absolute;
-  top: 30%;
-  left: 35%;
-  width: 400px;
-  height: 250px;
-  background-color: #DBB562;
-  border: 3px solid #CE9928;
-}
-
-]]></>.toString());
+              url("?view=tradegood&type=tradegood&id=" + island)),
+   createBr(),
+  ].forEach(function add(node) { chemin.appendChild(node); });
 
   var research = config.get("research:"+location.hostname, "");
   if (research) {
     var a = document.createElement("a");
-    a.href = url("?view=academy&id=" + getCityId());
-    a.textContent = lang[researching] + ": " + research;
+    a.href = url("?view=academy&id=" + cityID());
+    var tech = techinfo(research);
+    a.textContent = lang[researching] +": "+ research;
+    a.title = tech.does +" ("+ tech.points + " points)";
     chemin.appendChild(a);
     chemin.appendChild(createBr());
   }
@@ -494,8 +810,10 @@ function principal() {
   var cityNav = $('cityNav');
   if (cityNav) {
     cityNav.addEventListener("click", function(e) {
-      if (e.target.id == "cityNav")
-        location.href = url("?view=townHall&id="+ getCityId() +"&position=0");
+      if (e.target.id == "cityNav") {
+        //prompt(1, url("?view=townHall&id="+ cityID() +"&position=0"));
+        location.href = url("?view=townHall&id="+ cityID() +"&position=0");
+      }
     }, false);
   }
 
@@ -503,7 +821,6 @@ function principal() {
   chemin.appendChild(createBr());
   chemin.appendChild(document.createTextNode(lang[execTime] +": "+
                                              (FIN - DEBUT) + "ms"));
-  //$("Kronos").appendChild(document.createTextNode(myLanguage));
 }
 
 
