@@ -64,7 +64,7 @@ Création de div, br, link etc...
 -------------------------------------*/
 
 function url(query) {
-  return location.href.replace(/\?.*/, query||"");
+  return location.href.replace(/(\?.*)?$/, query||"");
 }
 
 function valueRecupJS(nameValue) {
