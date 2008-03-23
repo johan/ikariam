@@ -6,6 +6,7 @@
 // @description    Divers petits utilitaires.
 // @include        http://*.ikariam.*/*
 // @exclude        http://board.ikariam.*/
+// @exclude        http://*.ikariam.*/index.php?view=militaryAdvisorMilitaryMovements*
 // ==/UserScript==
 
 /*-------------------------------------
