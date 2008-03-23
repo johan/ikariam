@@ -15,20 +15,20 @@ var DEBUT = new Date();
 
 // En fonction du language du naviguateur on va utiliser un langage associé.
 var language = 0, finished = 1, langUsed = 11, execTime = 12, wood = 14;
-var researching = 16;
+var researching = 16, shown = 17;
 var langs = {
   "fr": ["Français", " Fini à ", "Fermer", "Upgrader plus tard.",
          "File de construction", "Ajouter un bâtiment.", "Construire dans",
          "heures", "minutes et", "secondes",
          "valider", "Langue utilisée", "Temps d'exécution",
          "Pas de bâtiment en attente.", "Bois", "Luxe",
-         "Recherches"],
+         "Recherches", "Visible", "Invisible"],
   "en": ["English", " Finished ", "Close", "Upgrade later.",
          "Building list", "Add building.", "Build at",
          "hours", "minutes and", "seconds",
          "confirm", "Language used", "Time of execution",
          "No building in waiting.", "Wood", "Luxe",
-         "Researching"],
+         "Researching", "Shown", "Hidden"],
   // By Tico:
   "pt": ["Portuguès", " acaba às ", "Fechar", "Evoluir mais tarde.",
          "Lista de construção", "Adicionar edificio.", "Construir em",
@@ -53,7 +53,7 @@ var langs = {
          "timmar", "minuter och", "sekunder",
          "bekräfta", "Språk", "Exekveringstid",
          "Inga byggnader väntar.", "Trä", "Lyx",
-         "Forskning"]
+         "Forskning", "Visas", "Gömda"]
 };
 var lang;
 
@@ -330,13 +330,6 @@ function techinfo(what) {
       return points + tech.deps.map(mark).reduce(sum, 0);
     }
 
-    if (!hilightDependencies.cssed)
-      hilightDependencies.cssed = css(<><![CDATA[
-#researchOverview #container #mainview li { padding-left: 0; }
-a.dependent:before { content:"\2713 "; }
-a.independent { padding-left: 9px; }
-]]></>);
-
     var done = {};
     var points = mark(techName);
     tree.forEach(show);
@@ -377,7 +370,7 @@ a.independent { padding-left: 9px; }
   }
 
   function vr(level) {
-    var hr = document.createElement("hr");
+    hr = document.createElement("hr");
     hr.style.position = "absolute";
     hr.style.height = (div.offsetHeight - 22) + "px";
     hr.style.width = "1px";
@@ -649,16 +642,41 @@ The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
 
   if (what)
     return tree.filter(function(t) { return t.name == what; })[0];
+  if (!techinfo.cssed)
+    techinfo.cssed = css(<><![CDATA[
+#researchOverview #container #mainview ul { padding:0 !important; }
+#researchOverview #container #mainview li { padding-left: 0; }
+a.dependent:before { content:"\2713 "; }
+a.independent { padding-left: 9px; }
+]]></>);
 
-  var tech = {}, byName = {};
+  var tech = {}, byName = {}, hr;
   while (!tree.map(unwindDeps).every(I));
   tree.forEach(indent);
 
   var div = $X('id("mainview")/div/div[@class="content"]');
+  $x('br', div).forEach(function rm(br) { br.parentNode.removeChild(br); });
   var maxLevel = Math.max.apply(Math, pluck(tree.filter(isKnown), "level"));
   vr(maxLevel);
 
-  var a = null;
+  if (!techinfo.hide) {
+    var hide = document.createElement("style");
+    hide.type = "text/css";
+    hide.textContent = "ul.explored { display:none; }";
+    document.documentElement.firstChild.appendChild(hide);
+    hide.disabled = true;
+    var header = $X('preceding-sibling::h3/span', div);
+    header.innerHTML += ": ";
+    var toggle = createNode("hideshow", "", lang[shown], "span");
+    header.style.cursor = "pointer";
+    header.appendChild(toggle);
+    header.addEventListener("click", function() {
+      hide.disabled = !hide.disabled;
+      toggle.textContent = lang[shown + (hide.disabled ? 0 : 1)];
+      hr.style.height = (div.offsetHeight - 22) + "px";
+    }, false);
+  }
+
   div.addEventListener("mousemove", hover, false);
   return tree;
 }
