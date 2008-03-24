@@ -245,7 +245,8 @@ function levelTown() {
   function level(li) {
     var level = li.className.match(/\d+/)[0];
     var name = $X('a[@onclick]/span/text()[preceding-sibling::span]', li);
-    name.nodeValue = level +":"+ name.nodeValue;
+    if (name)
+      name.nodeValue = level +":"+ name.nodeValue;
   }
   $x('//li[starts-with(@class,"cityLocation city level")]').forEach(level);
 }
