@@ -144,7 +144,7 @@ function addCSSBubbles() { css(<><![CDATA[
 .pointsLevelBat {
   background-color: #FDF8C1;
   -moz-border-radius: 1em;
-  border: 2px solid #918B69;
+  border: 2px solid #918B69; /*"#B1AB89"*/
   border-radius: 1em;
   font-family: Sylfaen, "Times New Roman", sans-serif;
   font-size: 12px;
@@ -214,6 +214,16 @@ function buildingExpansionNeeds(a) {
   return costs[id][level];
 }
 
+function haveEnoughToUpgrade(a) {
+  var upgrade = buildingExpansionNeeds(a);
+  var resources = currentResources();
+  var enough = true;
+  for (var resource in upgrade)
+    if (resource != "t" && resources[resource] < upgrade[resource])
+      enough = false;
+  return enough;
+}
+
 function levelBat() { // Ajout d'un du level sur les batiments.
   function hoverHouse(e) {
     var a = e.target;
@@ -222,6 +232,9 @@ function levelBat() { // Ajout d'un du level sur les batiments.
       hovering.style.top = e.clientY +"px";
       hovering.style.left = e.clientX +"px";
       hovering.style.display = "block";
+      var enough = haveEnoughToUpgrade(a);
+      hovering.style.borderColor = enough ? "#B1AB89" : "#918B69";
+      hovering.style.backgroundColor = enough ? "#FEFCE8" : "#FDF8C1";
     } else
       hovering.style.display = "none";
   }
@@ -230,14 +243,10 @@ function levelBat() { // Ajout d'un du level sur les batiments.
     var a = $X('a', node);
     var level = a.title.replace(/\D/g, "");
     var div = createNode("", "pointsLevelBat", level);
-    var upgrade = buildingExpansionNeeds(a);
-    var resources = currentResources();
-    var enough = true;
-    for (var resource in upgrade)
-      if (resource != "t" && resources[resource] < upgrade[resource])
-        enough = false;
-    if (enough)
+    if (haveEnoughToUpgrade(a)) {
       div.style.backgroundColor = "#FEFCE8";
+      div.style.borderColor = "#B1AB89";
+    }
     div.title = a.title;
     node.appendChild(div);
     div.addEventListener("click", function() { link(a.href); }, true);
