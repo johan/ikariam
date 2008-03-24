@@ -23,7 +23,7 @@ var langs = {
          "heures", "minutes et", "secondes",
          "valider", "Langue utilisée", "Temps d'exécution",
          "Pas de bâtiment en attente.", "Bois", "Luxe",
-         "Recherches", "Visible", "Invisible",
+         "Recherches", "Visible", "Invisible", "plein: ",
          "JanFévMarAvrMaiJunJuiAoûSepOctNovDéc"],
   "en": ["English", " Finished ", "Close", "Upgrade later.",
          "Building list", "Add building.", "Build at",
