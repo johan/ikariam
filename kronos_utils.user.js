@@ -192,18 +192,33 @@ function addCSSBubbles() { css(<><![CDATA[
 
 ]]></>); }
 
+function currentResources() {
+  return {
+    p: number($("value_inhabitants").textContent.replace(/ .*/, "")),
+    g: number($("value_gold")), w: number($("value_wood")),
+    W: number($("value_wine")), M: number($("value_marble")),
+    G: number($("value_crystal")), S: number($("value_sulfur"))
+  };
+  //growth: config.get("growth:"+location.hostname, 0),
+  //income: config.get("income:"+location.hostname, 0),
+}
+
+function buildingExpansionNeeds(a) {
+  var building = a.parentNode.className; //urlParse("view", a.search);
+  var id = {
+    townHall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
+    warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11,
+    embassy: 12, branchOffice:13, "workshop-army": 15, safehouse: 16
+  }[building];
+  var level = number(a.title);
+  return costs[id][level];
+}
+
 function levelBat() { // Ajout d'un du level sur les batiments.
   function hoverHouse(e) {
     var a = e.target;
     if (a && a.search && a.title && a.title.match(/ \d+$/i)) {
-      var building = a.parentNode.className; //urlParse("view", a.search);
-      var id = {
-        townHall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
-        warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11,
-        embassy: 12, branchOffice:13, "workshop-army": 15, safehouse: 16
-      }[building];
-      var level = parseInt(a.title.replace(/\D+/g, ""), 10);
-      hovering.innerHTML = visualResources(costs[id][level]);
+      hovering.innerHTML = visualResources(buildingExpansionNeeds(a));
       hovering.style.top = e.clientY +"px";
       hovering.style.left = e.clientX +"px";
       hovering.style.display = "block";
@@ -211,10 +226,18 @@ function levelBat() { // Ajout d'un du level sur les batiments.
       hovering.style.display = "none";
   }
 
-  function num(node) {
+  function addnum(node) {
     var a = $X('a', node);
     var level = a.title.replace(/\D/g, "");
     var div = createNode("", "pointsLevelBat", level);
+    var upgrade = buildingExpansionNeeds(a);
+    var resources = currentResources();
+    var enough = true;
+    for (var resource in upgrade)
+      if (resource != "t" && resources[resource] < upgrade[resource])
+        enough = false;
+    if (enough)
+      div.style.backgroundColor = "#FEFCE8";
     div.title = a.title;
     node.appendChild(div);
     div.addEventListener("click", function() { link(a.href); }, true);
@@ -229,7 +252,7 @@ function levelBat() { // Ajout d'un du level sur les batiments.
   node.appendChild(hovering);
   node.addEventListener("mouseover", hoverHouse, false);
 
-  $x('id("locations")/li[not(contains(@class,"buildingGround"))]').map(num);
+  $x('id("locations")/li[not(contains(@class,"buildingGround"))]').map(addnum);
 }
 
 function levelResources() {
@@ -884,7 +907,7 @@ function principal() {
         css(<><![CDATA[
 #container #mainview .unit .resources li { float: none; padding-bottom: 5px; }
         ]]></>);
-        projectCompletion("buildCountDown"); break;
+        break;
       case "researchOverview": techinfo(); break;
       case "colonize": colonize(); break;
       case "academy":
@@ -895,6 +918,7 @@ function principal() {
         projectCompletion("researchCountDown"); break;
     }
     projectCompletion("upgradeCountDown", "time");
+    projectCompletion("buildCountDown");
   } catch(e) {}
 
   var woodCapacity = number($X('//li[@class="wood"]/div[@class="tooltip"]'));
