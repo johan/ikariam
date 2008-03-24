@@ -16,20 +16,22 @@ var DEBUT = new Date();
 
 // En fonction du language du naviguateur on va utiliser un langage associé.
 var language = 0, finished = 1, langUsed = 11, execTime = 12, wood = 14;
-var researching = 16, shown = 17;
+var researching = 16, shown = 17, full = 19, monthshort = 20;
 var langs = {
   "fr": ["Français", " Fini à ", "Fermer", "Upgrader plus tard.",
          "File de construction", "Ajouter un bâtiment.", "Construire dans",
          "heures", "minutes et", "secondes",
          "valider", "Langue utilisée", "Temps d'exécution",
          "Pas de bâtiment en attente.", "Bois", "Luxe",
-         "Recherches", "Visible", "Invisible"],
+         "Recherches", "Visible", "Invisible",
+         "JanFévMarAvrMaiJunJuiAoûSepOctNovDéc"],
   "en": ["English", " Finished ", "Close", "Upgrade later.",
          "Building list", "Add building.", "Build at",
          "hours", "minutes and", "seconds",
          "confirm", "Language used", "Time of execution",
          "No building in waiting.", "Wood", "Luxe",
-         "Researching", "Shown", "Hidden"],
+         "Researching", "Shown", "Hidden", "full: ",
+         "JanFebMarAprMayJunJulAugSepOctNovDec"],
   // By Tico:
   "pt": ["Portuguès", " acaba às ", "Fechar", "Evoluir mais tarde.",
          "Lista de construção", "Adicionar edificio.", "Construir em",
@@ -54,7 +56,8 @@ var langs = {
          "timmar", "minuter och", "sekunder",
          "bekräfta", "Språk", "Exekveringstid",
          "Inga byggnader väntar.", "Trä", "Lyx",
-         "Forskning", "Visas", "Gömda"]
+         "Forskning", "Visas", "Gömda", "fullt: ",
+         "janfebmaraprmajjunjulaugsepoktnovdec"]
 };
 var lang;
 
@@ -276,6 +279,12 @@ function citizens() {
   factor("luxuryWorkers", luxe, 0.5);
   factor("scientists", bulb);
   factor("scientists", gold, -8);
+
+  var income = $X('number(id("cityStatistics")/table/tfoot/tr/td/text())');
+  config.set("income:"+location.hostname, income);
+
+  var growth = $X('id("cityStatistics")/ul/li[contains(@class,"popGrowth")]');
+  config.set("growth:"+location.hostname, number(growth));
 }
 
 function trim(str) {
@@ -738,13 +747,19 @@ function getServerTime(offset) {
   return offset ? new Date(t.valueOf() + offset*1e3) : t;
 }
 
-function resolveTime(seconds) { // Crée le temps de fin.
+function resolveTime(seconds, timeonly) { // Crée le temps de fin.
   function z(t) { return (t < 10 ? "0" : "") + t; }
   var t = getServerTime(seconds);
+  var d = "";
+  if (t.getDate() != (new Date).getDate()) {
+    var m = lang[monthshort].slice(t.getMonth()*3);
+    d = t.getDate() +" "+ m.slice(0, 3) +", ";
+  }
   var h = z(t.getHours());
   var m = z(t.getMinutes());
-  var s = z(t.getSeconds())
-  return lang[finished] + h + ":" + m + ":" + s;
+  var s = z(t.getSeconds());
+  t = d + h + ":" + m + ":" + s;
+  return timeonly ? t : lang[finished] + t;
 }
 
 function secondsToHours(bySeconds) {
@@ -768,6 +783,35 @@ function parseTime(t) {
   for (var unit in units)
     s += parse(unit, units[unit]);
   return s;
+}
+
+function number(n) {
+  if (n.textContent)
+    n = n.textContent;
+  return parseFloat(n.replace(/[^\d.]+/g, ""), 10);
+}
+
+function colonize() {
+  function annotate(what, time) {
+    what.innerHTML += " ("+ time +")";
+  }
+  var pop = number($("value_inhabitants").textContent.replace(/ .*/, ""));
+  var growth = config.get("growth:"+location.hostname, 0);
+  var needPop = $X('//ul/li[@class="citizens"]');
+  if (pop < 40 && growth > 0)
+    annotate(needPop, resolveTime((40 - pop) / (growth / 3600.0), 1));
+
+  var gold = number($("value_gold"));
+  var income = config.get("income:"+location.hostname, 0);
+  var needGold = $X('//ul/li[@class="gold"]');
+  if (gold < 12e3 && income > 0)
+    annotate(needGold, resolveTime((12e3 - gold) / (income / 3600), 1));
+
+  var wood = number($("value_wood"));
+  var woodadd = secondsToHours(valueRecupJS("startResourcesDelta"));
+  var needWood = $X('//ul/li[@class="wood"]');
+  if (wood < 1250 && woodadd > 0)
+    annotate(needWood, resolveTime((1250 - wood) / (woodadd / 3600), 1));
 }
 
 function projectCompletion(id, className) {
@@ -824,7 +868,7 @@ function cityID() {
 function principal() {
   var luxeByHours = secondsToHours(valueRecupJS("startTradegoodDelta"));
   var woodByHours = secondsToHours(valueRecupJS("startResourcesDelta"));
-  var nameLuxe = recupNameRess();
+  var nameLuxe = recupNameRess(), lux = nameLuxe.toLowerCase();
 
   var chemin = panelInfo();
   var island = islandID();
@@ -842,6 +886,7 @@ function principal() {
         ]]></>);
         projectCompletion("buildCountDown"); break;
       case "researchOverview": techinfo(); break;
+      case "colonize": colonize(); break;
       case "academy":
       case "researchAdvisor":
         var research = $X('//div[@class="researchName"]/a');
@@ -852,10 +897,16 @@ function principal() {
     projectCompletion("upgradeCountDown", "time");
   } catch(e) {}
 
-  [createLink(lang[wood] + ": +" + woodByHours,
+  var woodCapacity = number($X('//li[@class="wood"]/div[@class="tooltip"]'));
+  var luxeCapacity = number($X('//li[@class="'+lux+'"]/div[@class="tooltip"]'));
+  var woodNow = number($("value_wood"));
+  var luxeNow = number($("value_"+lux));
+  var woodFull = resolveTime((woodCapacity - woodNow) / (woodByHours/3600), 1);
+  var luxeFull = resolveTime((luxeCapacity - luxeNow) / (luxeByHours/3600), 1);
+  [createLink(lang[wood] +": +"+ woodByHours +" ("+ lang[full] + woodFull +")",
               url("?view=resource&type=resource&id=" + island)),
    createBr(),
-   createLink(nameLuxe + ": +" +luxeByHours,
+   createLink(nameLuxe +": +"+ luxeByHours +" ("+ lang[full] + luxeFull +")",
               url("?view=tradegood&type=tradegood&id=" + island)),
    createBr(),
   ].forEach(function add(node) { chemin.appendChild(node); });
