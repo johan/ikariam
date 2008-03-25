@@ -942,7 +942,7 @@ function projectHaveResources() {
 
 function projectCompletion(id, className) {
   var node = $(id);
-  if (node) try {
+  if (node) {
     // console.log("T: %x", $("servertime").textContent);
     // console.log("L: %x", node.textContent);
     // console.log("D: %x", parseTime(node.textContent));
@@ -950,7 +950,12 @@ function projectCompletion(id, className) {
     var done = resolveTime(parseTime(node.textContent));
     var div = createNode("", className, done, node.nodeName.toLowerCase());
     node.parentNode.insertBefore(div, node.nextSibling);
-  } catch(e) {};
+    if ("cityCountdown" == id) {
+      var move = $X('ancestor::*[contains(@class,"timetofinish")]', node);
+      if (move)
+        move.style.marginLeft = "-40%";
+    }
+  }
 }
 
 /*---------------------
@@ -995,7 +1000,8 @@ function principal() {
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
   var luxeByHours = secondsToHours(valueRecupJS("startTradegoodDelta"));
   var woodByHours = secondsToHours(valueRecupJS("startResourcesDelta"));
-  var nameLuxe = recupNameRess(), lux = nameLuxe.toLowerCase();
+  var nameLuxe = recupNameRess();
+  var lux = nameLuxe.replace(/^crystal /i, "").toLowerCase();
 
   var chemin = panelInfo();
   var island = islandID();
