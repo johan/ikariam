@@ -215,15 +215,18 @@ function reapingPace() {
   return pace;
 }
 
-function buildingExpansionNeeds(a) {
+function buildingID(a) {
   var building = a.parentNode.className; //urlParse("view", a.search);
-  var id = {
+  return {
     townHall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
     warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11,
     embassy: 12, branchOffice:13, "workshop-army": 15, safehouse: 16
   }[building];
+}
+
+function buildingExpansionNeeds(a) {
   var level = number(a.title);
-  return costs[id][level];
+  return costs[buildingID(a)][level];
 }
 
 function haveEnoughToUpgrade(a) {
@@ -253,7 +256,10 @@ function levelBat() { // Ajout d'un du level sur les batiments.
 
   function addnum(node) {
     var a = $X('a', node);
-    var level = a.title.replace(/\D/g, "");
+    var id = buildingID(a);
+    var level = number(a.title);
+    if ("number" == typeof id)
+      config.set("building"+ id +":"+ location.hostname, level);
     var div = createNode("", "pointsLevelBat", level);
     if (haveEnoughToUpgrade(a)) {
       div.style.backgroundColor = "#FEFCE8";
@@ -349,8 +355,11 @@ function techinfo(what) {
     deps = deps ? deps.split(/,\s*/) : [];
     //points = points.replace(/,/g, "");
     spec = { name: name, does: does, time: time, points: points, deps: deps };
-    if ((spec.a = $X('//a[.="'+ name +'"]')))
-      spec.known = $x('ancestor::ul/@class = "explored"', spec.a);
+    if ((spec.a = $X('//a[.="'+ name +'"]'))) {
+      if ((spec.known = $x('ancestor::ul/@class = "explored"', spec.a)))
+        config.set("tech"+ urlParse("researchId", spec.a.search) +":"+
+                   location.hostname, 1);
+    }
     return spec;
   }
 
@@ -857,6 +866,20 @@ function colonize() {
     annotate(needWood, resolveTime((1250 - have.w) / (woodadd / 3600), 1));
 }
 
+function showHousingOccupancy() {
+  var townHallLevel = config.get("building0:"+ location.hostname);
+  if (townHallLevel) {
+    var maxPopulation = [, 60, 96, 143, 200, 263, 333, 410, 492, 580, 672, 769,
+                         871, 977, 1087, 1201, 1320, 1441, 1567, 1696, 1828,
+                         1964, 2103, 2246, 2391][townHallLevel];
+    if (config.get("tech3010:"+ location.hostname))
+      maxPopulation += 50; // Well Digging bonus (FIXME? 2080:Holiday too?)
+    var pop = $("value_inhabitants").firstChild;
+    var text = pop.nodeValue.replace(/\s/g, "\xA0");
+    pop.nodeValue = text.replace(")", "/"+ maxPopulation +")");
+  }
+}
+
 function projectHaveResources() {
   var upgrade = $('buildingUpgrade');
   if (upgrade) {
@@ -943,7 +966,7 @@ function cityID() {
 ------------------------*/
 
 function principal() {
-  if (innerWidth > 1003) document.body.style.overflow = "hidden"; // !scrollbar
+  if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
   var luxeByHours = secondsToHours(valueRecupJS("startTradegoodDelta"));
   var woodByHours = secondsToHours(valueRecupJS("startResourcesDelta"));
   var nameLuxe = recupNameRess(), lux = nameLuxe.toLowerCase();
@@ -976,6 +999,7 @@ function principal() {
     projectCompletion("upgradeCountDown", "time");
     projectCompletion("buildCountDown");
     projectHaveResources();
+    showHousingOccupancy();
   } catch(e) {}
 
   var have = currentResources();
