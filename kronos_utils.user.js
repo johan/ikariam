@@ -944,6 +944,7 @@ function cityID() {
 ------------------------*/
 
 function principal() {
+  if (innerWidth > 1003) document.body.style.overflow = "hidden"; // !scrollbar
   var luxeByHours = secondsToHours(valueRecupJS("startTradegoodDelta"));
   var woodByHours = secondsToHours(valueRecupJS("startResourcesDelta"));
   var nameLuxe = recupNameRess(), lux = nameLuxe.toLowerCase();
