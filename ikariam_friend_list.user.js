@@ -199,7 +199,8 @@ else{
 		
 		flFriendName = IkariamFriend[0];
 		flFriendLink = IkariamFriend[1];
-		
+		if (flFriendLink.indexOf("http://"+ location.host)) continue;
+
 		flHTML += '<li><a href="' + flFriendLink + '">' + flFriendName + '</a> <a href="javascript:flDeleteFriend(\'' + flFriendName + '\', \'' + flFriendLink + '\');"><img src="http://img153.imageshack.us/img153/9549/iconquickdeletech1.gif"></a></li>';
 		
 	}
