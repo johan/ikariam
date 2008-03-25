@@ -863,7 +863,6 @@ function projectHaveResources() {
     var needWood = $X('div/ul/li[starts-with(@class,"wood")]', upgrade) || 0;
     if (needWood)
       needWood = number(needWood);
-    console.log(needWood);
     var needRest = $x('id("buildingUpgrade")//ul[@class="resources"]/li[not('+
                       'contains(@class,"wood") or contains(@class,"time"))]');
     var need = { w:needWood };
