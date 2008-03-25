@@ -194,7 +194,7 @@ function addCSSBubbles() { css(<><![CDATA[
 
 function currentResources() {
   return {
-    p: number($("value_inhabitants").textContent.replace(/ .*/, "")),
+    p: number($("value_inhabitants").textContent.replace(/\s.*/, "")),
     g: number($("value_gold")), w: number($("value_wood")),
     W: number($("value_wine")), M: number($("value_marble")),
     G: number($("value_crystal")), S: number($("value_sulfur"))
@@ -827,23 +827,22 @@ function colonize() {
   function annotate(what, time) {
     what.innerHTML += " ("+ time +")";
   }
-  var pop = number($("value_inhabitants").textContent.replace(/ .*/, ""));
+  var have = currentResources();
+
   var growth = config.get("growth:"+location.hostname, 0);
   var needPop = $X('//ul/li[@class="citizens"]');
-  if (pop < 40 && growth > 0)
-    annotate(needPop, resolveTime((40 - pop) / (growth / 3600.0), 1));
+  if (have.p < 40 && growth > 0)
+    annotate(needPop, resolveTime((40 - have.p) / (growth / 3600.0), 1));
 
-  var gold = number($("value_gold"));
   var income = config.get("income:"+location.hostname, 0);
   var needGold = $X('//ul/li[@class="gold"]');
-  if (gold < 12e3 && income > 0)
-    annotate(needGold, resolveTime((12e3 - gold) / (income / 3600), 1));
+  if (have.g < 12e3 && income > 0)
+    annotate(needGold, resolveTime((12e3 - have.g) / (income / 3600), 1));
 
-  var wood = number($("value_wood"));
   var woodadd = secondsToHours(valueRecupJS("startResourcesDelta"));
   var needWood = $X('//ul/li[@class="wood"]');
-  if (wood < 1250 && woodadd > 0)
-    annotate(needWood, resolveTime((1250 - wood) / (woodadd / 3600), 1));
+  if (have.w < 1250 && woodadd > 0)
+    annotate(needWood, resolveTime((1250 - have.w) / (woodadd / 3600), 1));
 }
 
 function projectCompletion(id, className) {
@@ -930,16 +929,18 @@ function principal() {
     projectCompletion("buildCountDown");
   } catch(e) {}
 
+  var have = currentResources();
+  have.l = have[nameLuxe.charAt()]; // what luxury resource?
   var woodCapacity = number($X('//li[@class="wood"]/div[@class="tooltip"]'));
   var luxeCapacity = number($X('//li[@class="'+lux+'"]/div[@class="tooltip"]'));
-  var woodNow = number($("value_wood"));
-  var luxeNow = number($("value_"+lux));
-  var woodFull = resolveTime((woodCapacity - woodNow) / (woodByHours/3600), 1);
-  var luxeFull = resolveTime((luxeCapacity - luxeNow) / (luxeByHours/3600), 1);
-  [createLink(lang[wood] +": +"+ woodByHours +" ("+ lang[full] + woodFull +")",
+  var woodFull = resolveTime((woodCapacity - have.w) / (woodByHours/3600), 1);
+  var luxeFull = resolveTime((luxeCapacity - have.l) / (luxeByHours/3600), 1);
+  woodFull = woodByHours ? " ("+ lang[full] + woodFull +")" : "";
+  luxeFull = luxeByHours ? " ("+ lang[full] + luxeFull +")" : "";
+  [createLink(lang[wood] +": +"+ woodByHours + woodFull,
               url("?view=resource&type=resource&id=" + island)),
    createBr(),
-   createLink(nameLuxe +": +"+ luxeByHours +" ("+ lang[full] + luxeFull +")",
+   createLink(nameLuxe +": +"+ luxeByHours + luxeFull,
               url("?view=tradegood&type=tradegood&id=" + island)),
    createBr(),
   ].forEach(function add(node) { chemin.appendChild(node); });
