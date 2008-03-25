@@ -271,6 +271,7 @@ function levelBat() { // Ajout d'un du level sur les batiments.
 
   function addnum(node) {
     var a = $X('a', node);
+    if (!a) return;
     var id = buildingID(a);
     var level = number(a.title);
     if ("number" == typeof id)
@@ -289,10 +290,12 @@ function levelBat() { // Ajout d'un du level sur les batiments.
   addCSSBubbles();
 
   var node = $("locations");
-  var hovering = createNode("hovering", "pointsLevelBat toBuild");
-  hovering.style.display = "none";
-  node.appendChild(hovering);
-  node.addEventListener("mouseover", hoverHouse, false);
+  if (node) {
+    var hovering = createNode("hovering", "pointsLevelBat toBuild");
+    hovering.style.display = "none";
+    node.appendChild(hovering);
+    node.addEventListener("mouseover", hoverHouse, false);
+  }
 
   $x('id("locations")/li[not(contains(@class,"buildingGround"))]').map(addnum);
 }
