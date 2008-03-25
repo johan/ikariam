@@ -229,7 +229,19 @@ function buildingID(a) {
 
 function buildingExpansionNeeds(a) {
   var level = number(a.title);
-  return costs[buildingID(a)][level];
+  var needs = costs[buildingID(a)][level];
+  var factor = 1.00;
+  if (config.getServer("tech2100")) // Spirit Level
+    factor = 0.92;
+  else if (config.getServer("tech2060")) // Geometry
+    factor = 0.96;
+  else if (config.getServer("tech2020")) // Pulley
+    factor = 1.00; // 0.98; // not implemented yet!
+  for (var r in needs) {
+    if ("t" == r) continue; // no time discount
+    needs[r] = Math.floor(needs[r] * factor);
+  }
+  return needs;
 }
 
 function haveEnoughToUpgrade(a) {
