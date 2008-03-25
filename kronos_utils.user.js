@@ -116,7 +116,7 @@ function createNode(id, classN, html, tag) { // On ajoute un div
   var div = document.createElement(tag||"div"); // on crée le div
   if (id) div.id = id; // on lui ajoute l'id
   if (classN) div.className = classN; // le class
-  if (html)
+  if ("undefined" != typeof html)
     div.appendChild(document.createTextNode(html)); // on lui ajoute du texte
   return div;
 }
@@ -270,7 +270,6 @@ function levelBat() { // Ajout d'un du level sur les batiments.
   }
 
   function addnum(node) {
-    if (!node || !node.appendChild) return;
     var a = $X('a', node);
     if (!a) return;
     var id = buildingID(a);
@@ -969,6 +968,7 @@ function panelInfo() { // Ajoute un element en plus dans le menu.
   titre.appendChild(document.createTextNode(name + version));
 
   var corps = createNode("Kronos", "content");
+  corps.style.margin = "3px 10px";
   var footer = createNode("", "footer");
 
   panel.appendChild(titre);
@@ -1090,9 +1090,7 @@ function principal() {
   }
 
   var FIN = new Date();
-  chemin.appendChild(createBr());
-  chemin.appendChild(document.createTextNode(lang[execTime] +": "+
-                                             (FIN - DEBUT) + "ms"));
+  langChoice.title = lang[execTime] +": "+ (FIN - DEBUT) +"ms";
 }
 
 
