@@ -102,6 +102,9 @@ function recupNameRess() {
 // on récupére une des valeurs get d'une url(son nom est le param.
 function urlParse(param, url) {
   if (!url) url = location.search; // On récupére l'url du site.
+  if (!url && param == "view") {
+    return $("locations") ? "city" : undefined;
+  }
   var keys = {};
   url.replace(/([^=&?]+)=([^&]*)/g, function(m, key, value) {
     keys[decodeURIComponent(key)] = decodeURIComponent(value);
@@ -199,8 +202,17 @@ function currentResources() {
     W: number($("value_wine")), M: number($("value_marble")),
     G: number($("value_crystal")), S: number($("value_sulfur"))
   };
-  //growth: config.get("growth:"+location.hostname, 0),
-  //income: config.get("income:"+location.hostname, 0),
+}
+
+function reapingPace() {
+  var pace = {
+    g: config.get("income:"+location.hostname, 0),
+    p: config.get("growth:"+location.hostname, 0),
+    w: secondsToHours(valueRecupJS("startResourcesDelta"))
+  };
+  pace[recupNameRess().charAt().toUpperCase()] =
+    secondsToHours(valueRecupJS("startTradegoodDelta"));
+  return pace;
 }
 
 function buildingExpansionNeeds(a) {
@@ -845,6 +857,41 @@ function colonize() {
     annotate(needWood, resolveTime((1250 - have.w) / (woodadd / 3600), 1));
 }
 
+function projectHaveResources() {
+  var upgrade = $('buildingUpgrade');
+  if (upgrade) {
+    var needWood = $X('div/ul/li[starts-with(@class,"wood")]', upgrade) || 0;
+    if (needWood)
+      needWood = number(needWood);
+    console.log(needWood);
+    var needRest = $x('id("buildingUpgrade")//ul[@class="resources"]/li[not('+
+                      'contains(@class,"wood") or contains(@class,"time"))]');
+    var need = { w:needWood };
+    for (var i = 0; i < needRest.length; i++) {
+      var what = needRest[i];
+      need[what.className.charAt().toUpperCase()] = number(what);
+    }
+    var time = 0;
+    var have = currentResources();
+    var pace = reapingPace();
+    for (var r in need) {
+      var amount = need[r];
+      if (amount <= have[r]) continue;
+      if (!pace[r])
+        time = Infinity;
+      else
+        time = Math.max(time, 3600 * (amount - have[r]) / pace[r]);
+    }
+    if (time) {
+      var req = $X('div[@class="content"]/h4', upgrade);
+      if (Infinity == time)
+        req.textContent += " (-)";
+      else
+        req.textContent += " ("+ resolveTime(time, 1) +")";
+    }
+  }
+}
+
 function projectCompletion(id, className) {
   var node = $(id);
   if (node) {
@@ -906,6 +953,7 @@ function principal() {
 
   try {
     switch (urlParse("view") || urlParse("action")) {
+      case "loginAvatar":// &function=login
       case "CityScreen": // &function=build&id=...&position=4&building=13
       case "city": levelBat(); projectCompletion("cityCountdown"); break;
       case "port": projectCompletion("outgoingOwnCountDown"); break;
@@ -927,6 +975,7 @@ function principal() {
     }
     projectCompletion("upgradeCountDown", "time");
     projectCompletion("buildCountDown");
+    projectHaveResources();
   } catch(e) {}
 
   var have = currentResources();
@@ -937,7 +986,12 @@ function principal() {
   var luxeFull = resolveTime((luxeCapacity - have.l) / (luxeByHours/3600), 1);
   woodFull = woodByHours ? " ("+ lang[full] + woodFull +")" : "";
   luxeFull = luxeByHours ? " ("+ lang[full] + luxeFull +")" : "";
-  [createLink(lang[wood] +": +"+ woodByHours + woodFull,
+  var goldName = $X('id("value_gold")/ancestor::li').title;
+  var income = config.get("income:"+location.hostname, 0);
+  [createLink(goldName +": "+ (income > 0 ? "+" : "") + income,
+              url("?view=townHall&id="+ cityID() +"&position=0")),
+   createBr(),
+   createLink(lang[wood] +": +"+ woodByHours + woodFull,
               url("?view=resource&type=resource&id=" + island)),
    createBr(),
    createLink(nameLuxe +": +"+ luxeByHours + luxeFull,
