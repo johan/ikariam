@@ -270,6 +270,7 @@ function levelBat() { // Ajout d'un du level sur les batiments.
   }
 
   function addnum(node) {
+    if (!node || !node.appendChild) return;
     var a = $X('a', node);
     if (!a) return;
     var id = buildingID(a);
@@ -941,7 +942,7 @@ function projectHaveResources() {
 
 function projectCompletion(id, className) {
   var node = $(id);
-  if (node) {
+  if (node) try {
     // console.log("T: %x", $("servertime").textContent);
     // console.log("L: %x", node.textContent);
     // console.log("D: %x", parseTime(node.textContent));
@@ -949,7 +950,7 @@ function projectCompletion(id, className) {
     var done = resolveTime(parseTime(node.textContent));
     var div = createNode("", className, done, node.nodeName.toLowerCase());
     node.parentNode.insertBefore(div, node.nextSibling);
-  }
+  } catch(e) {};
 }
 
 /*---------------------
