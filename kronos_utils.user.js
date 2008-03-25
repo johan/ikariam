@@ -206,12 +206,15 @@ function currentResources() {
 
 function reapingPace() {
   var pace = {
-    g: config.get("income:"+location.hostname, 0),
-    p: config.get("growth:"+location.hostname, 0),
+    g: config.getServer("income", 0),
+    p: config.getServer("growth", 0),
     w: secondsToHours(valueRecupJS("startResourcesDelta"))
   };
   pace[recupNameRess().charAt().toUpperCase()] =
     secondsToHours(valueRecupJS("startTradegoodDelta"));
+  var wineUse = config.getCity("wine", 0);
+  if (wineUse)
+    pace.W = (pace.W || 0) - wineUse;
   return pace;
 }
 
@@ -259,7 +262,7 @@ function levelBat() { // Ajout d'un du level sur les batiments.
     var id = buildingID(a);
     var level = number(a.title);
     if ("number" == typeof id)
-      config.set("building"+ id +":"+ location.hostname, level);
+      config.setCity("building"+ id, level);
     var div = createNode("", "pointsLevelBat", level);
     if (haveEnoughToUpgrade(a)) {
       div.style.backgroundColor = "#FEFCE8";
@@ -331,10 +334,10 @@ function citizens() {
   factor("scientists", gold, -8);
 
   var income = $X('number(id("cityStatistics")/table/tfoot/tr/td/text())');
-  config.set("income:"+location.hostname, income);
+  config.setServer("income", income);
 
   var growth = $X('id("cityStatistics")/ul/li[contains(@class,"popGrowth")]');
-  config.set("growth:"+location.hostname, number(growth));
+  config.setServer("growth", number(growth));
 }
 
 function trim(str) {
@@ -357,8 +360,7 @@ function techinfo(what) {
     spec = { name: name, does: does, time: time, points: points, deps: deps };
     if ((spec.a = $X('//a[.="'+ name +'"]'))) {
       if ((spec.known = $x('ancestor::ul/@class = "explored"', spec.a)))
-        config.set("tech"+ urlParse("researchId", spec.a.search) +":"+
-                   location.hostname, 1);
+        config.setServer("tech"+ urlParse("researchId", spec.a.search), 1);
     }
     return spec;
   }
@@ -841,7 +843,7 @@ function parseTime(t) {
 function number(n) {
   if (n.textContent)
     n = n.textContent;
-  return parseFloat(n.replace(/[^\d.]+/g, ""), 10);
+  return parseFloat(n.replace(/[^\d.]+/g, ""));
 }
 
 function colonize() {
@@ -850,12 +852,12 @@ function colonize() {
   }
   var have = currentResources();
 
-  var growth = config.get("growth:"+location.hostname, 0);
+  var growth = config.getServer("growth", 0);
   var needPop = $X('//ul/li[@class="citizens"]');
   if (have.p < 40 && growth > 0)
     annotate(needPop, resolveTime((40 - have.p) / (growth / 3600.0), 1));
 
-  var income = config.get("income:"+location.hostname, 0);
+  var income = config.getServer("income", 0);
   var needGold = $X('//ul/li[@class="gold"]');
   if (have.g < 12e3 && income > 0)
     annotate(needGold, resolveTime((12e3 - have.g) / (income / 3600), 1));
@@ -867,16 +869,24 @@ function colonize() {
 }
 
 function showHousingOccupancy() {
-  var townHallLevel = config.get("building0:"+ location.hostname);
+  var townHallLevel = config.getCity("building0");
   if (townHallLevel) {
     var maxPopulation = [, 60, 96, 143, 200, 263, 333, 410, 492, 580, 672, 769,
                          871, 977, 1087, 1201, 1320, 1441, 1567, 1696, 1828,
                          1964, 2103, 2246, 2391][townHallLevel];
-    if (config.get("tech3010:"+ location.hostname))
+    if (config.getServer("tech3010"))
       maxPopulation += 50; // Well Digging bonus (FIXME? 2080:Holiday too?)
     var pop = $("value_inhabitants").firstChild;
     var text = pop.nodeValue.replace(/\s/g, "\xA0");
     pop.nodeValue = text.replace(")", "/"+ maxPopulation +")");
+  }
+}
+
+function projectWineShortage() {
+  var flow = reapingPace().W;
+  if (flow < 0) {
+    var span = $("value_wine");
+    span.lastChild.nodeValue += "\xA0("+ Math.floor(number(span)/-flow) +"h)";
   }
 }
 
@@ -993,13 +1003,19 @@ function principal() {
       case "researchAdvisor":
         var research = $X('//div[@class="researchName"]/a');
         if (research)
-          config.set("research:"+location.hostname, research.title);
+          config.setServer("research", research.title);
         projectCompletion("researchCountDown"); break;
     }
     projectCompletion("upgradeCountDown", "time");
     projectCompletion("buildCountDown");
     projectHaveResources();
     showHousingOccupancy();
+    var wine = $("wineAmount");
+    if (wine) {
+      wine = wine.form.elements.namedItem("amount");
+      config.setCity("wine", number(wine.options[wine.selectedIndex]) || 0);
+    }
+    projectWineShortage();
   } catch(e) {}
 
   var have = currentResources();
@@ -1011,7 +1027,7 @@ function principal() {
   woodFull = woodByHours ? " ("+ lang[full] + woodFull +")" : "";
   luxeFull = luxeByHours ? " ("+ lang[full] + luxeFull +")" : "";
   var goldName = $X('id("value_gold")/ancestor::li').title;
-  var income = config.get("income:"+location.hostname, 0);
+  var income = config.getServer("income", 0);
   [createLink(goldName +": "+ (income > 0 ? "+" : "") + income,
               url("?view=townHall&id="+ cityID() +"&position=0")),
    createBr(),
@@ -1023,7 +1039,7 @@ function principal() {
    createBr(),
   ].forEach(function add(node) { chemin.appendChild(node); });
 
-  var research = config.get("research:"+location.hostname, "");
+  var research = config.getServer("research", "");
   if (research) {
     var a = document.createElement("a");
     a.href = url("?view=academy&id=" + cityID());
@@ -1117,6 +1133,12 @@ var config = (function(data) {
   function get(name, value) {
     return data.hasOwnProperty(name) ? data[name] : value;
   }
+  function getCity(name, value) {
+    return getServer(name +":"+ cityID(), value);
+  }
+  function getServer(name, value) {
+    return get(name +":"+ location.hostname, value);
+  }
   function set(name, value) {
     if (value === undefined)
       delete data[name];
@@ -1124,6 +1146,12 @@ var config = (function(data) {
       data[name] = value;
     GM_setValue("config", uneval(data));
     return value;
+  }
+  function setCity(name, value) {
+    return setServer(name +":"+ cityID(), value);
+  }
+  function setServer(name, value) {
+    return set(name +":"+ location.hostname, value);
   }
   function keys(re) {
     re = re || /./;
@@ -1147,7 +1175,10 @@ var config = (function(data) {
     }
     return value;
   }
-  return { get:get, set:set, keys:keys, remove:remove };
+  return { get:get, set:set,
+           setCity:setCity, getCity:getCity,
+           setServer:setServer, getServer:getServer,
+           keys:keys, remove:remove };
 })(eval(GM_getValue("config", "({})")));
 
 lang = langs[getLanguage()];
