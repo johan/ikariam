@@ -232,6 +232,7 @@ function buildingID(a) {
 function buildingExpansionNeeds(a) {
   var level = number(a.title);
   var needs = costs[buildingID(a)][level];
+  var value = {};
   var factor = 1.00;
   if (config.getServer("tech2100")) // Spirit Level
     factor = 0.92;
@@ -239,11 +240,12 @@ function buildingExpansionNeeds(a) {
     factor = 0.96;
   else if (config.getServer("tech2020")) // Pulley
     factor = 1.00; // 0.98; // not implemented yet!
-  for (var r in needs) {
-    if ("t" == r) continue; // no time discount
-    needs[r] = Math.floor(needs[r] * factor);
-  }
-  return needs;
+  for (var r in needs)
+    if ("t" == r) // no time discount
+      value[r] = needs[r];
+    else
+      value[r] = Math.floor(needs[r] * factor);
+  return value;
 }
 
 function haveEnoughToUpgrade(a) {
