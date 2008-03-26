@@ -959,6 +959,17 @@ function projectCompletion(id, className) {
   }
 }
 
+function title(detail) {
+  var server = location.hostname.match(/^s(\d+)\.(.*)/), host = "";
+  if (server) {
+    host = " @"+ server[2];
+    server = "αβγδεζηθικλμνξοπρστυφχψω".charAt(parseInt(server[1], 10)-1);
+  }
+  if (!detail)
+    detail = $X('id("breadcrumbs")/*[last()]').textContent;
+  document.title = (server ? server + " " : "") + detail + host;
+}
+
 /*---------------------
 Ajout du panel dans le menu
 ---------------------*/
@@ -1030,6 +1041,7 @@ function principal() {
           config.setServer("research", research.title);
         projectCompletion("researchCountDown"); break;
     }
+    title();
     projectCompletion("upgradeCountDown", "time");
     projectCompletion("buildCountDown");
     projectHaveResources();
