@@ -911,9 +911,15 @@ function showHousingOccupancy() {
 
 // projects wine shortage time and adds lots of shortcut clicking functionality
 function improveTopPanel() {
-  function clickTo(node, url) {
+  function clickTo(node, url, condition, capture) {
     if (node) {
-      node.addEventListener("click", function() { goto(url); }, false);
+      node.addEventListener("click", function(e) {
+        if (!condition || $X(condition, e.target)) {
+          e.stopPropagation();
+          e.preventDefault();
+          goto(url);
+        }
+      }, !!capture);
       node.style.cursor = "pointer";
     }
   }
@@ -936,17 +942,14 @@ function improveTopPanel() {
     var warehouse = url("?view=warehouse&id="+ cityID() +"&position="+ warePos);
     var resources = $X('id("cityResources")/ul[@class="resources"]');
     if (resources) {
-      resources.addEventListener("click", function(e) {
-        if ($X('ancestor-or-self::*[@class="tooltip"]', e.target))
-          goto(warehouse);
-      }, true);
       $x('li/div[@class="tooltip"]', resources).forEach(function(tooltip) {
-        tooltip.style.cursor = "pointer";
+          clickTo(tooltip, warehouse, null, true)
       });
     }
   }
 
-  clickTo($('cityNav'), url("?view=townHall&id="+ cityID() +"&position=0"));
+  clickTo($('cityNav'), url("?view=townHall&id="+ cityID() +"&position=0"),
+          'self::*[@id="cityNav"]');
   clickTo($X('id("value_wood")/parent::li'),
           url("?view=resource&type=resource&id=" + islandID()));
   clickTo($X('id("value_'+ luxuryType("name") +'")/parent::li'),
