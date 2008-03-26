@@ -355,8 +355,8 @@ function citizens() {
   factor("scientists", bulb);
   factor("scientists", gold, -8);
 
-  var income = $X('number(id("cityStatistics")/table/tfoot/tr/td/text())');
-  config.setServer("income", income);
+  var income = $X('id("cityStatistics")/table/tfoot/tr/td/text()');
+  config.setServer("income", number(income));
 
   var growth = $X('id("cityStatistics")/ul/li[contains(@class,"popGrowth")]');
   config.setServer("growth", number(growth));
