@@ -928,31 +928,37 @@ function projectWineShortage() {
 function projectHaveResources() {
   var upgrade = $('buildingUpgrade');
   if (upgrade) {
-    var needWood = $X('div/ul/li[starts-with(@class,"wood")]', upgrade) || 0;
-    if (needWood)
-      needWood = number(needWood);
+    var time = 0;
+    var need = {};
+    var pace = reapingPace();
+    var have = currentResources();
+    var woodNode = $X('div/ul/li[starts-with(@class,"wood")]', upgrade);
+    if (woodNode)
+      need.w = woodNode;
     var needRest = $x('id("buildingUpgrade")//ul[@class="resources"]/li[not('+
                       'contains(@class,"wood") or contains(@class,"time"))]');
-    var need = { w:needWood };
     for (var i = 0; i < needRest.length; i++) {
       var what = needRest[i];
-      need[what.className.charAt().toUpperCase()] = number(what);
+      var id = what.className.charAt().toUpperCase();
+      need[id] = what;
     }
-    var time = 0;
-    var have = currentResources();
-    var pace = reapingPace();
     for (var r in need) {
-      var amount = need[r];
+      var node = need[r];
+      var amount = number(node);
       if (amount <= have[r]) continue;
-      if (!pace[r])
+      if (!pace[r]) {
+        node.title += ": (∞)";
         time = Infinity;
-      else
-        time = Math.max(time, 3600 * (amount - have[r]) / pace[r]);
+      } else {
+        what = 3600 * (amount - have[r]) / pace[r];
+        node.title += ": ("+ resolveTime(what, 1) +")";
+        time = Math.max(time, what);
+      }
     }
     if (time) {
       var req = $X('div[@class="content"]/h4', upgrade);
       if (Infinity == time)
-        req.textContent += " (-)";
+        req.textContent += " (∞)";
       else
         req.textContent += " ("+ resolveTime(time, 1) +")";
     }
