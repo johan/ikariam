@@ -131,7 +131,7 @@ function createLink(nom, href) {
   return lien;
 }
 
-function link(href) {
+function goto(href) {
   location.href = href;
 }
 
@@ -285,7 +285,7 @@ function levelBat() { // Ajout d'un du level sur les batiments.
     }
     div.title = a.title;
     node.appendChild(div);
-    div.addEventListener("click", function() { link(a.href); }, true);
+    div.addEventListener("click", function() { goto(a.href); }, true);
     div.style.visibility = "visible";
   }
 
@@ -904,9 +904,16 @@ function showHousingOccupancy() {
 
 function projectWineShortage() {
   var flow = reapingPace().W;
-  if (flow < 0) {
-    var span = $("value_wine");
-    span.lastChild.nodeValue += "\xA0("+ Math.floor(number(span)/-flow) +"h)";
+  var span = $("value_wine");
+  var time = flow < 0 ? Math.floor(number(span)/-flow) +"h" : "∞";
+  time = createNode("", "", "\xA0("+ time +")", "span");
+  span.parentNode.insertBefore(time, span.nextSibling);
+
+  var tavernPos = config.getCity("tavern", "?");
+  if (tavernPos != "?") {
+    var tavern = url("?view=tavern&id="+ cityID() +"&position="+ tavernPos);
+    time.addEventListener("click", function() { goto(tavern); }, true);
+    time.style.cursor = "pointer";
   }
 }
 
@@ -1053,6 +1060,9 @@ function principal() {
     if (wine) {
       wine = wine.form.elements.namedItem("amount");
       config.setCity("wine", number(wine.options[wine.selectedIndex]) || 0);
+      var tavern = urlParse("position");
+      if (tavern)
+        config.setCity("tavern", tavern);
     }
     projectWineShortage();
   } catch(e) {}
