@@ -318,8 +318,11 @@ function levelTown() {
   function level(li) {
     var level = li.className.match(/\d+/)[0];
     var name = $X('a[@onclick]/span/text()[preceding-sibling::span]', li);
-    if (name)
+    if (name) {
       name.nodeValue = level +":"+ name.nodeValue;
+      name = name.parentNode;
+      name.style.left = Math.round((name.offsetWidth) / -2 + 34) + "px";
+    }
   }
   $x('//li[starts-with(@class,"cityLocation city level")]').forEach(level);
 }
@@ -962,7 +965,7 @@ function projectCompletion(id, className) {
 function title(detail) {
   var server = location.hostname.match(/^s(\d+)\.(.*)/), host = "";
   if (server) {
-    host = " @"+ server[2];
+    host = " "+ server[2];
     server = "αβγδεζηθικλμνξοπρστυφχψω".charAt(parseInt(server[1], 10)-1);
   }
   if (!detail)
