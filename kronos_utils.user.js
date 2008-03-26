@@ -964,14 +964,14 @@ function improveTopPanel() {
   }
 }
 
-function projectHaveResources() {
-  var upgrade = $('buildingUpgrade');
-  if (upgrade) {
+function projectBuildStart(root, result) {
+  function projectWhenWeHaveResourcesToStartBuilding(ul) {
+    if (!result) return;
     var time = 0;
     var need = {};
     var pace = reapingPace();
     var have = currentResources();
-    var woodNode = $X('div/ul/li[starts-with(@class,"wood")]', upgrade);
+    var woodNode = $X('li[starts-with(@class,"wood")]', ul);
     if (woodNode)
       need.w = woodNode;
     var needRest = $x('id("buildingUpgrade")//ul[@class="resources"]/li[not('+
@@ -994,14 +994,22 @@ function projectHaveResources() {
         time = Math.max(time, what);
       }
     }
-    if (time) {
-      var req = $X('div[@class="content"]/h4', upgrade);
+    if (time && (node = $X(result, ul))) {
       if (Infinity == time)
-        req.textContent += " (∞)";
+        time = "\xA0(∞)";
       else
-        req.textContent += " ("+ resolveTime(time, 1) +")";
+        time = "\xA0("+ resolveTime(time, 1) +")";
+      node.appendChild(document.createTextNode(time));
     }
   }
+
+  result = result || 'li[@class="time"]';
+  $x('.//ul[@class="resources"][not(ancestor::*[@id="cityResources"])]',
+     $(root)).forEach( projectWhenWeHaveResourcesToStartBuilding );
+}
+
+function projectHaveResourcesToUpgrade() {
+  projectBuildStart("buildingUpgrade", 'preceding-sibling::h4');
 }
 
 function projectCompletion(id, className) {
@@ -1101,8 +1109,8 @@ function principal() {
       case "shipyard":
         css(<><![CDATA[
 #container #mainview .unit .resources li { float: none; padding-bottom: 5px; }
-        ]]></>);
-        break;
+        ]]></>); // fall-through:
+      case "buildingGround": projectBuildStart("mainview"); break;
       case "researchOverview": techinfo(); break;
       case "colonize": colonize(); break;
       case "academy":
@@ -1116,7 +1124,7 @@ function principal() {
     detectWineChange();
     projectCompletion("upgradeCountDown", "time");
     projectCompletion("buildCountDown");
-    projectHaveResources();
+    projectHaveResourcesToUpgrade();
     showHousingOccupancy();
   } catch(e) {}
 
