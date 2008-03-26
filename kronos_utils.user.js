@@ -865,7 +865,7 @@ function parseTime(t) {
 function number(n) {
   if (n.textContent)
     n = n.textContent;
-  return parseFloat(n.replace(/[^\d.]+/g, ""));
+  return parseFloat(n.replace(/[^\d.-]+/g, ""));
 }
 
 function colonize() {
