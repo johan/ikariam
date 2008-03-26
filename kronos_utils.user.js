@@ -103,7 +103,9 @@ function recupNameRess() {
 function urlParse(param, url) {
   if (!url) url = location.search; // On récupére l'url du site.
   if (!url && param == "view") {
-    return $("locations") ? "city" : undefined;
+    var view = { cities: "island", locations: "city" };
+    for (var id in view)
+      if ($(id)) return view[id];
   }
   var keys = {};
   url.replace(/([^=&?]+)=([^&]*)/g, function(m, key, value) {
