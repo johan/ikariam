@@ -82,20 +82,22 @@ function valueRecupJS(nameValue) {
   }
 }
 
-function recupNameRess() {
-  var _a = $("cityResources");
-  if (_a.getElementsByTagName("script")[0]) {
-    var text = _a.getElementsByTagName("script")[0].innerHTML;
-    text = text.substr(text.indexOf("currTradegood"), text.length);
-    text = text.substr(text.indexOf("value_"),
-                       text.indexOf(".innerHTML") -
-                       text.indexOf("value_") - 2);
-    for (var i = 0; i < _a.getElementsByTagName("li").length; i++) {
-      var _b = _a.getElementsByTagName("li")[i].getElementsByTagName("span");
-      if (_b[1].id == text){
-        return _b[0].textContent.replace(/:\s*/, "");
-      }
-    }
+function luxuryType(type) {
+  var script = $X('id("cityResources")/script').textContent.replace(/\s+/g," ");
+  var what = script.match(/currTradegood.*?value_([^\x22\x27]+)/)[1];
+  switch (type) {
+    case undefined:
+    case 0: return what.charAt().toUpperCase();
+
+    case "name":
+    case 1: return what;
+
+    case "glass": return what.replace("crystal", "glass");
+
+    case "english":
+    case 2:
+      what = $X('id("value_'+ what +'")/preceding-sibling::span');
+      return what.textContent.replace(/:.*/, "");
   }
 }
 
@@ -202,7 +204,7 @@ function currentResources() {
     p: number($("value_inhabitants").textContent.replace(/\s.*/, "")),
     g: number($("value_gold")), w: number($("value_wood")),
     W: number($("value_wine")), M: number($("value_marble")),
-    G: number($("value_crystal")), S: number($("value_sulfur"))
+    C: number($("value_crystal")), S: number($("value_sulfur"))
   };
 }
 
@@ -212,8 +214,7 @@ function reapingPace() {
     p: config.getServer("growth", 0),
     w: secondsToHours(valueRecupJS("startResourcesDelta"))
   };
-  pace[recupNameRess().charAt().toUpperCase()] =
-    secondsToHours(valueRecupJS("startTradegoodDelta"));
+  pace[luxuryType()] = secondsToHours(valueRecupJS("startTradegoodDelta"));
   var wineUse = config.getCity("wine", 0);
   if (wineUse)
     pace.W = (pace.W || 0) - wineUse;
@@ -278,8 +279,10 @@ function levelBat() { // Ajout d'un du level sur les batiments.
     if (!a) return;
     var id = buildingID(a);
     var level = number(a.title);
-    if ("number" == typeof id)
+    if ("number" == typeof id) {
       config.setCity("building"+ id, level);
+      config.setCity("posbldg"+ id, number(node.id));
+    }
     var div = createNode("", "pointsLevelBat", level);
     if (haveEnoughToUpgrade(a)) {
       div.style.backgroundColor = "#FEFCE8";
@@ -342,8 +345,8 @@ function citizens() {
   }
 
   // wine:25x20, marble:25x19, glass:23x18, sulfur:25x19
-  var iconBase = "skin/resources/icon_", goods = recupNameRess().toLowerCase();
-  var w = goods == "glass" ? 23 : 25, h = { wine: 20, glass: 18 }[goods] || 19;
+  var iconBase = "skin/resources/icon_", goods = luxuryType("name");
+  var w = goods == "crystal" ? 23 : 25, h = {wine:20, crystal:18}[goods] || 19;
   var luxe = <img src={iconBase + goods +".gif"} width={w} height={h}/>;
   var wood = <img src="skin/resources/icon_wood.gif" width="25" height="20"/>;
   var gold = <img src="skin/resources/icon_gold.gif" width="17" height="19"/>;
@@ -772,14 +775,14 @@ a.independent { padding-left: 9px; }
 var costs = [
   [{}, {w:68, t:"34m 48s"}, {w:96, t:"56m 24s"}, {w:63, M:16, t:"1h 24m"}, {w:126, M:27, t:"1h 58m"}, {w:231, M:64, t:"2h 40m"}, {w:393, M:93, t:"3h 29m"}, {w:582, M:152, t:"4h 25m"}, {w:832, M:238, t:"5h 30m"}, {w:1152, M:397, t:"6h 43m"}, {w:1554, M:567, t:"8h 5m"}, {w:2058, M:783, t:"9h 35m"}, {w:3214, M:1321, t:"11h 15m"}, {w:4838, M:2081, t:"13h 3m"}, {w:7027, M:2891, t:"15h 1m"}, {w:9936, M:4320, t:"17h 9m"}, {w:14246, M:6331, t:"20h 11m"}, {w:18051, M:8023, t:"22h 44m"}, {w:22438, M:9972, t:"1D 1h"}, {w:27486, M:12216, t:"1D 4h"}, {w:33255, M:14780, t:"1D 7h"}, {w:39810, M:17693, t:"1D 10h"}, {w:47144, M:20953, t:"1D 14h"}, {w:55380, M:24613, t:"1D 17h"}, {w:221523, M:98454, t:"6D 23h"}, {w:443046, M:196909, t:"13D 22h"}, {w:886092, M:393818, t:"27D 21h"}, {w:1772184, M:787637, t:"55D 19h"}, {w:3544369, M:1575275, t:"111D 15h"}, {w:7088739, M:3150551, t:"223D 6h"}, {w:14177479, M:6301102, t:"446D 12h"}, {w:28354959, M:12602204, t:"893D 19m"}],,,
   [{w:17, t:"10m 48s"}, {w:30, t:"24m 29s"}, {w:43, t:"50m 24s"}, {w:85, M:32, t:"1h 26m"}, {w:152, M:47, t:"2h 18m"}, {w:260, M:91, t:"2h 58m"}, {w:416, M:123, t:"3h 41m"}, {w:639, M:210, t:"4h 52m"}, {w:943, M:337, t:"5h 37m"}, {w:1353, M:518, t:"7h 6m"}, {w:1876, M:761, t:"7h 48m"}, {w:2551, M:1078, t:"9h 30m"}, {w:3714, M:1696, t:"10h 36s"}, {w:5242, M:2254, t:"11h 53m"}, {w:7186, M:2956, t:"11h 59m"}, {w:9611, M:4179, t:"13h 56m"}, {w:38447, M:16718, t:"2D 7h"}, {w:76894, M:33437, t:"4D 15h"}, {w:153789, M:66875, t:"9D 7h"}, {w:307578, M:133750, t:"18D 14h"}, {w:615157, M:267500, t:"37D 4h"}, {w:1230315, M:535001, t:"74D 8h"}, {w:2460631, M:1070003, t:"148D 17h"}, {w:4921262, M:2140006, t:"297D 11h"}],
-  [{w:35, t:"14m 24s"}, {w:56, t:"28m 48s"}, {w:82, t:"48m"}, {w:77, G:29, t:"1h 19m"}, {w:155, G:71, t:"1h 57m"}, {w:295, G:205, t:"2h 48m"}, {w:524, G:279, t:"3h 52m"}, {w:871, G:457, t:"5h 6m"}, {w:1394, G:697, t:"6h 36m"}, {w:2130, G:979, t:"8h 16m"}, {w:3156, G:1280, t:"10h 16m"}, {w:4546, G:1920, t:"12h 27m"}, {w:7011, G:3201, t:"15h"}, {w:10417, G:4481, t:"17h 45m"}, {w:14919, G:6138, t:"20h 44m"}, {w:19950, G:8675, t:"1D 7m"}, {w:79803, G:34703, t:"4D 28m"}, {w:159606, G:69407, t:"8D 57m"}, {w:319213, G:138815, t:"16D 1h"}, {w:638426, G:277630, t:"32D 3h"}, {w:1276853, G:555260, t:"64D 7h"}, {w:2553707, G:1110520, t:"128D 15h"}, {w:5107415, G:2221040, t:"257D 6h"}, {w:10214830, G:4442081, t:"514D 13h"}],
+  [{w:35, t:"14m 24s"}, {w:56, t:"28m 48s"}, {w:82, t:"48m"}, {w:77, C:29, t:"1h 19m"}, {w:155, C:71, t:"1h 57m"}, {w:295, C:205, t:"2h 48m"}, {w:524, C:279, t:"3h 52m"}, {w:871, C:457, t:"5h 6m"}, {w:1394, C:697, t:"6h 36m"}, {w:2130, C:979, t:"8h 16m"}, {w:3156, C:1280, t:"10h 16m"}, {w:4546, C:1920, t:"12h 27m"}, {w:7011, C:3201, t:"15h"}, {w:10417, C:4481, t:"17h 45m"}, {w:14919, C:6138, t:"20h 44m"}, {w:19950, C:8675, t:"1D 7m"}, {w:79803, C:34703, t:"4D 28m"}, {w:159606, C:69407, t:"8D 57m"}, {w:319213, C:138815, t:"16D 1h"}, {w:638426, C:277630, t:"32D 3h"}, {w:1276853, C:555260, t:"64D 7h"}, {w:2553707, C:1110520, t:"128D 15h"}, {w:5107415, C:2221040, t:"257D 6h"}, {w:10214830, C:4442081, t:"514D 13h"}],
   [{w:37, t:"22m 41s"}, {w:65, t:"52m 49s"}, {w:94, t:"1h 50m"}, {w:148, M:55, t:"2h 31m"}, {w:266, M:81, t:"4h 1m"}, {w:380, M:132, t:"4h 20m"}, {w:596, M:176, t:"5h 17m"}, {w:793, M:260, t:"6h 2m"}, {w:1069, M:382, t:"6h 22m"}, {w:1519, M:582, t:"7h 58m"}, {w:1882, M:764, t:"7h 50m"}, {w:2548, M:1076, t:"9h 29m"}, {w:3459, M:1579, t:"9h 19m"}, {w:4463, M:1920, t:"10h 7m"}, {w:6103, M:2511, t:"10h 10m"}, {w:7547, M:3282, t:"10h 57m"}, {w:30191, M:13128, t:"1D 19h"}, {w:60383, M:26256, t:"3D 15h"}, {w:120767, M:52512, t:"7D 7h"}, {w:241534, M:105024, t:"14D 14h"}, {w:483069, M:210049, t:"29D 4h"}, {w:966138, M:420098, t:"58D 9h"}, {w:1932277, M:840197, t:"116D 19h"}, {w:3864555, M:1680394, t:"233D 14h"}, {w:7729111, M:3360788, t:"467D 4h"}, {w:15458222, M:6721576, t:"934D 9h"}, {w:30916444, M:13443153, t:"1868D 19h"}, {w:61832888, M:26886307, t:"3737D 14h"}, {w:123665776, M:53772615, t:"7475D 4h"}, {w:247331553, M:107545231, t:"14950D 9h"}, {w:494663106, M:215090462, t:"29900D 19h"}, {w:989326213, M:430180925, t:"59801D 14h"}],
   [{w:34, t:"6m 58s"}, {w:44, t:"16m 12s"}, {w:66, t:"31m 12s"}, {w:74, t:"56m 24s"}, {w:65, M:21, t:"1h 39m"}, {w:74, M:23, t:"1h 44m"}, {w:121, M:45, t:"2h 3m"}, {w:179, M:54, t:"2h 15m"}, {w:230, M:80, t:"2h 23m"}, {w:329, M:98, t:"2h 55m"}, {w:445, M:147, t:"3h 23m"}, {w:603, M:215, t:"4h"}, {w:739, M:283, t:"4h 18m"}, {w:960, M:390, t:"5h"}, {w:1146, M:484, t:"4h 48m"}, {w:1447, M:637, t:"5h 29m"}, {w:1761, M:804, t:"5h 25m"}, {w:2077, M:971, t:"5h 50m"}, {w:2386, M:1027, t:"5h 24m"}, {w:2774, M:1228, t:"5h 48m"}, {w:3143, M:1293, t:"5h 14m"}, {w:3687, M:1563, t:"5h 43m"}, {w:4210, M:1831, t:"5h 5m"}, {w:4776, M:2122, t:"5h 24m"}, {w:19106, M:8490, t:"21h 39m"}, {w:38212, M:16981, t:"1D 19h"}, {w:76424, M:33962, t:"3D 14h"}, {w:152848, M:67925, t:"7D 5h"}, {w:305697, M:135851, t:"14D 10h"}, {w:611394, M:271703, t:"28D 21h"}, {w:1222789, M:543406, t:"57D 18h"}, {w:2445578, M:1086812, t:"115D 12h"}, {w:4891156, M:2173624, t:"231D 57m"}, {w:9782312, M:4347248, t:"462D 1h"}, {w:19564625, M:8694497, t:"924D 3h"}, {w:39129251, M:17388994, t:"1848D 7h"}, {w:78258503, M:34777989, t:"3696D 15h"}, {w:156517007, M:69555978, t:"7393D 6h"}, {w:313034014, M:139111956, t:"14786D 13h"}, {w:626068029, M:278223912, t:"29573D 2h"}, {w:1252136058, M:556447825, t:"59146D 5h"}, {w:2504272117, M:1112895651, t:"118292D 11h"}, {w:5008544235, M:2225791303, t:"236584D 23h"}, {w:10017088471, M:4451582607, t:"473169D 22h"}, {w:20034176942, M:8903165214, t:"946339D 20h"}, {w:40068353884, M:17806330429, t:"1892679D 16h"}, {w:80136707768, M:35612660858, t:"3785359D 8h"}, {w:160273415536, M:71225321717, t:"7570718D 17h"}, {w:320546831073, M:142450643435, t:"15141437D 10h"}, {w:641093662146, M:284901286871, t:"30282874D 21h"}, {w:1282187324293, M:569802573742, t:"60565749D 18h"}, {w:2564374648586, M:1139605147484, t:"121131499D 12h"}, {w:5128749297172, M:2279210294968, t:"242262999D 57m"}, {w:10257498594344, M:4558420589936, t:"484525998D 1h"}, {w:20514997188689, M:9116841179873, t:"969051996D 3h"}, {w:41029994377379, M:18233682359746, t:"1938103992D 7h"}],
   [{w:41, t:"27m 36s"}, {w:89, t:"1h 7m"}, {w:77, M:12, t:"1h 40m"}, {w:142, M:42, t:"2h 25m"}, {w:249, M:60, t:"3h 8m"}, {w:388, M:107, t:"4h 2m"}, {w:553, M:131, t:"4h 54m"}, {w:783, M:232, t:"5h 57m"}, {w:1178, M:379, t:"7h 6m"}, {w:1586, M:546, t:"8h 24m"}, {w:2092, M:764, t:"9h 54m"}, {w:2705, M:1143, t:"11h 27m"}, {w:4114, M:1878, t:"13h 12m"}, {w:5631, M:2422, t:"15h 12m"}, {w:7501, M:3087, t:"17h 22m"}, {w:9831, M:5130, t:"19h 48m"}, {w:39325, M:20521, t:"3D 7h"}, {w:78650, M:41042, t:"6D 14h"}, {w:157301, M:82084, t:"13D 4h"}, {w:314603, M:164169, t:"26D 9h"}, {w:629207, M:328339, t:"52D 19h"}, {w:1258414, M:656678, t:"105D 15h"}, {w:2516828, M:1313356, t:"211D 7h"}, {w:5033656, M:2626713, t:"422D 14h"}, {w:10067312, M:5253427, t:"845D 5h"}, {w:20134625, M:10506854, t:"1690D 10h"}, {w:40269250, M:21013708, t:"3380D 21h"}, {w:80538501, M:42027417, t:"6761D 19h"}, {w:161077002, M:84054835, t:"13523D 15h"}, {w:322154004, M:168109670, t:"27047D 6h"}, {w:644308008, M:336219340, t:"54094D 12h"}, {w:1288616017, M:672438681, t:"108189D 19m"}],
   [{w:70, t:"1h 12m"}, {w:72, M:12, t:"1h 50m"}, {w:98, M:31, t:"2h 29m"}, {w:151, M:56, t:"3h 16m"}, {w:222, M:67, t:"4h 12m"}, {w:317, M:110, t:"4h 37m"}, {w:433, M:128, t:"4h 59m"}, {w:581, M:191, t:"5h 18m"}, {w:761, M:272, t:"5h 32m"}, {w:978, M:374, t:"5h 42m"}, {w:1229, M:498, t:"6h 24m"}, {w:1532, M:647, t:"7h 8m"}, {w:2115, M:931, t:"8h 55m"}, {w:2270, M:1036, t:"8h 44m"}, {w:2728, M:1274, t:"9h 7m"}, {w:3241, M:1394, t:"9h 27m"}, {w:3823, M:1693, t:"9h 43m"}, {w:4467, M:1838, t:"9h 56m"}, {w:5190, M:2200, t:"10h 4m"}, {w:5996, M:2607, t:"10h 9m"}, {w:6879, M:3057, t:"10h 8m"}, {w:7382, M:3281, t:"10h 2m"}, {w:7903, M:3512, t:"9h 51m"}, {w:8440, M:3751, t:"9h 34m"}, {w:33762, M:15005, t:"1D 14h"}, {w:67525, M:30011, t:"3D 4h"}, {w:135051, M:60023, t:"6D 9h"}, {w:270103, M:120046, t:"12D 18h"}, {w:540207, M:240092, t:"25D 12h"}, {w:1080414, M:480184, t:"51D 57m"}, {w:2160829, M:960368, t:"102D 1h"}, {w:4321658, M:1920737, t:"204D 3h"}, {w:8643317, M:3841474, t:"408D 7h"}, {w:17286635, M:7682949, t:"816D 15h"}, {w:34573271, M:15365898, t:"1633D 6h"}, {w:69146542, M:30731796, t:"3266D 13h"}, {w:138293084, M:61463592, t:"6533D 2h"}, {w:276586168, M:122927185, t:"13066D 5h"}, {w:553172336, M:245854371, t:"26132D 11h"}, {w:1106344673, M:491708743, t:"52264D 23h"}, {w:2212689346, M:983417487, t:"104529D 22h"}, {w:4425378693, M:1966834974, t:"209059D 20h"}, {w:8850757386, M:3933669949, t:"418119D 16h"}, {w:17701514772, M:7867339898, t:"836239D 8h"}, {w:35403029544, M:15734679797, t:"1672478D 17h"}, {w:70806059089, M:31469359595, t:"3344957D 10h"}, {w:141612118179, M:62938719191, t:"6689914D 21h"}, {w:283224236359, M:125877438382, t:"13379829D 18h"}, {w:566448472719, M:251754876764, t:"26759659D 12h"}, {w:1132896945438, M:503509753528, t:"53519319D 57m"}, {w:2265793890877, M:1007019507056, t:"107038638D 1h"}, {w:4531587781754, M:2014039014113, t:"214077276D 3h"}, {w:9063175563509, M:4028078028226, t:"428154552D 7h"}, {w:18126351127019, M:8056156056453, t:"856309104D 15h"}, {w:36252702254039, M:16112312112906, t:"1712618209D 6h"}, {w:72505404508078, M:32224624225812, t:"3425236418D 13h"}],
   [{w:24, t:"13m 20s"}, {w:109, M:11, t:"55m 12s"}, {w:192, M:45, t:"1h 49m"}, {w:291, M:86, t:"3h 5m"}, {w:484, M:158, t:"4h 2m"}, {w:750, M:268, t:"4h 58m"}, {w:1104, M:423, t:"5h 47m"}, {w:1556, M:631, t:"7h 17m"}, {w:2133, M:901, t:"7h 57m"}, {w:2837, M:1248, t:"9h 34m"}, {w:3680, M:1680, t:"9h 55m"}, {w:4706, M:2199, t:"11h 35m"}, {w:5909, M:2542, t:"11h 29m"}, {w:7318, M:3240, t:"13h 8m"}, {w:8934, M:3675, t:"12h 25m"}, {w:11567, M:5030, t:"13h 59m"}, {w:46271, M:20121, t:"2D 7h"}, {w:92543, M:40242, t:"4D 15h"}, {w:185086, M:80485, t:"9D 7h"}, {w:370173, M:160970, t:"18D 15h"}, {w:740346, M:321941, t:"37D 7h"}, {w:1480693, M:643883, t:"74D 14h"}, {w:2961387, M:1287767, t:"149D 4h"}, {w:5922775, M:2575534, t:"298D 8h"}],
   [{w:276, M:82, t:"1h 28m"}, {w:744, M:266, t:"2h 57m"}, {w:1583, M:642, t:"4h 56m"}, {w:2936, M:1292, t:"7h 25m"}, {w:4934, M:2305, t:"8h 40m"}, {w:7742, M:3429, t:"11h 35m"}, {w:11511, M:4879, t:"14h 54m"}, {w:16440, M:7306, t:"18h 38m"}, {w:65761, M:29227, t:"3D 2h"}, {w:131523, M:58455, t:"6D 5h"}, {w:263047, M:116910, t:"12D 10h"}, {w:526095, M:233820, t:"24D 20h"}, {w:1052190, M:467640, t:"49D 16h"}, {w:2104381, M:935280, t:"99D 9h"}, {w:4208762, M:1870561, t:"198D 19h"}, {w:8417525, M:3741122, t:"397D 15h"}, {w:16835051, M:7482245, t:"795D 7h"}, {w:33670103, M:14964490, t:"1590D 14h"}, {w:67340206, M:29928980, t:"3181D 5h"}, {w:134680412, M:59857960, t:"6362D 10h"}, {w:269360824, M:119715921, t:"12724D 21h"}, {w:538721648, M:239431843, t:"25449D 19h"}, {w:1077443297, M:478863687, t:"50899D 15h"}, {w:2154886594, M:957727375, t:"101799D 6h"}],
-  [{w:635, t:"4h"}, {w:5488, M:525, t:"8h"}, {w:20462, M:7170, G:4780, t:"9h"}, {w:56448, W:12544, M:31360, G:25088, t:"8h"}, {w:225792, W:100352, M:150528, G:100352, t:"8h"}, {w:451584, W:200704, M:301056, G:200704, t:"8h"}, {w:903168, W:401408, M:602112, G:401408, t:"8h"}, {w:1806336, W:802816, M:1204224, G:802816, t:"8h"}, {w:3612672, W:1605632, M:2408448, G:1605632, t:"8h"}, {w:7225344, W:3211264, M:4816896, G:3211264, t:"8h"}, {w:14450688, W:6422528, M:9633792, G:6422528, t:"8h"}, {w:28901376, W:12845056, M:19267584, G:12845056, t:"8h"}],
+  [{w:635, t:"4h"}, {w:5488, M:525, t:"8h"}, {w:20462, M:7170, C:4780, t:"9h"}, {w:56448, W:12544, M:31360, C:25088, t:"8h"}, {w:225792, W:100352, M:150528, C:100352, t:"8h"}, {w:451584, W:200704, M:301056, C:200704, t:"8h"}, {w:903168, W:401408, M:602112, C:401408, t:"8h"}, {w:1806336, W:802816, M:1204224, C:802816, t:"8h"}, {w:3612672, W:1605632, M:2408448, C:1605632, t:"8h"}, {w:7225344, W:3211264, M:4816896, C:3211264, t:"8h"}, {w:14450688, W:6422528, M:9633792, C:6422528, t:"8h"}, {w:28901376, W:12845056, M:19267584, C:12845056, t:"8h"}],
   [{w:45, M:13, t:"50m 25s"}, {w:117, M:41, t:"1h 42m"}, {w:207, M:61, t:"2h 23m"}, {w:327, M:107, t:"2h 59m"}, {w:479, M:171, t:"3h 29m"}, {w:667, M:255, t:"3h 53m"}, {w:980, M:397, t:"4h 38m"}, {w:1399, M:590, t:"5h 25m"}, {w:1927, M:848, t:"6h 15m"}, {w:2582, M:1178, t:"7h 6m"}, {w:3402, M:1589, t:"7h 58m"}, {w:4391, M:1889, t:"8h 53m"}, {w:5579, M:2470, t:"9h 49m"}, {w:6979, M:2872, t:"10h 46m"}, {w:8627, M:3657, t:"11h 45m"}, {w:10554, M:4589, t:"12h 45m"}, {w:42218, M:18357, t:"2D 3h"}, {w:84436, M:36714, t:"4D 6h"}, {w:168873, M:73429, t:"8D 12h"}, {w:337747, M:146858, t:"17D 19m"}, {w:675494, M:293717, t:"34D 38m"}, {w:1350988, M:587435, t:"68D 1h"}, {w:2701977, M:1174871, t:"136D 2h"}, {w:5403955, M:2349742, t:"272D 5h"}, {w:10807910, M:4699484, t:"544D 10h"}, {w:21615820, M:9398968, t:"1088D 20h"}, {w:43231641, M:18797936, t:"2177D 16h"}, {w:86463283, M:37595873, t:"4355D 9h"}, {w:172926566, M:75191746, t:"8710D 19h"}, {w:345853132, M:150383493, t:"17421D 15h"}, {w:691706265, M:300766986, t:"34843D 7h"}, {w:1383412531, M:601533972, t:"69686D 14h"}],
   [{w:14, t:"17m 17s"}, {w:37, t:"43m 12s"}, {w:101, M:31, t:"1h 32m"}, {w:217, M:64, t:"2h 7m"}, {w:417, M:148, t:"2h 45m"}, {w:630, M:241, t:"3h 40m"}, {w:914, M:408, t:"4h 45m"}, {w:1274, M:646, t:"5h 56m"}, {w:1729, M:989, t:"7h 17m"}, {w:2270, M:1451, t:"8h 44m"}, {w:2941, M:2061, t:"10h 21m"}, {w:3723, M:2562, t:"12h 3m"}, {w:4658, M:3507, t:"13h 56m"}, {w:5722, M:4238, t:"15h 54m"}, {w:7465, M:6168, t:"18h 3m"}, {w:8948, M:7953, t:"20h 17m"}, {w:35793, M:31814, t:"3D 9h"}, {w:71587, M:63629, t:"6D 18h"}, {w:143174, M:127258, t:"13D 12h"}, {w:286348, M:254517, t:"27D 1h"}, {w:572696, M:509035, t:"54D 2h"}, {w:1145392, M:1018071, t:"108D 5h"}, {w:2290785, M:2036142, t:"216D 10h"}, {w:4581570, M:4072284, t:"432D 20h"}, {w:9163141, M:8144568, t:"865D 16h"}, {w:18326282, M:16289136, t:"1731D 9h"}, {w:36652564, M:32578273, t:"3462D 19h"}, {w:73305128, M:65156546, t:"6925D 15h"}, {w:146610257, M:130313093, t:"13851D 7h"}, {w:293220515, M:260626186, t:"27702D 14h"}, {w:586441031, M:521252372, t:"55405D 5h"}, {w:1172882063, M:1042504744, t:"110810D 10h"}],,
   [{w:25, M:7, t:"18m 36s"}, {w:53, M:19, t:"33m 37s"}, {w:99, M:29, t:"52m 48s"}, {w:159, M:52, t:"1h 12m"}, {w:231, M:83, t:"1h 31m"}, {w:271, M:103, t:"1h 34m"}, {w:363, M:147, t:"1h 53m"}, {w:455, M:193, t:"2h 7m"}, {w:534, M:235, t:"2h 15m"}, {w:668, M:304, t:"2h 34m"}, {w:793, M:371, t:"2h 47m"}, {w:960, M:413, t:"3h 6m"}, {w:1016, M:450, t:"3h 2m"}, {w:1173, M:483, t:"3h 15m"}, {w:1478, M:627, t:"3h 28m"}, {w:1886, M:820, t:"3h 48m"}, {w:2304, M:1025, t:"4h 1m"}, {w:2618, M:1164, t:"4h 14m"}, {w:2825, M:1255, t:"4h 16m"}, {w:3027, M:1345, t:"4h 17m"}, {w:3238, M:1439, t:"4h 19m"}, {w:3834, M:1704, t:"4h 49m"}, {w:4148, M:1843, t:"4h 57m"}, {w:4471, M:1987, t:"5h 4m"}, {w:17886, M:7949, t:"20h 16m"}, {w:35773, M:15899, t:"1D 16h"}, {w:71547, M:31799, t:"3D 9h"}, {w:143095, M:63598, t:"6D 18h"}, {w:286191, M:127196, t:"13D 12h"}, {w:572382, M:254392, t:"27D 57m"}, {w:1144765, M:508784, t:"54D 1h"}, {w:2289530, M:1017569, t:"108D 3h"}],
@@ -801,7 +804,7 @@ function visualResources(what) {
     return icon.toXMLString();
   }
   if (typeof what == "object") {
-    var name = { w:"wood", g:"gold", M:"marble", G:"glass", W:"wine" };
+    var name = { w:"wood", g:"gold", M:"marble", C:"glass", W:"wine" };
     var html = []
     for (var id in what) {
       if (name[id])
@@ -906,7 +909,14 @@ function showHousingOccupancy() {
   }
 }
 
-function projectWineShortage() {
+// projects wine shortage time and adds lots of shortcut clicking functionality
+function improveTopPanel() {
+  function clickTo(node, url) {
+    if (node) {
+      node.addEventListener("click", function() { goto(url); }, false);
+      node.style.cursor = "pointer";
+    }
+  }
   var flow = reapingPace().W;
   var span = $("value_wine");
   var time = flow < 0 ? Math.floor(number(span)/-flow) +"h" : "∞";
@@ -917,11 +927,37 @@ function projectWineShortage() {
     time.title = "+"+ reap +"/-"+ (reap - flow) +" = +"+ flow +"/h";
   }
 
-  var tavernPos = config.getCity("tavern", "?");
-  if (tavernPos != "?") {
-    var tavern = url("?view=tavern&id="+ cityID() +"&position="+ tavernPos);
-    time.addEventListener("click", function() { goto(tavern); }, true);
-    time.style.cursor = "pointer";
+  var tavernPos = config.getCity("posbldg9", "?");
+  if (tavernPos != "?")
+    clickTo(time, url("?view=tavern&id="+ cityID() +"&position="+ tavernPos));
+
+  var warePos = config.getCity("posbldg7", "?");
+  if (warePos != "?") {
+    var warehouse = url("?view=warehouse&id="+ cityID() +"&position="+ warePos);
+    var resources = $X('id("cityResources")/ul[@class="resources"]');
+    if (resources) {
+      resources.addEventListener("click", function(e) {
+        if ($X('ancestor-or-self::*[@class="tooltip"]', e.target))
+          goto(warehouse);
+      }, true);
+      $x('li/div[@class="tooltip"]', resources).forEach(function(tooltip) {
+        tooltip.style.cursor = "pointer";
+      });
+    }
+  }
+
+  clickTo($('cityNav'), url("?view=townHall&id="+ cityID() +"&position=0"));
+  clickTo($X('id("value_wood")/parent::li'),
+          url("?view=resource&type=resource&id=" + islandID()));
+  clickTo($X('id("value_'+ luxuryType("name") +'")/parent::li'),
+          url("?view=tradegood&type=tradegood&id=" + islandID()));
+  var trader = config.getCity("posbldg13", "?");
+  if (trader != "?") {
+    trader = url("?view=branchOffice&id="+ cityID() +"&position="+ trader);
+    var luxe = luxuryType("glass");
+    var nodes = $x('id("cityResources")/ul/li[not(@class="'+ luxe +'") and '+
+                   'contains("wine marble glass sulfur sulphur",@class)]');
+    nodes.forEach(function(node) { clickTo(node, trader); });
   }
 }
 
@@ -983,6 +1019,14 @@ function projectCompletion(id, className) {
   }
 }
 
+function detectWineChange() {
+  var wine = $("wineAmount");
+  if (wine) {
+    wine = wine.form.elements.namedItem("amount");
+    config.setCity("wine", number(wine.options[wine.selectedIndex]) || 0);
+  }
+}
+
 function title(detail) {
   var server = location.hostname.match(/^s(\d+)\.(.*)/), host = "";
   if (server) {
@@ -1037,8 +1081,8 @@ function principal() {
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
   var luxeByHours = secondsToHours(valueRecupJS("startTradegoodDelta"));
   var woodByHours = secondsToHours(valueRecupJS("startResourcesDelta"));
-  var nameLuxe = recupNameRess();
-  var lux = nameLuxe.replace(/^crystal /i, "").toLowerCase();
+  var lux = luxuryType("name");
+  if ("crystal" == lux) lux = "glass";
 
   var chemin = panelInfo();
   var island = islandID();
@@ -1066,23 +1110,15 @@ function principal() {
         projectCompletion("researchCountDown"); break;
     }
     title();
+    detectWineChange();
     projectCompletion("upgradeCountDown", "time");
     projectCompletion("buildCountDown");
     projectHaveResources();
     showHousingOccupancy();
-    var wine = $("wineAmount");
-    if (wine) {
-      wine = wine.form.elements.namedItem("amount");
-      config.setCity("wine", number(wine.options[wine.selectedIndex]) || 0);
-      var tavern = urlParse("position");
-      if (tavern)
-        config.setCity("tavern", tavern);
-    }
-    projectWineShortage();
   } catch(e) {}
 
   var have = currentResources();
-  have.l = have[nameLuxe.charAt()]; // what luxury resource?
+  have.l = have[luxuryType()]; // what luxury resource?
   var woodCapacity = number($X('//li[@class="wood"]/div[@class="tooltip"]'));
   var luxeCapacity = number($X('//li[@class="'+lux+'"]/div[@class="tooltip"]'));
   var woodFull = resolveTime((woodCapacity - have.w) / (woodByHours/3600), 1);
@@ -1097,7 +1133,7 @@ function principal() {
    createLink(lang[wood] +": +"+ woodByHours + woodFull,
               url("?view=resource&type=resource&id=" + island)),
    createBr(),
-   createLink(nameLuxe +": +"+ luxeByHours + luxeFull,
+   createLink(luxuryType("english") +": +"+ luxeByHours + luxeFull,
               url("?view=tradegood&type=tradegood&id=" + island)),
    createBr(),
   ].forEach(function add(node) { chemin.appendChild(node); });
@@ -1120,15 +1156,7 @@ function principal() {
   langChoice.addEventListener("click", promptLanguage, false);
   chemin.appendChild(langChoice);
 
-  var cityNav = $('cityNav');
-  if (cityNav) {
-    cityNav.addEventListener("click", function(e) {
-      if (e.target.id == "cityNav") {
-        //prompt(1, url("?view=townHall&id="+ cityID() +"&position=0"));
-        location.href = url("?view=townHall&id="+ cityID() +"&position=0");
-      }
-    }, false);
-  }
+  improveTopPanel();
 
   var FIN = new Date();
   langChoice.title = lang[execTime] +": "+ (FIN - DEBUT) +"ms";
