@@ -894,8 +894,10 @@ function showHousingOccupancy() {
     var maxPopulation = [, 60, 96, 143, 200, 263, 333, 410, 492, 580, 672, 769,
                          871, 977, 1087, 1201, 1320, 1441, 1567, 1696, 1828,
                          1964, 2103, 2246, 2391][townHallLevel];
+    if (config.getServer("tech2080"))
+      maxPopulation += 50; // Holiday bonus
     if (config.getServer("tech3010"))
-      maxPopulation += 50; // Well Digging bonus (FIXME? 2080:Holiday too?)
+      maxPopulation += 50; // Well Digging bonus
     var pop = $("value_inhabitants").firstChild;
     var text = pop.nodeValue.replace(/\s/g, "\xA0");
     pop.nodeValue = text.replace(")", "/"+ maxPopulation +")");
@@ -908,6 +910,10 @@ function projectWineShortage() {
   var time = flow < 0 ? Math.floor(number(span)/-flow) +"h" : "∞";
   time = createNode("", "", "\xA0("+ time +")", "span");
   span.parentNode.insertBefore(time, span.nextSibling);
+  if (flow >= 0) {
+    var reap = secondsToHours(valueRecupJS("startTradegoodDelta"));
+    time.title = "+"+ reap +"/-"+ (reap - flow) +" = +"+ flow +"/h";
+  }
 
   var tavernPos = config.getCity("tavern", "?");
   if (tavernPos != "?") {
