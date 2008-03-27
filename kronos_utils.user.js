@@ -359,36 +359,11 @@ function levelTown() {
   $x('//li[starts-with(@class,"cityLocation city level")]').forEach(level);
 }
 
-function citizens() {
-  function factor(what, unit, times) {
-    var node = $X('//li[@class="'+ what +'"]/div[@class="amount"]');
-    if (node) {
-      var count = parseInt(node.innerHTML.match(/\d+/)[0], 10);
-      var sum = times ? Math.floor(times * count) : "";
-      if (sum > 0) sum = "+"+ sum;
-      unit.@style = "margin-bottom: -5px;";
-      node.innerHTML += (sum ? " \xA0 "+ sum : " ") + (unit.toXMLString());
-    }
-  }
-
-  // wine:25x20, marble:25x19, glass:23x18, sulfur:25x19
-  var iconBase = "skin/resources/icon_", goods = luxuryType("name");
-  var w = goods == "crystal" ? 23 : 25, h = {wine:20, crystal:18}[goods] || 19;
-  var luxe = <img src={iconBase + goods +".gif"} width={w} height={h}/>;
-  var wood = <img src="skin/resources/icon_wood.gif" width="25" height="20"/>;
-  var gold = <img src="skin/resources/icon_gold.gif" width="17" height="19"/>;
-  var bulb = <img src="skin/layout/bulb-on.gif" width="14" height="21"/>;
-
-  factor("citizens", gold, 4);
-  factor("woodWorkers", wood);
-  factor("luxuryWorkers", luxe, 0.5);
-  factor("scientists", bulb);
-  factor("scientists", gold, -8);
-
-  var income = $X('id("cityStatistics")/table/tfoot/tr/td/text()');
+function townHall() {
+  var income = $X('//li[contains(@class,"incomegold")]/span[@class="value"]');
   config.setCity("gold", number(income));
 
-  var growth = $X('id("cityStatistics")/ul/li[contains(@class,"popGrowth")]');
+  var growth = $X('//li[contains(@class,"growth")]/span[@class="value"]');
   config.setServer("growth", number(growth));
 }
 
@@ -920,14 +895,6 @@ function colonize() {
     annotate(needWood, resolveTime((1250 - have.w) / (woodadd / 3600), 1));
 }
 
-function showHousingOccupancy() {
-  var maxPop = getMaxPopulation();
-  var pop = $("value_inhabitants").firstChild;
-  var text = pop.nodeValue.replace(/\s/g, "\xA0");
-  pop.nodeValue = text.replace(")", "/"+ maxPop +")");
-  projectPopulation();
-}
-
 function dblClickTo(node, action, condition, capture) {
   clickTo(node, action, condition, capture, "dblclick");
 }
@@ -992,13 +959,24 @@ function improveTopPanel() {
   width: 40px;
   top: 33px;
 }
+
+.ellipsis {
+  bottom: 1px;
+  margin-left: 1px;
+  position: absolute;
+  font-size: 10px;
+}
+
+.ellipsis:before { content:"("; }
+.ellipsis:after { content:")"; }
+
 ]]></>);
 
   var flow = reapingPace();
   var span = $("value_wine");
   var time = flow.W < 0 ? Math.floor(number(span)/-flow.W) +"h" :
              flow.W > 0 ? "+"+ flow.W : "±0";
-  time = createNode("", "", "\xA0("+ time +")", "span");
+  time = createNode("", "ellipsis", time, "span");
   span.parentNode.insertBefore(time, span.nextSibling);
   if (flow.W < 0)
     time.title = lang[empty] + resolveTime(number(span)/-flow.W * 3600, 1);
@@ -1016,7 +994,7 @@ function improveTopPanel() {
 
   for (name in income) {
     span = $("value_"+ name);
-    var node = createNode("", "", "\xA0(+"+ income[name] +")", "span");
+    var node = createNode("", "ellipsis", "+"+ income[name], "span");
     span.parentNode.insertBefore(node, span.nextSibling);
     isFull(node, name, number(span), income[name]);
   }
@@ -1043,7 +1021,8 @@ function improveTopPanel() {
     }
   }
 
-  clickTo(cityNav, url("?view=townHall&id="+ cityID() +"&position=0"),
+  clickTo(cityNav,
+          url("?view=townHall&id="+ cityID() +"&position=0"),
           'self::*[@id="cityNav" or @id="gold"]');
   clickTo($X('id("value_wood")/parent::li'),
           url("?view=resource&type=resource&id=" + islandID()));
@@ -1056,6 +1035,9 @@ function improveTopPanel() {
        '@class)]').forEach(tradeOnClick);
   }
 
+  showHousingOccupancy();
+  projectPopulation();
+
   var build = config.getCity("build", 0), now = Date.now();
   if (build > now) {
     time = $X('//li[@class="serverTime"]');
@@ -1066,6 +1048,20 @@ function improveTopPanel() {
                              "span"));
     time.appendChild(a);
   }
+}
+
+function showSafeWarehouseLevels() {
+  var wood = [   0,   70,   90,  120,  150,  190,  230,  280,  330,  390,  460,
+               540,  630,  720,  830,  950, 1090];
+  var rest = [   0,  140,  190,  240,  310,  380,  470,  560,  670,  790,  930,
+              1090, 1260, 1450, 1670, 1910, 2180];
+}
+
+function showHousingOccupancy() {
+  var maxPop = getMaxPopulation();
+  var pop = $("value_inhabitants").firstChild;
+  var text = pop.nodeValue.replace(/\s/g, "\xA0");
+  pop.nodeValue = text.replace(")", "/"+ maxPop +")");
 }
 
 function getPopulation() {
@@ -1311,7 +1307,7 @@ function principal() {
       case "city": levelBat(); projectCompletion("cityCountdown"); break;
       case "port": projectCompletion("outgoingOwnCountDown"); break;
       case "island": levelTown(); levelResources(); break;
-      case "townHall": citizens(); break;
+      case "townHall": townHall(); break;
       case "shipyard":
         css(<><![CDATA[
 #container #mainview .unit .resources li { float: none; padding-bottom: 5px; }
@@ -1332,7 +1328,6 @@ function principal() {
     projectCompletion("upgradeCountDown", "time");
     projectCompletion("buildCountDown");
     projectHaveResourcesToUpgrade();
-    showHousingOccupancy();
   } catch(e) { console.error && console.error(e); }
 
   var research = config.getServer("research", "");
