@@ -1065,6 +1065,7 @@ function projectBuildStart(root, result) {
     }
   }
 
+  if ($("donateForm")) return; // is a resource, not something you build/upgrade
   result = result || 'li[@class="time"]';
   $x('.//ul[@class="resources"][not(ancestor::*[@id="cityResources"])]',
      $(root)).forEach( projectWhenWeHaveResourcesToStartBuilding );
