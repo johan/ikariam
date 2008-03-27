@@ -921,19 +921,11 @@ function colonize() {
 }
 
 function showHousingOccupancy() {
-  var townHallLevel = config.getCity("building0");
-  if (townHallLevel) {
-    var maxPopulation = [, 60, 96, 143, 200, 263, 333, 410, 492, 580, 672, 769,
-                         871, 977, 1087, 1201, 1320, 1441, 1567, 1696, 1828,
-                         1964, 2103, 2246, 2391][townHallLevel];
-    if (config.getServer("tech2080"))
-      maxPopulation += 50; // Holiday bonus
-    if (config.getServer("tech3010") && cityID() == cityIDs()[0])
-      maxPopulation += 50; // Well Digging bonus (capital city only)
-    var pop = $("value_inhabitants").firstChild;
-    var text = pop.nodeValue.replace(/\s/g, "\xA0");
-    pop.nodeValue = text.replace(")", "/"+ maxPopulation +")");
-  }
+  var maxPop = getMaxPopulation();
+  var pop = $("value_inhabitants").firstChild;
+  var text = pop.nodeValue.replace(/\s/g, "\xA0");
+  pop.nodeValue = text.replace(")", "/"+ maxPop +")");
+  projectPopulation();
 }
 
 function dblClickTo(node, action, condition, capture) {
@@ -1076,6 +1068,72 @@ function improveTopPanel() {
   }
 }
 
+function getPopulation() {
+  return parseInt($("value_inhabitants").textContent.match(/\((\d+)/)[1], 10);
+}
+
+function getMaxPopulation() {
+  var townHallLevel = config.getCity("building0");
+  if (townHallLevel) {
+    var maxPopulation = [, 60, 96, 143, 200, 263, 333, 410, 492, 580, 672, 769,
+                         871, 977, 1087, 1201, 1320, 1441, 1567, 1696, 1828,
+                         1964, 2103, 2246, 2391][townHallLevel];
+    if (config.getServer("tech2080"))
+      maxPopulation += 50; // Holiday bonus
+    if (config.getServer("tech3010") && isCapital())
+      maxPopulation += 50; // Well Digging bonus (capital city only)
+  }
+  return maxPopulation || 0;
+}
+
+function projectPopulation() {
+  function getHappiness(population) {
+    return 0.02 * (bonus - Math.floor(population));
+  }
+  var wellDigging = isCapital() && config.getServer("tech3010") ? 50 : 0;
+  var holiday = config.getServer("tech2080") ? 25 : 0;
+  var tavern = 12 * config.getCity("building9", 0);
+  var wine = 80 *
+    [0, 3, 5, 8, 11, 14, 17, 21, 25, 29, 33, 38, 42, 47, 52, 57, 63, 68,
+     73, 79, 85, 91, 97, 103, 109].indexOf( config.getCity("wine", 0) );
+  var museum = 20 * config.getCity("building10", 0);
+  //var culture = 50 * goodsCount;
+  var bonus = 196 + wellDigging + holiday + wine + museum; // + culture;
+
+  var population = getPopulation();
+  var asymptoticPopulation = population;
+  while (getHappiness(asymptoticPopulation) > 0)
+    asymptoticPopulation++;
+
+  var time = 0;
+  var happiness = getHappiness(population);
+  var maximumPopulation = getMaxPopulation();
+  while ((happiness > 0) && (population < maximumPopulation)) {
+    happiness = getHappiness(population);
+    population += happiness / 4; // add 15 minutes of growth
+    time += 60 * 15;
+  }
+
+  var hint = $("cityNav");
+  if (asymptoticPopulation <= maximumPopulation) {
+    hint.title = "Reaches asymptotic population "+ population +" at "+
+      resolveTime(time, 1);
+    return population;
+  }
+
+  var people = $("value_inhabitants");
+  var hqLevel = config.getCity("building0", 1);
+  var nextHQUpgradeTime = parseTime(costs[0][hqLevel].t);
+  if (time < 15 * 60 + nextHQUpgradeTime) // < 15 min left for expanding Town
+    people.className = "storage_danger";  // Hall ahead of time to meet growth
+  if (population == maximumPopulation)
+    people.className = "storage_full";
+
+  hint.title = lang[full] + resolveTime(time, 1) +"; start expanding before "+
+    resolveTime(time - nextHQUpgradeTime, 1);
+  return population;
+}
+
 function projectBuildStart(root, result) {
   function projectWhenWeHaveResourcesToStartBuilding(ul) {
     if (!result) return;
@@ -1122,6 +1180,7 @@ function projectBuildStart(root, result) {
 }
 
 function projectHaveResourcesToUpgrade() {
+  // $X('ul[@class="actions"]/li[@class="upgrade"]/a').className = "disabled";
   projectBuildStart("buildingUpgrade", 'preceding-sibling::h4');
 }
 
@@ -1228,6 +1287,10 @@ function cityID() {
 
 function cityIDs() {
   return pluck($x('id("citySelect")/option'), "value");
+}
+
+function isCapital() {
+  return cityID() == cityIDs()[0];
 }
 
 /*------------------------
@@ -1345,7 +1408,7 @@ function $x( xpath, root ) {
       return got.booleanValue;
     default:
       while (next = got.iterateNext())
-	result.push( next );
+        result.push( next );
       return result;
   }
 }
