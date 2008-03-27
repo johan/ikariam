@@ -105,7 +105,7 @@ function luxuryType(type) {
 function urlParse(param, url) {
   if (!url) url = location.search; // On récupére l'url du site.
   if (!url && param == "view") {
-    var view = { cities: "island", locations: "city" };
+    var view = { cities: "island", locations: "city", finder: "branchOffice" };
     for (var id in view)
       if ($(id)) return view[id];
   }
