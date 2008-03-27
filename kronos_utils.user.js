@@ -320,14 +320,42 @@ function levelResources() {
 }
 
 function levelTown() {
+  function addToFriendList(e) {
+    var flName = $("flNewName"), flLink = $("flNewLink");
+    if (flName && flLink) {
+      var player = e.target;
+      flName.value = player.childNodes[1].textContent;
+      var city = number(player.parentNode.id);
+      var isle = urlParse("id", $X('id("islandfeatures")/li/a').search);
+      flLink.value = "http://" + location.hostname + "/index.php?" +
+        "view=island&id="+ isle +"&selectCity="+ city;
+      location.href = "javascript:void(flToggleFrame(1))";
+    }
+  }
   function level(li) {
+    li.style.zIndex = "700";
     var level = li.className.match(/\d+/)[0];
-    var name = $X('a[@onclick]/span/text()[preceding-sibling::span]', li);
+    var city = $X('a[@onclick]/span', li);
+    var name = $X('text()[preceding-sibling::span]', city);
     if (name) {
       name.nodeValue = level +":"+ name.nodeValue;
       name = name.parentNode;
       name.style.left = Math.round((name.offsetWidth) / -2 + 34) + "px";
     }
+    var player = city.cloneNode(true);
+    player.innerHTML = '<span class="before"></span>Player name' +
+      '<span class="after"></span>';
+    name = trim($X('ul/li[@class="owner"]/text()[1]', li).textContent);
+    player.childNodes[1].nodeValue = name;
+
+    city.parentNode.insertBefore(player, city.nextSibling);
+    player.style.top = "84px";
+    player.style.left = Math.round((player.offsetWidth) / -2 + 34) + "px";
+
+    var msg = $X('ul/li[@class="owner"]/a', li);
+    //player.title = msg.title;
+    clickTo(player, addToFriendList);
+    dblClickTo(player, msg.href);
   }
   $x('//li[starts-with(@class,"cityLocation city level")]').forEach(level);
 }
@@ -909,20 +937,28 @@ function showHousingOccupancy() {
   }
 }
 
+function dblClickTo(node, action, condition, capture) {
+  clickTo(node, action, condition, capture, "dblclick");
+}
+
+function clickTo(node, action, condition, capture, event) {
+  if (node) {
+    node.addEventListener(event || "click", function(e) {
+      if (!condition || $X(condition, e.target)) {
+        e.stopPropagation();
+        e.preventDefault();
+        if ("function" == typeof action)
+          action(e);
+        else
+          goto(action);
+      }
+    }, !!capture);
+    node.style.cursor = "pointer";
+  }
+}
+
 // projects wine shortage time and adds lots of shortcut clicking functionality
 function improveTopPanel() {
-  function clickTo(node, url, condition, capture) {
-    if (node) {
-      node.addEventListener("click", function(e) {
-        if (!condition || $X(condition, e.target)) {
-          e.stopPropagation();
-          e.preventDefault();
-          goto(url);
-        }
-      }, !!capture);
-      node.style.cursor = "pointer";
-    }
-  }
   var flow = reapingPace().W;
   var span = $("value_wine");
   var time = flow < 0 ? Math.floor(number(span)/-flow) +"h" : "∞";
@@ -1049,6 +1085,32 @@ function title(detail) {
   document.title = (server ? server + " " : "") + detail + host;
 }
 
+function clickResourceToSell() {
+  function haveHowMuch(e) {
+    var img = e.target;
+    var resource = img.src.match(/([^_]+).gif$/)[1].replace("glass", "crystal");
+    return number($("value_"+ resource));
+  }
+  function sell100(e) {
+    var have = haveHowMuch(e);
+    var sell = $x('following::input[@type="text"]', e.target);
+    sell[0].value = Math.min(have, 100 + parseInt(sell[0].value||"0", 10));
+    sell[1].value = Math.max(25, parseInt(sell[1].value, 10));
+  }
+  function sellAll(e) {
+    var have = haveHowMuch(e);
+    var sell = $x('following::input[@type="text"]', e.target);
+    sell[0].value = have;
+    sell[1].value = Math.max(25, parseInt(sell[1].value||"0", 10));
+  }
+  function clickToSell(img) {
+    img.addEventListener("click", sell100, false);
+    //img.addEventListener("dblclick", sellAll, false);
+    img.style.cursor = "pointer";
+  }
+  $x('//table[@class="tablekontor"]/tbody/tr/td[1]/img').forEach(clickToSell);
+}
+
 /*---------------------
 Ajout du panel dans le menu
 ---------------------*/
@@ -1111,6 +1173,7 @@ function principal() {
 #container #mainview .unit .resources li { float: none; padding-bottom: 5px; }
         ]]></>); // fall-through:
       case "buildingGround": projectBuildStart("mainview"); break;
+      case "branchOffice": clickResourceToSell(); break;
       case "researchOverview": techinfo(); break;
       case "colonize": colonize(); break;
       case "academy":
@@ -1126,7 +1189,7 @@ function principal() {
     projectCompletion("buildCountDown");
     projectHaveResourcesToUpgrade();
     showHousingOccupancy();
-  } catch(e) {}
+  } catch(e) { console.error && console.error(e); }
 
   var have = currentResources();
   have.l = have[luxuryType()]; // what luxury resource?
