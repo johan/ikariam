@@ -845,10 +845,7 @@ function resolveTime(seconds, timeonly) { // Crée le temps de fin.
 }
 
 function secondsToHours(bySeconds) {
-  if (!isNaN(bySeconds)) {
-    var byHour = Math.ceil(bySeconds*3600);
-    return byHour;
-  }
+  return isNaN(bySeconds) ? 0 : Math.floor(bySeconds * 3600);
 }
 
 // input: "Nd Nh Nm Ns", output: number of seconds left
@@ -1048,13 +1045,6 @@ function improveTopPanel() {
                              trim(resolveTime(Math.ceil((build-now)/1e3))),
                              "span"));
     time.appendChild(a);
-  } else if ({ wall:1, townHall:1 }[urlParse("view")]) {
-    if ($X('contains(id("buildingUpgrade")/div/h4,"(")')) { // not enough stuff!
-      document.title = "Upgrading...";
-      return setTimeout(function(){ location.reload(); }, 5*60e3);
-    }
-    var upgrade = $("upgradeForm");
-    upgrade.submit();
   }
 }
 
