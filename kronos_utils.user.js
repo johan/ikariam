@@ -1037,6 +1037,7 @@ function improveTopPanel() {
 
   showHousingOccupancy();
   projectPopulation();
+  showSafeWarehouseLevels();
 
   var build = config.getCity("build", 0), now = Date.now();
   if (build > now) {
@@ -1047,14 +1048,31 @@ function improveTopPanel() {
                              trim(resolveTime(Math.ceil((build-now)/1e3))),
                              "span"));
     time.appendChild(a);
+  } else if ({ wall:1, townHall:1 }[urlParse("view")]) {
+    if ($X('contains(id("buildingUpgrade")/div/h4,"(")')) { // not enough stuff!
+      document.title = "Upgrading...";
+      return setTimeout(function(){ location.reload(); }, 5*60e3);
+    }
+    var upgrade = $("upgradeForm");
+    upgrade.submit();
   }
 }
 
 function showSafeWarehouseLevels() {
-  var wood = [   0,   70,   90,  120,  150,  190,  230,  280,  330,  390,  460,
-               540,  630,  720,  830,  950, 1090];
-  var rest = [   0,  140,  190,  240,  310,  380,  470,  560,  670,  790,  930,
+  function showSafeLevel(div) {
+    var n = "wood" == div.parentNode.className ? wood[level] : rest[level];
+    var safe = createNode("", "ellipsis", n);
+    safe.style.position = "absolute";
+    safe.style.bottom = "5px";
+    safe.style.right = "5px";
+    div.appendChild(safe);
+  }
+  var level = config.getCity("building7", 0);
+  var wood = [   0,  140,  190,  240,  310,  380,  470,  560,  670,  790,  930,
               1090, 1260, 1450, 1670, 1910, 2180];
+  var rest = [   0,   70,   90,  120,  150,  190,  230,  280,  330,  390,  460,
+               540,  630,  720,  830,  950, 1090];
+  $x('id("cityResources")/ul/li/div[@class="tooltip"]').map(showSafeLevel);
 }
 
 function showHousingOccupancy() {
