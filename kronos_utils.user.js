@@ -928,8 +928,8 @@ function showHousingOccupancy() {
                          1964, 2103, 2246, 2391][townHallLevel];
     if (config.getServer("tech2080"))
       maxPopulation += 50; // Holiday bonus
-    if (config.getServer("tech3010"))
-      maxPopulation += 50; // Well Digging bonus
+    if (config.getServer("tech3010") && cityID() == cityIDs()[0])
+      maxPopulation += 50; // Well Digging bonus (capital city only)
     var pop = $("value_inhabitants").firstChild;
     var text = pop.nodeValue.replace(/\s/g, "\xA0");
     pop.nodeValue = text.replace(")", "/"+ maxPopulation +")");
@@ -1224,6 +1224,10 @@ function islandID() {
 
 function cityID() {
   return urlParse("id", $X('//li[@class="viewCity"]/a').search);
+}
+
+function cityIDs() {
+  return pluck($x('id("citySelect")/option'), "value");
 }
 
 /*------------------------
