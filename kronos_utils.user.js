@@ -210,7 +210,7 @@ function currentResources() {
 
 function reapingPace() {
   var pace = {
-    g: config.getServer("income", 0),
+    g: config.getCity("gold", 0),
     p: config.getServer("growth", 0),
     w: secondsToHours(valueRecupJS("startResourcesDelta"))
   };
@@ -387,7 +387,7 @@ function citizens() {
   factor("scientists", gold, -8);
 
   var income = $X('id("cityStatistics")/table/tfoot/tr/td/text()');
-  config.setServer("income", number(income));
+  config.setCity("gold", number(income));
 
   var growth = $X('id("cityStatistics")/ul/li[contains(@class,"popGrowth")]');
   config.setServer("growth", number(growth));
@@ -988,8 +988,20 @@ function improveTopPanel() {
   function isFull(node, what, have, pace) {
     var capacity = number($X('//li[@class="'+what+'"]/div[@class="tooltip"]'));
     var time = resolveTime((capacity - have) / (pace/3600), 1);
-    node.title = lang[full] + time;
+    node.title = (node.title ? node.title +", " : "") + lang[full] + time;
   }
+
+  css(<><![CDATA[
+#gold {
+  background:transparent url(skin/resources/icon_gold.gif) no-repeat 100% 0;
+  line-height: 22px;
+  padding-right: 18px;
+  text-align: right;
+  position: absolute;
+  width: 40px;
+  top: 33px;
+}
+]]></>);
 
   var flow = reapingPace();
   var span = $("value_wine");
@@ -1001,7 +1013,7 @@ function improveTopPanel() {
     time.title = lang[empty] + resolveTime(number(span)/-flow.W * 3600, 1);
   else {
     var reap = secondsToHours(valueRecupJS("startTradegoodDelta"));
-    time.title = "+"+ reap +"/-"+ (reap - flow.W) +" = +"+ flow.W +"/h";
+    time.title = "+"+ reap +"/-"+ (reap - flow.W);
     isFull(time, "wine", number(span), flow.W);
   }
 
@@ -1016,6 +1028,13 @@ function improveTopPanel() {
     var node = createNode("", "", "\xA0(+"+ income[name] +")", "span");
     span.parentNode.insertBefore(node, span.nextSibling);
     isFull(node, name, number(span), income[name]);
+  }
+
+  var gold = config.getCity("gold", 0);
+  if (gold) {
+    var cityNav = $("cityNav");
+    gold = createNode("gold", "", (gold > 0 ? "+" : "") + gold);
+    cityNav.appendChild(gold);
   }
 
   var tavernPos = config.getCity("posbldg9", "?");
@@ -1033,8 +1052,8 @@ function improveTopPanel() {
     }
   }
 
-  clickTo($('cityNav'), url("?view=townHall&id="+ cityID() +"&position=0"),
-          'self::*[@id="cityNav"]');
+  clickTo(cityNav, url("?view=townHall&id="+ cityID() +"&position=0"),
+          'self::*[@id="cityNav" or @id="gold"]');
   clickTo($X('id("value_wood")/parent::li'),
           url("?view=resource&type=resource&id=" + islandID()));
   clickTo($X('id("value_'+ luxuryType("name") +'")/parent::li'),
@@ -1200,11 +1219,6 @@ function cityID() {
 
 function principal() {
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
-  var luxeByHours = secondsToHours(valueRecupJS("startTradegoodDelta"));
-  var woodByHours = secondsToHours(valueRecupJS("startResourcesDelta"));
-  var lux = luxuryType("name");
-  if ("crystal" == lux) lux = "glass";
-
   var chemin = panelInfo();
   var island = islandID();
 
@@ -1238,12 +1252,6 @@ function principal() {
     projectHaveResourcesToUpgrade();
     showHousingOccupancy();
   } catch(e) { console.error && console.error(e); }
-
-  var goldName = $X('id("value_gold")/ancestor::li').title;
-  var income = config.getServer("income", 0);
-  chemin.appendChild(createLink(goldName +": "+ (income>0 ? "+" : "") + income,
-                                url("?view=townHall&id="+ cityID())));
-  chemin.appendChild(createBr());
 
   var research = config.getServer("research", "");
   if (research) {
