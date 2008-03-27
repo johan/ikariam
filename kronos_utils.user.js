@@ -1064,6 +1064,18 @@ function improveTopPanel() {
     $x('id("cityResources")/ul/li[contains("wood wine marble glass sulfur",'+
        '@class)]').forEach(tradeOnClick);
   }
+
+  var build = config.getCity("build", 0), now = Date.now();
+  console.info(build, time);
+  if (build > now) {
+    time = $X('//li[@class="serverTime"]');
+    var a = document.createElement("a");
+    a.href = url('?view=city&id='+ cityID());
+    a.appendChild(createNode("done", "textLabel",
+                             trim(resolveTime(Math.ceil((build-now)/1e3))),
+                             "span"));
+    time.appendChild(a);
+  }
 }
 
 function projectBuildStart(root, result) {
@@ -1122,10 +1134,15 @@ function projectCompletion(id, className) {
     // console.log("L: %x", node.textContent);
     // console.log("D: %x", parseTime(node.textContent));
     // console.log("F: %x", resolveTime(parseTime(node.textContent)));
-    var done = resolveTime(parseTime(node.textContent));
+    var time = parseTime(node.textContent);
+    var done = resolveTime(time);
     var div = createNode("", className, done, node.nodeName.toLowerCase());
     node.parentNode.insertBefore(div, node.nextSibling);
+    time = time * 1e3 + Date.now();
+    if ("upgradeCountDown" == id)
+      config.setCity("build", time);
     if ("cityCountdown" == id) {
+      config.setCity("build", time);
       var move = $X('ancestor::*[contains(@class,"timetofinish")]', node);
       if (move)
         move.style.marginLeft = "-40%";
