@@ -957,8 +957,36 @@ function clickTo(node, action, condition, capture, event) {
   }
 }
 
+function post(url, args) {
+  var form = document.createElement("form");
+  form.method = "POST";
+  form.action = url;
+  for (var item in args) {
+    var input = document.createElement("input");
+    input.type = "hidden";
+    input.name = item;
+    input.value = args[item];
+    form.appendChild(input);
+  }
+  document.body.appendChild(form);
+  form.submit();
+}
+
 // projects wine shortage time and adds lots of shortcut clicking functionality
 function improveTopPanel() {
+  function tradeOnClick(li) {
+    //trader = url("?view=branchOffice&id="+ cityID() +"&position="+ trader);
+    var id = { wood: "resource", wine: 1, marble: 2, glass: 3, sulfur: 4 };
+    var name = trim(li.className).split(" ")[0]; // "glass", for instance
+    var searchResource = id[name];
+    var luxe = luxuryType("glass");
+    if (luxe != name && "wood" != name) // clicking those goes to the resource
+      clickTo(li, bind(post, this, trader, { type: "444", // buy
+              searchResource: id[name], range: "99" }));
+    dblClickTo(li, bind(post, this, trader, { type: "333", // sell
+               searchResource: id[name], range: "99" }));
+  }
+
   var flow = reapingPace().W;
   var span = $("value_wine");
   var time = flow < 0 ? Math.floor(number(span)/-flow) +"h" : "∞";
@@ -993,10 +1021,8 @@ function improveTopPanel() {
   var trader = config.getCity("posbldg13", "?");
   if (trader != "?") {
     trader = url("?view=branchOffice&id="+ cityID() +"&position="+ trader);
-    var luxe = luxuryType("glass");
-    var nodes = $x('id("cityResources")/ul/li[not(@class="'+ luxe +'") and '+
-                   'contains("wine marble glass sulfur sulphur",@class)]');
-    nodes.forEach(function(node) { clickTo(node, trader); });
+    $x('id("cityResources")/ul/li[contains("wood wine marble glass sulfur",'+
+       '@class)]').forEach(tradeOnClick);
   }
 }
 
@@ -1215,7 +1241,11 @@ function principal() {
   var research = config.getServer("research", "");
   if (research) {
     var a = document.createElement("a");
-    a.href = url("?view=academy&id=" + cityID());
+    a.href = url("?view=academy&id="+ cityID());
+    var academy = config.getCity("posbldg4", "?");
+    if (academy != "?")
+      a.href += "&position=" + academy;
+
     var tech = techinfo(research);
     a.textContent = lang[researching] +": "+ research;
     a.title = tech.does +" ("+ tech.points + " points)";
@@ -1343,6 +1373,13 @@ var config = (function(data) {
            setServer:setServer, getServer:getServer,
            keys:keys, remove:remove };
 })(eval(GM_getValue("config", "({})")));
+
+function bind(fn, self) {
+  var args = [].slice.call(arguments, 2);
+  return function() {
+    fn.apply(self, args.concat([].slice.call(arguments)));
+  };
+}
 
 lang = langs[getLanguage()];
 
