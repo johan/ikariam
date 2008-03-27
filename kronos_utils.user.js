@@ -16,7 +16,7 @@ var DEBUT = new Date();
 
 // En fonction du language du naviguateur on va utiliser un langage associé.
 var language = 0, finished = 1, langUsed = 11, execTime = 12, wood = 14;
-var researching = 16, shown = 17, full = 19, monthshort = 20;
+var researching = 16, shown = 17, full = 19, monthshort = 20, empty = 21;
 var langs = {
   "fr": ["Français", " Fini à ", "Fermer", "Upgrader plus tard.",
          "File de construction", "Ajouter un bâtiment.", "Construire dans",
@@ -24,14 +24,14 @@ var langs = {
          "valider", "Langue utilisée", "Temps d'exécution",
          "Pas de bâtiment en attente.", "Bois", "Luxe",
          "Recherches", "Visible", "Invisible", "plein: ",
-         "JanFévMarAvrMaiJunJuiAoûSepOctNovDéc"],
+         "JanFévMarAvrMaiJunJuiAoûSepOctNovDéc", "vide: "],
   "en": ["English", " Finished ", "Close", "Upgrade later.",
          "Building list", "Add building.", "Build at",
          "hours", "minutes and", "seconds",
          "confirm", "Language used", "Time of execution",
          "No building in waiting.", "Wood", "Luxe",
          "Researching", "Shown", "Hidden", "full: ",
-         "JanFebMarAprMayJunJulAugSepOctNovDec"],
+         "JanFebMarAprMayJunJulAugSepOctNovDec", "empty: "],
   // By Tico:
   "pt": ["Portuguès", " acaba às ", "Fechar", "Evoluir mais tarde.",
          "Lista de construção", "Adicionar edificio.", "Construir em",
@@ -57,7 +57,7 @@ var langs = {
          "bekräfta", "Språk", "Exekveringstid",
          "Inga byggnader väntar.", "Trä", "Lyx",
          "Forskning", "Visas", "Gömda", "fullt: ",
-         "janfebmaraprmajjunjulaugsepoktnovdec"]
+         "janfebmaraprmajjunjulaugsepoktnovdec", "tomt: "]
 };
 var lang;
 
@@ -975,7 +975,6 @@ function post(url, args) {
 // projects wine shortage time and adds lots of shortcut clicking functionality
 function improveTopPanel() {
   function tradeOnClick(li) {
-    //trader = url("?view=branchOffice&id="+ cityID() +"&position="+ trader);
     var id = { wood: "resource", wine: 1, marble: 2, glass: 3, sulfur: 4 };
     var name = trim(li.className).split(" ")[0]; // "glass", for instance
     var searchResource = id[name];
@@ -994,10 +993,13 @@ function improveTopPanel() {
 
   var flow = reapingPace();
   var span = $("value_wine");
-  var time = flow.W < 0 ? Math.floor(number(span)/-flow.W) +"h" : "+"+ flow.W;
+  var time = flow.W < 0 ? Math.floor(number(span)/-flow.W) +"h" :
+             flow.W > 0 ? "+"+ flow.W : "±0";
   time = createNode("", "", "\xA0("+ time +")", "span");
   span.parentNode.insertBefore(time, span.nextSibling);
-  if (flow.W >= 0) {
+  if (flow.W < 0)
+    time.title = lang[empty] + resolveTime(number(span)/-flow.W * 3600, 1);
+  else {
     var reap = secondsToHours(valueRecupJS("startTradegoodDelta"));
     time.title = "+"+ reap +"/-"+ (reap - flow.W) +" = +"+ flow.W +"/h";
     isFull(time, "wine", number(span), flow.W);
