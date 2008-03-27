@@ -62,7 +62,7 @@ var langs = {
 var lang;
 
 var name = "Kronos";
-var version = " 0.4";
+var version = " 0.5";
 /*-------------------------------------
 Création de div, br, link etc...
 -------------------------------------*/
@@ -986,15 +986,34 @@ function improveTopPanel() {
     dblClickTo(li, bind(post, this, trader, { type: "333", // sell
                searchResource: id[name], range: "99" }));
   }
+  function isFull(node, what, have, pace) {
+    var capacity = number($X('//li[@class="'+what+'"]/div[@class="tooltip"]'));
+    var time = resolveTime((capacity - have) / (pace/3600), 1);
+    node.title = lang[full] + time;
+  }
 
-  var flow = reapingPace().W;
+  var flow = reapingPace();
   var span = $("value_wine");
-  var time = flow < 0 ? Math.floor(number(span)/-flow) +"h" : "∞";
+  var time = flow.W < 0 ? Math.floor(number(span)/-flow.W) +"h" : "+"+ flow.W;
   time = createNode("", "", "\xA0("+ time +")", "span");
   span.parentNode.insertBefore(time, span.nextSibling);
-  if (flow >= 0) {
+  if (flow.W >= 0) {
     var reap = secondsToHours(valueRecupJS("startTradegoodDelta"));
-    time.title = "+"+ reap +"/-"+ (reap - flow) +" = +"+ flow +"/h";
+    time.title = "+"+ reap +"/-"+ (reap - flow.W) +" = +"+ flow.W +"/h";
+    isFull(time, "wine", number(span), flow.W);
+  }
+
+  var income = { wood:flow.w };
+  var luxe = flow[luxuryType()];
+  var name = luxuryType("glass");
+  if (name != "wine") // already did that
+    income[name] = luxe;
+
+  for (name in income) {
+    span = $("value_"+ name);
+    var node = createNode("", "", "\xA0(+"+ income[name] +")", "span");
+    span.parentNode.insertBefore(node, span.nextSibling);
+    isFull(node, name, number(span), income[name]);
   }
 
   var tavernPos = config.getCity("posbldg9", "?");
@@ -1218,26 +1237,11 @@ function principal() {
     showHousingOccupancy();
   } catch(e) { console.error && console.error(e); }
 
-  var have = currentResources();
-  have.l = have[luxuryType()]; // what luxury resource?
-  var woodCapacity = number($X('//li[@class="wood"]/div[@class="tooltip"]'));
-  var luxeCapacity = number($X('//li[@class="'+lux+'"]/div[@class="tooltip"]'));
-  var woodFull = resolveTime((woodCapacity - have.w) / (woodByHours/3600), 1);
-  var luxeFull = resolveTime((luxeCapacity - have.l) / (luxeByHours/3600), 1);
-  woodFull = woodByHours ? " ("+ lang[full] + woodFull +")" : "";
-  luxeFull = luxeByHours ? " ("+ lang[full] + luxeFull +")" : "";
   var goldName = $X('id("value_gold")/ancestor::li').title;
   var income = config.getServer("income", 0);
-  [createLink(goldName +": "+ (income > 0 ? "+" : "") + income,
-              url("?view=townHall&id="+ cityID() +"&position=0")),
-   createBr(),
-   createLink(lang[wood] +": +"+ woodByHours + woodFull,
-              url("?view=resource&type=resource&id=" + island)),
-   createBr(),
-   createLink(luxuryType("english") +": +"+ luxeByHours + luxeFull,
-              url("?view=tradegood&type=tradegood&id=" + island)),
-   createBr(),
-  ].forEach(function add(node) { chemin.appendChild(node); });
+  chemin.appendChild(createLink(goldName +": "+ (income>0 ? "+" : "") + income,
+                                url("?view=townHall&id="+ cityID())));
+  chemin.appendChild(createBr());
 
   var research = config.getServer("research", "");
   if (research) {
