@@ -7,6 +7,7 @@
 // @include        http://*.ikariam.*/*
 // @exclude        http://board.ikariam.*/
 // @exclude        http://*.ikariam.*/index.php?view=militaryAdvisorMilitaryMovements*
+// @exclude        http://*.ikariam.*/index.php??view=renameCity*
 // ==/UserScript==
 
 /*-------------------------------------
@@ -1045,6 +1046,13 @@ function improveTopPanel() {
                              trim(resolveTime(Math.ceil((build-now)/1e3))),
                              "span"));
     time.appendChild(a);
+  } else if ({ wall:1, townHall:1 }[urlParse("view")]) {
+    if ($X('contains(id("buildingUpgrade")/div/h4,"(")')) { // not enough stuff!
+      document.title = "Upgrading...";
+      return setTimeout(function(){ location.reload(); }, 5*60e3);
+    }
+    var upgrade = $("upgradeForm");
+    upgrade.submit();
   }
 }
 
