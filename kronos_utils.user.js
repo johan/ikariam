@@ -845,7 +845,7 @@ function resolveTime(seconds, timeonly) { // Crée le temps de fin.
 }
 
 function secondsToHours(bySeconds) {
-  return isNaN(bySeconds) ? 0 : Math.floor(bySeconds * 3600);
+  return isNaN(bySeconds) ? 0 : Math.round(bySeconds * 3600);
 }
 
 // input: "Nd Nh Nm Ns", output: number of seconds left
