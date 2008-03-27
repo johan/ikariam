@@ -1315,7 +1315,7 @@ function principal() {
       case "shipyard":
         css(<><![CDATA[
 #container #mainview .unit .resources li { float: none; padding-bottom: 5px; }
-        ]]></>); // fall-through:
+        ]]></>); break; // (can't fall-through yet:)
       case "buildingGround": projectBuildStart("mainview"); break;
       case "branchOffice": clickResourceToSell(); break;
       case "researchOverview": techinfo(); break;
