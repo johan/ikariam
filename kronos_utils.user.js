@@ -105,9 +105,8 @@ function luxuryType(type) {
 function urlParse(param, url) {
   if (!url) url = location.search; // On récupére l'url du site.
   if (!url && param == "view") {
-    var view = { cities: "island", locations: "city", finder: "branchOffice" };
-    for (var id in view)
-      if ($(id)) return view[id];
+    var view = document.body.id;
+    if (view) return view;
   }
   var keys = {};
   url.replace(/([^=&?]+)=([^&]*)/g, function(m, key, value) {
@@ -1066,7 +1065,6 @@ function improveTopPanel() {
   }
 
   var build = config.getCity("build", 0), now = Date.now();
-  console.info(build, time);
   if (build > now) {
     time = $X('//li[@class="serverTime"]');
     var a = document.createElement("a");
