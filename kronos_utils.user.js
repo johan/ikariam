@@ -222,7 +222,7 @@ function reapingPace() {
 }
 
 function buildingID(a) {
-  var building = a.parentNode.className; //urlParse("view", a.search);
+  var building = "string" == typeof a ? a : a.parentNode.className;
   return {
     townHall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
     warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11, palaceColony: 11,
@@ -359,12 +359,66 @@ function levelTown() {
   $x('//li[starts-with(@class,"cityLocation city level")]').forEach(level);
 }
 
+function linkTo(url, node, context) {
+  if (!url.match(/\?/))
+    url = urlTo(url);
+  if ("string" == typeof node)
+    node = $X(node, context);
+  if (!node || !url)
+    return;
+  var a = document.createElement("a");
+  while (node.lastChild)
+    a.insertBefore(node.lastChild, a.firstChild);
+  a.href = url;
+  if (node.id)
+    a.id = node.id;
+  if (node.className)
+    a.className = node.className;
+  if (node.hasAttribute("style"))
+    a.setAttribute("style", node.getAttribute("style"));
+  node.parentNode.replaceChild(a, node);
+}
+
+function urlTo(where) {
+  function building() {
+    var id = buildingID(where);
+    var pos = config.getCity("posbldg"+ id, "");
+    if ("undefined" != pos)
+      return url("?view="+ where +"&id="+ c +"&position="+ pos);
+  }
+  var pos, c = cityID(), i = islandID();
+  if (where == "workshop")
+    where = "workshop-army";
+  switch (where) {
+    case "wood":	return url("?view=resource&type=resource&id="+ i);
+    case "luxe":	return url("?view=tradegood&type=tradegood&id="+ i);
+
+    case "townHall":	case "port":	case "academy":
+    case "shipyard":	case "wall":	case "warehouse":
+    case "barracks":	case "museum":	case "branchOffice":
+    case "embassy":	case "palace":	case "palaceColony":
+    case "safehouse":	case "tavern":	case "workshop-army":
+      return building();
+
+    case "island": return url('?view=island&id='+ i);
+    case "city": return url('?view=city&id='+ c);
+
+    default: return url("?view="+ where);
+  }
+}
+
 function townHall() {
   var income = $X('//li[contains(@class,"incomegold")]/span[@class="value"]');
   config.setCity("gold", number(income));
 
   var growth = $X('//li[contains(@class,"growth")]/span[@class="value"]');
   config.setServer("growth", number(growth));
+
+  var g = $("PopulationGraph");
+  linkTo("wood", 'div[@class="woodworkers"]/span[@class="production"]', g);
+  linkTo("luxe", 'div[@class="specialworkers"]/span[@class="production"]', g);
+  linkTo("academy", 'div[@class="scientists"]/span[@class="production"]', g);
+  clickTo($X('id("SatisfactionOverview")//div[@class="cat wine"]'), "tavern");
 }
 
 function trim(str) {
@@ -905,7 +959,7 @@ function clickTo(node, action, condition, capture, event) {
         if ("function" == typeof action)
           action(e);
         else
-          goto(action);
+          goto(action.match(/\?/) ? action : urlTo(action));
       }
     }, !!capture);
     node.style.cursor = "pointer";
@@ -1004,32 +1058,29 @@ function improveTopPanel() {
     gold = createNode("gold", "", (gold > 0 ? "+" : "") + gold);
     cityNav.appendChild(gold);
     var ap = $("value_maxActionPoints").parentNode;
-    ap.style.display = "none";
-    gold.title = trim(ap.textContent.replace(/\s+/g, " "));
+    ap.style.top = "-49px";
+    ap.style.left = "-67px";
+    clickTo(ap, urlTo("merchantNavy"));
+    //gold.title = trim(ap.textContent.replace(/\s+/g, " "));
   }
 
-  var tavernPos = config.getCity("posbldg9", "?");
-  if (tavernPos != "?")
-    clickTo(time, url("?view=tavern&id="+ cityID() +"&position="+ tavernPos));
+  clickTo(time, urlTo("tavern"));
 
   var warePos = config.getCity("posbldg7", "?");
   if (warePos != "?") {
-    var warehouse = url("?view=warehouse&id="+ cityID() +"&position="+ warePos);
+    var warehouse = urlTo("warehouse");
     var resources = $X('id("cityResources")/ul[@class="resources"]');
     if (resources) {
       $x('li/div[@class="tooltip"]', resources).forEach(function(tooltip) {
-          clickTo(tooltip, warehouse, null, true)
+        clickTo(tooltip, warehouse, null, true)
       });
     }
   }
 
-  clickTo(cityNav,
-          url("?view=townHall&id="+ cityID() +"&position=0"),
+  clickTo(cityNav, urlTo("townHall"),
           'self::*[@id="cityNav" or @id="gold"]');
-  clickTo($X('id("value_wood")/parent::li'),
-          url("?view=resource&type=resource&id=" + islandID()));
-  clickTo($X('id("value_'+ luxuryType("name") +'")/parent::li'),
-          url("?view=tradegood&type=tradegood&id=" + islandID()));
+  clickTo($X('id("value_wood")/parent::li'), urlTo("wood"));
+  clickTo($X('id("value_'+ luxuryType("name") +'")/parent::li'), urlTo("luxe"));
   var trader = config.getCity("posbldg13", "?");
   if (trader != "?") {
     trader = url("?view=branchOffice&id="+ cityID() +"&position="+ trader);
@@ -1045,7 +1096,7 @@ function improveTopPanel() {
   if (build > now) {
     time = $X('//li[@class="serverTime"]');
     var a = document.createElement("a");
-    a.href = url('?view=city&id='+ cityID());
+    a.href = urlTo("city");
     a.appendChild(createNode("done", "textLabel",
                              trim(resolveTime(Math.ceil((build-now)/1e3))),
                              "span"));
@@ -1344,10 +1395,7 @@ function principal() {
   var research = config.getServer("research", "");
   if (research) {
     var a = document.createElement("a");
-    a.href = url("?view=academy&id="+ cityID());
-    var academy = config.getCity("posbldg4", "?");
-    if (academy != "?")
-      a.href += "&position=" + academy;
+    a.href = urlTo("academy");
 
     var tech = techinfo(research);
     a.textContent = lang[researching] +": "+ research;
