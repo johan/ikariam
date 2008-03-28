@@ -167,10 +167,10 @@ function addCSSBubbles() { css(<><![CDATA[
 }
 
 .toBuild {
+  top: 32px;
   width: auto;
   height: 23px;
   white-space: pre;
-  margin: -120px auto -3px -50%;
   padding: 3px 5px 0;
   z-index: 1000;
 }
@@ -307,15 +307,19 @@ function annotateBuilding(node, level) {
 
 function levelBat() { // Ajout d'un du level sur les batiments.
   function hoverHouse(e) {
-    var a = e.target;
-    if (a && a.search && a.title && a.title.match(/ \d+$/i)) {
+    var a = $X('(ancestor-or-self::li)/a[@title and @href]', e.target);
+    if (a.title.match(/ \d+$/i)) {
+      var li = a.parentNode;
+      hovering.parentNode.removeChild(hovering);
       hovering.innerHTML = visualResources(buildingExpansionNeeds(a));
-      hovering.style.top = e.clientY +"px";
-      hovering.style.left = e.clientX +"px";
+      hovering.style.left = 2 + Math.round((li.offsetWidth +
+                                            hovering.offsetWidth) / -2) +"px";
+      hovering.style.top = $X('div[@class="timetofinish"]', li) ? "73px": "";
       hovering.style.display = "block";
       var enough = haveEnoughToUpgrade(a);
       hovering.style.borderColor = enough ? "#B1AB89" : "#918B69";
       hovering.style.backgroundColor = enough ? "#FEFCE8" : "#FDF8C1";
+      li.appendChild(hovering);
     } else
       hovering.style.display = "none";
   }
@@ -515,6 +519,10 @@ function drawQueue() {
       done.insertBefore(createNode("", "before", "", "span"), done.firstChild);
       done.appendChild(createNode("", "after", "", "span"));
       li.appendChild(done);
+      setTimeout(function() {
+        done.style.left = Math.round( (li.offsetWidth -
+                                       done.offsetWidth) / 2) + "px";
+      }, 10);
     }
     li.setAttribute("rel", i + "");
     ul.appendChild(li);
@@ -564,7 +572,6 @@ function processQueue() {
   z-index:500;
   position:absolute;
   top:86px;
-  left:-20px;
   text-align:center;
   line-height:23px;
   height:23px;
