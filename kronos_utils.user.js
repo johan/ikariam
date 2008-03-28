@@ -225,7 +225,7 @@ function buildingID(a) {
   var building = a.parentNode.className; //urlParse("view", a.search);
   return {
     townHall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
-    warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11,
+    warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11, palaceColony: 11,
     embassy: 12, branchOffice:13, "workshop-army": 15, safehouse: 16
   }[building];
 }
@@ -1153,7 +1153,7 @@ function projectBuildStart(root, result) {
                       'contains(@class,"wood") or contains(@class,"time"))]');
     for (var i = 0; i < needRest.length; i++) {
       var what = needRest[i];
-      var id = what.className.charAt().toUpperCase();
+      var id = what.className.charAt().toUpperCase().replace("G","C");
       need[id] = what;
     }
     for (var r in need) {
