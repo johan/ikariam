@@ -333,7 +333,6 @@ function levelTown() {
     }
   }
   function level(li) {
-    li.style.zIndex = "700";
     var level = li.className.match(/\d+/)[0];
     var city = $X('a[@onclick]/span', li);
     var name = $X('text()[preceding-sibling::span]', city);
@@ -968,6 +967,8 @@ function improveTopPanel() {
 .ellipsis:before { content:"("; }
 .ellipsis:after { content:")"; }
 
+#island #container #mainview ul#islandfeatures li.marble { z-index: 400; }
+
 ]]></>);
 
   var flow = reapingPace();
@@ -1002,6 +1003,9 @@ function improveTopPanel() {
     var cityNav = $("cityNav");
     gold = createNode("gold", "", (gold > 0 ? "+" : "") + gold);
     cityNav.appendChild(gold);
+    var ap = $("value_maxActionPoints").parentNode;
+    ap.style.display = "none";
+    gold.title = trim(ap.textContent.replace(/\s+/g, " "));
   }
 
   var tavernPos = config.getCity("posbldg9", "?");
@@ -1309,35 +1313,33 @@ function principal() {
   var chemin = panelInfo();
   var island = islandID();
 
-  try {
-    switch (urlParse("view") || urlParse("action")) {
-      case "loginAvatar":// &function=login
-      case "CityScreen": // &function=build&id=...&position=4&building=13
-      case "city": levelBat(); projectCompletion("cityCountdown"); break;
-      case "port": projectCompletion("outgoingOwnCountDown"); break;
-      case "island": levelTown(); levelResources(); break;
-      case "townHall": townHall(); break;
-      case "shipyard":
-        css(<><![CDATA[
+  switch (urlParse("view") || urlParse("action")) {
+    case "loginAvatar":// &function=login
+    case "CityScreen": // &function=build&id=...&position=4&building=13
+    case "city": levelBat(); projectCompletion("cityCountdown"); break;
+    case "port": projectCompletion("outgoingOwnCountDown"); break;
+    case "island": levelTown(); levelResources(); break;
+    case "townHall": townHall(); break;
+    case "shipyard":
+      css(<><![CDATA[
 #container #mainview .unit .resources li { float: none; padding-bottom: 5px; }
-        ]]></>); break; // (can't fall-through yet:)
-      case "buildingGround": projectBuildStart("mainview"); break;
-      case "branchOffice": clickResourceToSell(); break;
-      case "researchOverview": techinfo(); break;
-      case "colonize": colonize(); break;
-      case "academy":
-      case "researchAdvisor":
-        var research = $X('//div[@class="researchName"]/a');
-        if (research)
-          config.setServer("research", research.title);
-        projectCompletion("researchCountDown"); break;
-    }
-    title();
-    detectWineChange();
-    projectCompletion("upgradeCountDown", "time");
-    projectCompletion("buildCountDown");
-    projectHaveResourcesToUpgrade();
-  } catch(e) { console.error && console.error(e); }
+      ]]></>); break; // (can't fall-through yet:)
+    case "buildingGround": projectBuildStart("mainview"); break;
+    case "branchOffice": clickResourceToSell(); break;
+    case "researchOverview": techinfo(); break;
+    case "colonize": colonize(); break;
+    case "academy":
+    case "researchAdvisor":
+      var research = $X('//div[@class="researchName"]/a');
+      if (research)
+        config.setServer("research", research.title);
+      projectCompletion("researchCountDown"); break;
+  }
+  title();
+  detectWineChange();
+  projectCompletion("upgradeCountDown", "time");
+  projectCompletion("buildCountDown");
+  projectHaveResourcesToUpgrade();
 
   var research = config.getServer("research", "");
   if (research) {
