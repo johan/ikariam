@@ -104,7 +104,7 @@ function luxuryType(type) {
 
 // on récupére une des valeurs get d'une url(son nom est le param.
 function urlParse(param, url) {
-  if (!url) url = location.search; // On récupére l'url du site.
+  if (!url) url = location.search || ""; // On récupére l'url du site.
   if (!url && param == "view") {
     var view = document.body.id;
     if (view) return view;
@@ -142,8 +142,7 @@ function createBr() { // fonction de création saut de ligne
 }
 
 function css(rules) {
-  GM_addStyle(typeof rules == "string" ? rules : rules.toString());
-  return true;
+  return GM_addStyle(typeof rules == "string" ? rules : rules.toString()) || 1;
 }
 
 function addCSSBubbles() { css(<><![CDATA[
@@ -162,8 +161,8 @@ function addCSSBubbles() { css(<><![CDATA[
   cursor: pointer;
   height: 15px;
   visibility: visible;
-  margin-top: 10px;
-  margin-left: 25px;
+  top: 10px;
+  left: 25px;
   z-index: 50;
 }
 
@@ -208,6 +207,14 @@ function currentResources() {
   };
 }
 
+function haveResources(needs) {
+  var have = currentResources();
+  for (var r in needs)
+    if (needs[r] > (have[r] || 0))
+      return false;
+  return true;
+}
+
 function reapingPace() {
   var pace = {
     g: config.getCity("gold", 0),
@@ -221,13 +228,32 @@ function reapingPace() {
   return pace;
 }
 
+var buildingIDs = {
+  townHall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
+  warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11, palaceColony: 11,
+  embassy: 12, branchOffice:13, "workshop-army": 15, safehouse: 16
+};
+
+function buildingClass(id) {
+  for (var name in buildingIDs)
+    if (buildingIDs[name] == id)
+      return name;
+}
+
 function buildingID(a) {
   var building = "string" == typeof a ? a : a.parentNode.className;
-  return {
-    townHall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
-    warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11, palaceColony: 11,
-    embassy: 12, branchOffice:13, "workshop-army": 15, safehouse: 16
-  }[building];
+  return buildingIDs[building];
+}
+
+function buildingLevels() {
+  var levels = {};
+  for (var name in buildingIDs) {
+    var id = buildingIDs[name];
+    var level = config.getCity("building"+ id, 0);
+    if (level)
+      levels[id] = level;
+  }
+  return levels;
 }
 
 function buildingExpansionNeeds(a) {
@@ -259,6 +285,26 @@ function haveEnoughToUpgrade(a) {
   return enough;
 }
 
+function annotateBuilding(node, level) {
+  var a = $X('a', node);
+  if (!a) return;
+  var id = buildingID(a);
+  var level = level || number(a.title);
+  if ("number" == typeof id && node.id) {
+    config.setCity("building"+ id, level);
+    config.setCity("posbldg"+ id, number(node.id));
+  }
+  var div = createNode("", "pointsLevelBat", level);
+  if (haveEnoughToUpgrade(a)) {
+    div.style.backgroundColor = "#FEFCE8";
+    div.style.borderColor = "#B1AB89";
+  }
+  div.title = a.title;
+  node.appendChild(div);
+  div.addEventListener("click", function() { goto(a.href); }, true);
+  div.style.visibility = "visible";
+}
+
 function levelBat() { // Ajout d'un du level sur les batiments.
   function hoverHouse(e) {
     var a = e.target;
@@ -274,28 +320,6 @@ function levelBat() { // Ajout d'un du level sur les batiments.
       hovering.style.display = "none";
   }
 
-  function addnum(node) {
-    var a = $X('a', node);
-    if (!a) return;
-    var id = buildingID(a);
-    var level = number(a.title);
-    if ("number" == typeof id) {
-      config.setCity("building"+ id, level);
-      config.setCity("posbldg"+ id, number(node.id));
-    }
-    var div = createNode("", "pointsLevelBat", level);
-    if (haveEnoughToUpgrade(a)) {
-      div.style.backgroundColor = "#FEFCE8";
-      div.style.borderColor = "#B1AB89";
-    }
-    div.title = a.title;
-    node.appendChild(div);
-    div.addEventListener("click", function() { goto(a.href); }, true);
-    div.style.visibility = "visible";
-  }
-
-  addCSSBubbles();
-
   var node = $("locations");
   if (node) {
     var hovering = createNode("hovering", "pointsLevelBat toBuild");
@@ -304,7 +328,8 @@ function levelBat() { // Ajout d'un du level sur les batiments.
     node.addEventListener("mouseover", hoverHouse, false);
   }
 
-  $x('id("locations")/li[not(contains(@class,"buildingGround"))]').map(addnum);
+  var all = $x('id("locations")/li[not(contains(@class,"buildingGround"))]');
+  all.forEach(function(li) { annotateBuilding(li); });
 }
 
 function levelResources() {
@@ -314,7 +339,6 @@ function levelResources() {
     var div = createNode("", "pointsLevelBat", level);
     node.appendChild(div);
   }
-  addCSSBubbles();
   annotate('contains(@class,"wood")');
   annotate('not(contains(@class,"wood")) and not(@id)');
 }
@@ -391,6 +415,7 @@ function urlTo(where) {
   if (where == "workshop")
     where = "workshop-army";
   switch (where) {
+    default:		return url("?view="+ where);
     case "wood":	return url("?view=resource&type=resource&id="+ i);
     case "luxe":	return url("?view=tradegood&type=tradegood&id="+ i);
 
@@ -401,11 +426,169 @@ function urlTo(where) {
     case "safehouse":	case "tavern":	case "workshop-army":
       return building();
 
-    case "island": return url('?view=island&id='+ i);
-    case "city": return url('?view=city&id='+ c);
+    case "city":	return url('?view=city&id='+ c);
+    case "island":	return url('?view=island&id='+ i);
 
-    default: return url("?view="+ where);
+    case "library":
+      return urlTo("academy").replace("academy", "researchOverview");
   }
+}
+
+function getQueue() {
+  return eval(config.getCity("q", "[]"));
+}
+
+function setQueue(q) {
+  return config.setCity("q", uneval(q));
+}
+
+function addToQueue(b, first) {
+  var q = getQueue();
+  if (first)
+    q.unshift(b);
+  else
+    q.push(b);
+  setTimeout(drawQueue, 10);
+  return setQueue(q);
+}
+
+function changeQueue(e) {
+  var enqueued = $X('ancestor-or-self::li[parent::ul[@id="q"]]', e.target);
+  if (enqueued) { // drop from queue
+    var q = getQueue();
+    q.splice(enqueued.getAttribute("rel"), 1);
+    setQueue(q);
+    drawQueue();
+  } else if (!e.altKey) {
+    return;
+  } else { // enqueue
+    var a = $X('parent::li[parent::ul[@id="locations"]]/a', e.target);
+    if (a) addToQueue(buildingID(a), e.shiftKey);
+  }
+  if (a || enqueued) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+}
+
+function upgrade() {
+  var q = getQueue();
+  if (!q.length) return;
+  var b = q.shift();
+  var l = config.getCity("building"+ b, 1);
+  if (haveResources(costs[b][l])) {
+    config.remCity("build");
+    setQueue(q);
+    return post("/index.php", {
+      action: "CityScreen",
+    function: "upgradeBuilding",
+          id: cityID(),
+    position: config.getCity("posbldg"+ b),
+       level: l });
+  }
+
+  // FIXME: figure out when to re-test, if at all, and setTimeout(upgrade)
+}
+
+function drawQueue() {
+  var ul = $("q");
+  if (ul)
+    ul.innerHTML = "";
+  else {
+    ul = createNode("q", "", "", "ul");
+    document.body.appendChild(ul);
+  }
+  var q = getQueue();
+  var t = config.getCity("build");
+  var level = buildingLevels();
+  for (var i = 0; i < q.length; i++) {
+    var b = q[i];
+    var what = buildingClass(b);
+    var li = createNode("", what, "", "li");
+    li.innerHTML = '<div class="img"></Div><a href="'+ urlTo(what) +'"></a>';
+    var upgradeTime = parseTime(costs[b][level[b]++].t);
+    annotateBuilding(li, level[b]);
+    if (t) {
+      t += (upgradeTime + 1) * 1000;
+      var done = trim(resolveTime((t - Date.now()) / 1000));
+      done = createNode("", "timetofinish", done);
+      done.insertBefore(createNode("", "before", "", "span"), done.firstChild);
+      done.appendChild(createNode("", "after", "", "span"));
+      li.appendChild(done);
+    }
+    li.setAttribute("rel", i + "");
+    ul.appendChild(li);
+  }
+}
+
+function processQueue() {
+  var u = config.getCity("buildurl");
+  var t = config.getCity("build", Infinity);
+  if (t < Date.now()) {
+    upgrade();
+  } else if (t == Infinity && u) {
+    config.remCity("buildurl");
+    return location.href = u;
+  } else if (t < Infinity) {
+    t = t - Date.now() + 1e3;
+    console.log("Not ready to upgrade yet; retrying in %xs at %s",
+                Math.round(t/1e3) + 1, resolveTime(t/1e3 + 1, 1));
+    setTimeout(processQueue, t + 1e3);
+  }
+
+  drawQueue();
+  if (!processQueue.css)
+    processQueue.css = css(<><![CDATA[
+
+#q .barracks .img { left:0px; top:-33px; width:100px; height:76px; background-image:url(skin/img/city/building_barracks.gif); }
+#q .port .img { left:-65px; top:-35px; width:104px; height:90px; background:url(skin/img/city/building_port.gif) -59px 0; }
+#q .shipyard .img { left:-22px; top:-20px; width:129px; height:100px; background-image:url(skin/img/city/building_shipyard.gif); }
+#q .shipyard a{ top:-10px; left:-20px; width:110px; height:70px; }
+#q .museum .img { left:-8px; top:-38px; width:105px; height:85px;  background-image:url(skin/img/city/building_museum.gif); }
+#q .warehouse .img { left:0px; top:-33px; width:126px; height:86px;  background-image:url(skin/img/city/building_warehouse.gif); }
+#q .wall .img { width:93px; height:88px; background:url(skin/img/city/building_wall.gif) no-repeat -68px -16px; }
+#q .tavern .img { left:-10px; top:-15px; width:111px; height:65px;  background-image:url(skin/img/city/building_tavern.gif); }
+#q .palace .img { left:-10px; top:-42px; width:106px; height:97px;  background-image:url(skin/img/city/building_palace.gif); }
+#q .palaceColony .img { left:-10px; top:-42px; width:109px; height:95px;  background-image:url(skin/img/city/building_palaceColony.gif); }
+#q .academy .img { left:-19px; top:-31px; width:123px; height:90px; background-image:url(skin/img/city/building_academy.gif); }
+#q .workshop-army .img { left:-19px; top:-31px; width:106px; height:85px; background-image:url(skin/img/city/building_workshop.gif); }
+#q .safehouse .img { left:5px; top:-15px; width:84px; height:58px; background-image:url(skin/img/city/building_safehouse.gif); }
+#q .branchOffice .img { left:-19px; top:-31px; width:109px; height:84px; background-image:url(skin/img/city/building_branchOffice.gif); }
+#q .embassy .img { left:-5px; top:-31px; width:93px; height:85px; background-image:url(skin/img/city/building_embassy.gif); }
+#q .townHall .img { left:-5px; top:-60px; width:104px; height:106px; background-image:url(skin/img/city/building_townhall.gif); }
+#q { margin: -20px 20px 0; position:relative; }
+#q li { float:left; margin:0 40px 72px; position:absolute; width:86px; height:43px; position:relative; }
+#q li .pointsLevelBat { margin-left: 19px; margin-top: 30px; }
+
+#q li .timetofinish {
+  z-index:500;
+  position:absolute;
+  top:86px;
+  left:-20px;
+  text-align:center;
+  line-height:23px;
+  height:23px;
+  background-image:url(skin/layout/scroll_bg.gif);
+  padding:0 16px;
+  white-space: nowrap;
+  font-size:10px;
+  color:#50110a;
+}
+#q li .timetofinish .before {
+  display:block; position:absolute; top:0; left:0; width:12px; height:23px;
+  background-image:url(skin/layout/scroll_leftend.gif);
+}
+#q li .timetofinish .after {
+  display:block; position:absolute; top:0; right:0; width:12px; height:23px;
+  background-image:url(skin/layout/scroll_rightend.gif);
+}
+
+]]></>);
+}
+
+function cityView() {
+  projectCompletion("cityCountdown", null, '../preceding-sibling::a');
+  levelBat();
 }
 
 function townHall() {
@@ -1251,7 +1434,7 @@ function projectHaveResourcesToUpgrade() {
   projectBuildStart("buildingUpgrade", 'preceding-sibling::h4');
 }
 
-function projectCompletion(id, className, location) {
+function projectCompletion(id, className, loc) {
   var node = $(id), set;
   if (node) {
     // console.log("T: %x", $("servertime").textContent);
@@ -1272,15 +1455,15 @@ function projectCompletion(id, className, location) {
         move.style.marginLeft = "-40%";
     }
     if (set) {
-      if ("string" == typeof location)
-        location = $X(location, node);
-      else if ("undefined" == typeof location)
-        if (window.location.search.match(/\?/))
-          location = window.location;
+      if ("string" == typeof loc)
+        loc = $X(loc, node);
+      else if ("undefined" == typeof loc)
+        if (location.search.match(/\?/))
+          loc = location;
         else
-          location = { href: urlTo(document.body.id) };
-      if (location)
-        config.setCity("buildurl", location.href);
+          loc = { href: urlTo(document.body.id) };
+      if (loc)
+        config.setCity("buildurl", loc.href);
     }
   }
   return time;
@@ -1381,15 +1564,14 @@ function isCapital() {
 function principal() {
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
   var chemin = panelInfo();
-  var island = islandID();
+  addCSSBubbles();
+  processQueue();
+  document.addEventListener("click", changeQueue, true);
 
   switch (urlParse("view") || urlParse("action")) {
     case "loginAvatar":// &function=login
     case "CityScreen": // &function=build&id=...&position=4&building=13
-    case "city":
-      projectCompletion("cityCountdown", null, '../preceding-sibling::a');
-      levelBat();
-      break;
+    case "city": cityView(); break;
     case "port": projectCompletion("outgoingOwnCountDown"); break;
     case "island": levelTown(); levelResources(); break;
     case "townHall": townHall(); break;
@@ -1523,6 +1705,12 @@ var config = (function(data) {
   function setServer(name, value) {
     return set(name +":"+ location.hostname, value);
   }
+  function remCity(name) {
+    return remServer(name +":"+ cityID());
+  }
+  function remServer(name) {
+    return remove(name +":"+ location.hostname);
+  }
   function keys(re) {
     re = re || /./;
     var list = [];
@@ -1545,10 +1733,9 @@ var config = (function(data) {
     }
     return value;
   }
-  return { get:get, set:set,
-           setCity:setCity, getCity:getCity,
-           setServer:setServer, getServer:getServer,
-           keys:keys, remove:remove };
+  return { get:get, set:set, remove:remove, keys:keys,
+           setCity:setCity, getCity:getCity, remCity:remCity,
+           setServer:setServer, getServer:getServer, remServer:remServer };
 })(eval(GM_getValue("config", "({})")));
 
 function bind(fn, self) {
