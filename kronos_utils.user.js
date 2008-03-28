@@ -1007,8 +1007,12 @@ function improveTopPanel() {
   padding-right: 18px;
   text-align: right;
   position: absolute;
-  width: 40px;
+  width: 52px;
   top: 33px;
+}
+
+#gold.negative {
+  background-position:49px -2px;
 }
 
 .ellipsis {
@@ -1055,7 +1059,8 @@ function improveTopPanel() {
   var gold = config.getCity("gold", 0);
   if (gold) {
     var cityNav = $("cityNav");
-    gold = createNode("gold", "", (gold > 0 ? "+" : "") + gold);
+    gold = createNode("gold", gold < 0 ? "negative" : "",
+                      (gold > 0 ? "+" : "") + gold);
     cityNav.appendChild(gold);
     var ap = $("value_maxActionPoints").parentNode;
     ap.style.top = "-49px";
@@ -1276,6 +1281,7 @@ function projectCompletion(id, className, location) {
         config.setCity("buildurl", location.href);
     }
   }
+  return time;
 }
 
 function detectWineChange() {
@@ -1398,7 +1404,8 @@ function principal() {
       var research = $X('//div[@class="researchName"]/a');
       if (research)
         config.setServer("research", research.title);
-      projectCompletion("researchCountDown"); break;
+      config.setServer("researchDone", projectCompletion("researchCountDown"));
+      break;
   }
   title();
   detectWineChange();
@@ -1414,6 +1421,9 @@ function principal() {
     var tech = techinfo(research);
     a.textContent = lang[researching] +": "+ research;
     a.title = tech.does +" ("+ tech.points + " points)";
+    var done = config.getServer("researchDone");
+    if (done)
+      a.title += resolveTime((done-Date.now()) / 1e3);
     chemin.appendChild(a);
     chemin.appendChild(createBr());
   }
