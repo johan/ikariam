@@ -1096,7 +1096,7 @@ function improveTopPanel() {
   if (build > now) {
     time = $X('//li[@class="serverTime"]');
     var a = document.createElement("a");
-    a.href = urlTo("city");
+    a.href = config.getCity("buildurl");
     a.appendChild(createNode("done", "textLabel",
                              trim(resolveTime(Math.ceil((build-now)/1e3))),
                              "span"));
@@ -1244,8 +1244,8 @@ function projectHaveResourcesToUpgrade() {
   projectBuildStart("buildingUpgrade", 'preceding-sibling::h4');
 }
 
-function projectCompletion(id, className) {
-  var node = $(id);
+function projectCompletion(id, className, location) {
+  var node = $(id), set;
   if (node) {
     // console.log("T: %x", $("servertime").textContent);
     // console.log("L: %x", node.textContent);
@@ -1257,12 +1257,23 @@ function projectCompletion(id, className) {
     node.parentNode.insertBefore(div, node.nextSibling);
     time = time * 1e3 + Date.now();
     if ("upgradeCountDown" == id)
-      config.setCity("build", time);
+      set = config.setCity("build", time);
     if ("cityCountdown" == id) {
-      config.setCity("build", time);
+      set = config.setCity("build", time);
       var move = $X('ancestor::*[contains(@class,"timetofinish")]', node);
       if (move)
         move.style.marginLeft = "-40%";
+    }
+    if (set) {
+      if ("string" == typeof location)
+        location = $X(location, node);
+      else if ("undefined" == typeof location)
+        if (window.location.search.match(/\?/))
+          location = window.location;
+        else
+          location = { href: urlTo(document.body.id) };
+      if (location)
+        config.setCity("buildurl", location.href);
     }
   }
 }
@@ -1367,7 +1378,10 @@ function principal() {
   switch (urlParse("view") || urlParse("action")) {
     case "loginAvatar":// &function=login
     case "CityScreen": // &function=build&id=...&position=4&building=13
-    case "city": levelBat(); projectCompletion("cityCountdown"); break;
+    case "city":
+      projectCompletion("cityCountdown", null, '../preceding-sibling::a');
+      levelBat();
+      break;
     case "port": projectCompletion("outgoingOwnCountDown"); break;
     case "island": levelTown(); levelResources(); break;
     case "townHall": townHall(); break;
