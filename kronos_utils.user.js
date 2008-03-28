@@ -335,6 +335,7 @@ function levelTown() {
   function level(li) {
     var level = li.className.match(/\d+/)[0];
     var city = $X('a[@onclick]/span', li);
+    if (!city) return; // new city site
     var name = $X('text()[preceding-sibling::span]', city);
     if (name) {
       name.nodeValue = level +":"+ name.nodeValue;
@@ -1013,6 +1014,7 @@ function improveTopPanel() {
 
 #gold.negative {
   background-position:49px -2px;
+  background-image:url(skin/icons/corruption_24x24.gif);
 }
 
 .ellipsis {
@@ -1066,7 +1068,7 @@ function improveTopPanel() {
     ap.style.top = "-49px";
     ap.style.left = "-67px";
     clickTo(ap, urlTo("merchantNavy"));
-    //gold.title = trim(ap.textContent.replace(/\s+/g, " "));
+    gold.title = " "; // trim(ap.textContent.replace(/\s+/g, " "));
   }
 
   clickTo(time, urlTo("tavern"));
