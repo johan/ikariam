@@ -625,13 +625,14 @@ function drawQueue() {
     return;
   }
   delete have.p; delete have.g;
-  div = showResourceNeeds(have, $("Kronos"), div);
-  div.style.top = "auto";
-  div.style.margin = "0";
-  div.style.left = "-30px";
-  div.style.bottom = "-82px";
-  div.style.position = "absolute";
+  div = showResourceNeeds(have, $("container2"), div);
   div.title = "Resources left "+ resolveTime((t-Date.now())/1e3, 1);
+  div.style.left = div.style.top = "auto";
+  div.style.margin = "0";
+  div.style.right = "20px";
+  div.style.bottom = "35px";
+  div.style.zIndex = "5000";
+  div.style.position = "absolute";
   div.id = "qhave";
 
   div = $("qmiss") || undefined;
@@ -647,13 +648,14 @@ function drawQueue() {
   drawQueue.miss = miss;
   drawQueue.have = have;
 
-  div = showResourceNeeds(miss, $("Kronos"), div);
+  div = showResourceNeeds(miss, $("container2"), div);
+  div.title = "Shopping list";
   div.style.top = "auto";
   div.style.margin = "0";
-  //div.style.left = "50%";
-  div.style.bottom = "-42px";
+  div.style.left = "240px";
+  div.style.bottom = "35px";
+  div.style.zIndex = "5000";
   div.style.position = "absolute";
-  div.title = "Shopping list";
   div.id = "qmiss";
 }
 
