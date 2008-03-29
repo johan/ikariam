@@ -493,7 +493,10 @@ function changeQueue(e) {
     return;
   } else { // enqueue
     var a = $X('parent::li[parent::ul[@id="locations"]]/a', e.target);
-    if (a) addToQueue(buildingID(a), e.shiftKey);
+    if (a) {
+      addToQueue(buildingID(a), e.shiftKey);
+      setTimeout(processQueue, 10);
+    }
   }
   if (a || enqueued) {
     e.stopPropagation();
@@ -616,6 +619,11 @@ function drawQueue() {
   }
 
   var div = $("qhave") || undefined;
+  if (!q.length) {
+    if (div)
+      div.style.display = "none";
+    return;
+  }
   delete have.p; delete have.g;
   div = showResourceNeeds(have, $("Kronos"), div);
   div.style.top = "auto";
@@ -652,12 +660,16 @@ function drawQueue() {
 function processQueue() {
   var u = config.getCity("buildurl");
   var t = config.getCity("build", Infinity);
-  if (t < Date.now()) {
+  if (t < Date.now()) { // item just completed; go go go!
     upgrade();
-  } else if (t == Infinity && u) {
-    config.remCity("buildurl");
-    return location.href = u;
-  } else if (t < Infinity) {
+  } else if (t == Infinity) { // no project going!
+    if (u) { // Just completed one queue item
+      config.remCity("buildurl");
+      return location.href = u;
+    }
+    // added item to empty queue -- go go go!
+    upgrade();
+  } else if (t < Infinity) { // waiting for present project to end
     t = t - Date.now() + 1e3;
     /* console.log("Not ready to upgrade yet; retrying in %xs at %s",
                 Math.round(t/1e3) + 1, resolveTime(t/1e3 + 1, 1)); */
