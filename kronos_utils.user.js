@@ -176,24 +176,24 @@ function addCSSBubbles() { css(<><![CDATA[
 }
 
 #islandfeatures .wood .pointsLevelBat {
-  margin-top: -21px;
-  margin-left: 7px;
+  margin-top: 9px;
+  margin-left: -18px;
 }
 #islandfeatures .wine .pointsLevelBat {
-  margin-top: -38px;
-  margin-left: 35px;
+  margin-top: 9px;
+  margin-left: -18px;
 }
 #islandfeatures .marble .pointsLevelBat {
-  margin-top: -28px;
-  margin-left: 23px;
+  margin-top: 18px;
+  margin-left: 0px;
 }
 #islandfeatures .crystal .pointsLevelBat {
-  margin-top: -9px;
-  margin-left: 21px;
+  margin-top: 9px;
+  margin-left: -8px;
 }
 #islandfeatures .sulfur .pointsLevelBat {
-  margin-top: -33px;
-  margin-left: 35px;
+  margin-top: 4px;
+  margin-left: 10px;
 }
 
 ]]></>); }
