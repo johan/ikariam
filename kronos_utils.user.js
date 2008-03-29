@@ -309,7 +309,7 @@ function showResourceNeeds(needs, parent, div, top, left) {
   if (div)
     div.parentNode.removeChild(div);
   else
-    div = createNode("hovering", "pointsLevelBat toBuild");
+    div = createNode("", "pointsLevelBat toBuild");
   div.innerHTML = visualResources(needs);
   if (parent.id == "position3") { // far right
     div.style.top = top || "";
@@ -520,6 +520,8 @@ function upgrade() {
   // FIXME: figure out when to re-test, if at all, and setTimeout(upgrade)
 }
 
+// iterates through lack, updating accumulate with goods used, zeroing have for
+// all missing resources, and adds lack.t with the time it took to replenish it
 function replenishTime(lack, have, accumulate) {
   var t = 0, takes;
   var pace = reapingPace();
@@ -529,13 +531,15 @@ function replenishTime(lack, have, accumulate) {
     if (have)
       have[r] = 0;
     if (accumulate)
-      accumulate = (accumulate[r] || 0) + n;
+      accumulate[r] = (accumulate[r] || 0) + n;
     if (p > 0)
       takes = Math.ceil(3600 * n / p);
     else
       takes = Infinity;
     t = Math.max(t, takes);
   }
+  if (accumulate)
+    accumulate.t = (accumulate.t || 0) + t;
   lack.t = t;
   return lack;
 }
@@ -561,20 +565,19 @@ function drawQueue() {
     var li = createNode("", what, "", "li");
     li.innerHTML = '<div class="img"></div><a href="'+ urlTo(what) +'"></a>';
     li.setAttribute("rel", i + "");
-    annotateBuilding(li, level[b]);
 
     // Will we have everything needed by then?
     var need = costs[b][level[b]++];
+    annotateBuilding(li, level[b]);
     var stall = {};
     var stalled = false;
+    for (var r in pace)
+      have[r] += pace[r];
     for (var r in need) {
       if (r == "t") continue;
-      if (pace[r])
-        have[r] += pace[r];
       if (need[r] > have[r]) {
         stalled = true;
-        stall[r] = need[r] - Math.floor(have[r]);
-        miss[r] = (miss[r] || 0) + stall[r];
+        stall[r] = need[r] - have[r];
       }
       have[r] -= need[r];
     }
@@ -589,13 +592,12 @@ function drawQueue() {
     if (stalled) {
       stall = replenishTime(stall, have, miss);
       stalled = stall.t;
-      miss.t += stalled;
       if (stalled == Infinity) {
         stall.t = "∞"; // FIXME: this merits a more clear error message
       } else {
         dt += stalled;
         t += stalled * 1e3;
-        stall.t = secsToDHMS(stalled);
+        stall.t = secsToDHMS(stalled, " ", 1);
       }
       var div = showResourceNeeds(stall, li, null, "112px", "");
     }
@@ -612,6 +614,39 @@ function drawQueue() {
 
     ul.appendChild(li);
   }
+
+  var div = $("qhave") || undefined;
+  delete have.p; delete have.g;
+  div = showResourceNeeds(have, $("Kronos"), div);
+  div.style.top = "auto";
+  div.style.margin = "0";
+  div.style.left = "-30px";
+  div.style.bottom = "-82px";
+  div.style.position = "absolute";
+  div.title = "Resources left "+ resolveTime((t-Date.now())/1e3, 1);
+  div.id = "qhave";
+
+  div = $("qmiss") || undefined;
+  stalled = false;
+  for (var r in miss)
+    stalled = true;
+  if (!stalled)
+    return div && (div.style.display = "none");
+
+  // t = secsToDHMS(miss.t);
+  delete miss.t;
+  // miss.t = t;
+  drawQueue.miss = miss;
+  drawQueue.have = have;
+
+  div = showResourceNeeds(miss, $("Kronos"), div);
+  div.style.top = "auto";
+  div.style.margin = "0";
+  //div.style.left = "50%";
+  div.style.bottom = "-42px";
+  div.style.position = "absolute";
+  div.title = "Shopping list";
+  div.id = "qmiss";
 }
 
 function processQueue() {
@@ -624,8 +659,8 @@ function processQueue() {
     return location.href = u;
   } else if (t < Infinity) {
     t = t - Date.now() + 1e3;
-    console.log("Not ready to upgrade yet; retrying in %xs at %s",
-                Math.round(t/1e3) + 1, resolveTime(t/1e3 + 1, 1));
+    /* console.log("Not ready to upgrade yet; retrying in %xs at %s",
+                Math.round(t/1e3) + 1, resolveTime(t/1e3 + 1, 1)); */
     setTimeout(processQueue, t + 1e3);
   }
 
@@ -650,7 +685,8 @@ function processQueue() {
 #q .embassy .img { left:-5px; top:-31px; width:93px; height:85px; background-image:url(skin/img/city/building_embassy.gif); }
 #q .townHall .img { left:-5px; top:-60px; width:104px; height:106px; background-image:url(skin/img/city/building_townhall.gif); }
 
-#q { margin: -20px 20px 0; position:relative; }
+.toBuild img { display: inline !important; }
+#q { margin: -20px 20px 125px; position:relative; }
 #q li { float:left; margin:0 40px 105px; position:absolute; width:86px; height:43px; position:relative; }
 #q li .pointsLevelBat { margin-left: 19px; margin-top: 30px; }
 
@@ -1137,7 +1173,8 @@ function visualResources(what) {
     return icon.toXMLString();
   }
   if (typeof what == "object") {
-    var name = { w:"wood", g:"gold", M:"marble", C:"glass", W:"wine" };
+    var name = { w: "wood", g: "gold",
+                 M: "marble", C: "glass", W: "wine", S: "sulfur" };
     var html = []
     for (var id in what) {
       if (name[id])
@@ -1196,16 +1233,23 @@ function parseTime(t) {
   return s;
 }
 
-function secsToDHMS(t, join) {
+function secsToDHMS(t, join, rough) {
+  if (t == Infinity) return "∞";
   var result = [];
   var minus = t < 0 ? "-" : "";
   if (minus)
     t = -t;
   for (var unit in units) {
+    var u = locale.timeunits.short[unit];
     var n = units[unit];
     var r = t % n;
-    if (r != t)
-      result.push(((t - r) / n) + locale.timeunits.short[unit]);
+    if (r == t) continue;
+    if ("undefined" == typeof rough || rough--)
+      result.push(((t - r) / n) + u);
+    else {
+      result.push(Math.round(t / n) + u);
+      break;
+    }
     t = r;
   }
   return minus + result.join(join || " ");
