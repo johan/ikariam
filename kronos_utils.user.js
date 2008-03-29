@@ -305,21 +305,47 @@ function annotateBuilding(node, level) {
   div.style.visibility = "visible";
 }
 
+function showResourceNeeds(needs, parent, div, top, left) {
+  if (div)
+    div.parentNode.removeChild(div);
+  else
+    div = createNode("hovering", "pointsLevelBat toBuild");
+  div.innerHTML = visualResources(needs);
+  if (parent.id == "position3") { // far right
+    div.style.top = top || "";
+    div.style.left = "auto";
+    div.style.right = "-17px";
+    div.style.margin = "0";
+  } else if ("position7" == parent.id) { // far left
+    div.style.top = top || "";
+    div.style.left = "-11px";
+    div.style.right = "auto";
+    div.style.margin = "0";
+  } else {
+    div.style.top = top || "";
+    div.style.left = "0";
+    div.style.right = "auto";
+    div.style.margin = "0 0 0 -50%";
+  }
+  if ("undefined" != typeof left)
+    div.style.left = left;
+  div.style.display = "block";
+  parent.appendChild(div);
+  return div;
+}
+
 function levelBat() { // Ajout d'un du level sur les batiments.
   function hoverHouse(e) {
     var a = $X('(ancestor-or-self::li)/a[@title and @href]', e.target);
-    if (a.title.match(/ \d+$/i)) {
+    if (a && a.title.match(/ \d+$/i)) {
       var li = a.parentNode;
-      hovering.parentNode.removeChild(hovering);
-      hovering.innerHTML = visualResources(buildingExpansionNeeds(a));
-      hovering.style.left = 2 + Math.round((li.offsetWidth +
-                                            hovering.offsetWidth) / -2) +"px";
-      hovering.style.top = $X('div[@class="timetofinish"]', li) ? "73px": "";
-      hovering.style.display = "block";
+      var top = $X('div[@class="timetofinish"]', li) ? "73px": "";
+      if (top && li.id == "position0") top = "0";
+      showResourceNeeds(buildingExpansionNeeds(a), li, hovering, top);
+
       var enough = haveEnoughToUpgrade(a);
       hovering.style.borderColor = enough ? "#B1AB89" : "#918B69";
       hovering.style.backgroundColor = enough ? "#FEFCE8" : "#FDF8C1";
-      li.appendChild(hovering);
     } else
       hovering.style.display = "none";
   }
@@ -494,6 +520,26 @@ function upgrade() {
   // FIXME: figure out when to re-test, if at all, and setTimeout(upgrade)
 }
 
+function replenishTime(lack, have, accumulate) {
+  var t = 0, takes;
+  var pace = reapingPace();
+  for (var r in lack) {
+    var n = lack[r];
+    var p = pace[r] || 0;
+    if (have)
+      have[r] = 0;
+    if (accumulate)
+      accumulate = (accumulate[r] || 0) + n;
+    if (p > 0)
+      takes = Math.ceil(3600 * n / p);
+    else
+      takes = Infinity;
+    t = Math.max(t, takes);
+  }
+  lack.t = t;
+  return lack;
+}
+
 function drawQueue() {
   var ul = $("q");
   if (ul)
@@ -503,28 +549,67 @@ function drawQueue() {
     document.body.appendChild(ul);
   }
   var q = getQueue();
-  var t = config.getCity("build");
+  var t = config.getCity("build"); // in ms
+  var dt = (t - Date.now()) / 1e3; // in s
+  var have = currentResources();
+  var pace = reapingPace();
+  var miss = {};
   var level = buildingLevels();
   for (var i = 0; i < q.length; i++) {
     var b = q[i];
     var what = buildingClass(b);
     var li = createNode("", what, "", "li");
-    li.innerHTML = '<div class="img"></Div><a href="'+ urlTo(what) +'"></a>';
-    var upgradeTime = parseTime(costs[b][level[b]++].t);
-    annotateBuilding(li, level[b]);
-    if (t) {
-      t += (upgradeTime + 1) * 1000;
-      var done = trim(resolveTime((t - Date.now()) / 1000));
-      done = createNode("", "timetofinish", done);
-      done.insertBefore(createNode("", "before", "", "span"), done.firstChild);
-      done.appendChild(createNode("", "after", "", "span"));
-      li.appendChild(done);
-      setTimeout(function() {
-        done.style.left = Math.round( (li.offsetWidth -
-                                       done.offsetWidth) / 2) + "px";
-      }, 10);
-    }
+    li.innerHTML = '<div class="img"></div><a href="'+ urlTo(what) +'"></a>';
     li.setAttribute("rel", i + "");
+    annotateBuilding(li, level[b]);
+
+    // Will we have everything needed by then?
+    var need = costs[b][level[b]++];
+    var stall = {};
+    var stalled = false;
+    for (var r in need) {
+      if (r == "t") continue;
+      if (pace[r])
+        have[r] += pace[r];
+      if (need[r] > have[r]) {
+        stalled = true;
+        stall[r] = need[r] - Math.floor(have[r]);
+        miss[r] = (miss[r] || 0) + stall[r];
+      }
+      have[r] -= need[r];
+    }
+
+    // FIXME? error condition when storage[level[warehouse]] < need[resource]
+
+    // Move clock forwards upgradeTime seconds
+    dt = parseTime(need.t);
+    t += (dt + 1) * 1000;
+
+    // When we did not: annotate with what is missing, and its replenish time
+    if (stalled) {
+      stall = replenishTime(stall, have, miss);
+      stalled = stall.t;
+      miss.t += stalled;
+      if (stalled == Infinity) {
+        stall.t = "∞"; // FIXME: this merits a more clear error message
+      } else {
+        dt += stalled;
+        t += stalled * 1e3;
+        stall.t = secsToDHMS(stalled);
+      }
+      var div = showResourceNeeds(stall, li, null, "112px", "");
+    }
+
+    var done = trim(resolveTime((t - Date.now()) / 1000));
+    done = createNode("", "timetofinish", done);
+    done.insertBefore(createNode("", "before", "", "span"), done.firstChild);
+    done.appendChild(createNode("", "after", "", "span"));
+    li.appendChild(done);
+    setTimeout(bind(function(done, li) {
+      done.style.left = 4 + Math.round( (li.offsetWidth -
+                                         done.offsetWidth) / 2) + "px";
+    }, this, done, li), 10);
+
     ul.appendChild(li);
   }
 }
@@ -564,8 +649,9 @@ function processQueue() {
 #q .branchOffice .img { left:-19px; top:-31px; width:109px; height:84px; background-image:url(skin/img/city/building_branchOffice.gif); }
 #q .embassy .img { left:-5px; top:-31px; width:93px; height:85px; background-image:url(skin/img/city/building_embassy.gif); }
 #q .townHall .img { left:-5px; top:-60px; width:104px; height:106px; background-image:url(skin/img/city/building_townhall.gif); }
+
 #q { margin: -20px 20px 0; position:relative; }
-#q li { float:left; margin:0 40px 72px; position:absolute; width:86px; height:43px; position:relative; }
+#q li { float:left; margin:0 40px 105px; position:absolute; width:86px; height:43px; position:relative; }
 #q li .pointsLevelBat { margin-left: 19px; margin-top: 30px; }
 
 #q li .timetofinish {
@@ -1093,6 +1179,9 @@ function secondsToHours(bySeconds) {
   return isNaN(bySeconds) ? 0 : Math.round(bySeconds * 3600);
 }
 
+var locale = unsafeWindow.LocalizationStrings;
+var units = { day: 86400, hour: 3600, minute: 60, second: 1 };
+
 // input: "Nd Nh Nm Ns", output: number of seconds left
 function parseTime(t) {
   function parse(what, mult) {
@@ -1101,12 +1190,25 @@ function parseTime(t) {
       return parseInt(count[1], 10) * mult;
     return 0;
   }
-  var locale = unsafeWindow.LocalizationStrings;
-  var units = { day: 86400, hour: 3600, minute: 60, second: 1 };
   var s = 0;
   for (var unit in units)
     s += parse(unit, units[unit]);
   return s;
+}
+
+function secsToDHMS(t, join) {
+  var result = [];
+  var minus = t < 0 ? "-" : "";
+  if (minus)
+    t = -t;
+  for (var unit in units) {
+    var n = units[unit];
+    var r = t % n;
+    if (r != t)
+      result.push(((t - r) / n) + locale.timeunits.short[unit]);
+    t = r;
+  }
+  return minus + result.join(join || " ");
 }
 
 function number(n) {
