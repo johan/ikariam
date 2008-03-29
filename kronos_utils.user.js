@@ -729,6 +729,19 @@ function processQueue() {
 ]]></>);
 }
 
+function safehouseView() {
+  $x('//li/div[starts-with(@id,"SpyCountDown")]').forEach(projectCompletion);
+}
+
+function militaryAdvisorMilitaryMovementsView() {
+  function project(div) {
+    var li = $X('ancestor::li', div)
+    projectCompletion(div);
+    li.style.height = "52px";
+  }
+  $x('//li/div/div[contains(@id,"CountDown")]').forEach(project);
+}
+
 function cityView() {
   projectCompletion("cityCountdown", null, '../preceding-sibling::a');
   levelBat();
@@ -1602,7 +1615,8 @@ function projectHaveResourcesToUpgrade() {
 }
 
 function projectCompletion(id, className, loc) {
-  var node = $(id), set;
+  var node = "string" == typeof id ? $(id) : id, set = false;
+  if ("number" == typeof className) className = loc = undefined; // forEach/map
   if (node) {
     // console.log("T: %x", $("servertime").textContent);
     // console.log("L: %x", node.textContent);
@@ -1750,6 +1764,10 @@ function principal() {
     case "branchOffice": clickResourceToSell(); break;
     case "researchOverview": techinfo(); break;
     case "colonize": colonize(); break;
+    case "militaryAdvisorMilitaryMovements":
+      militaryAdvisorMilitaryMovementsView(); break
+    case "Espionage":
+    case "safehouse": safehouseView(); break;
     case "academy":
     case "researchAdvisor":
       var research = $X('//div[@class="researchName"]/a');
