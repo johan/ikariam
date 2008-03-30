@@ -883,6 +883,7 @@ function sumPrices(table, c1, c2) {
     var n = number(td[c1]);
     var p = number(td[c2]);
     if (isNaN(n) || isNaN(p)) return;
+    n *= p;
     for (var e in prefixes)
       if (!(n % prefixes[e])) {
         n /= prefixes[e];
@@ -897,14 +898,17 @@ function sumPrices(table, c1, c2) {
     n.style.verticalAlign = "top";
     n.style.position = "static";
     n.style.marginLeft = "3px";
-    td[1].appendChild(n);
+    td[c1].appendChild(n);
   }
   $x('tbody/tr[td]', table).forEach(price);
 }
 
 function branchOfficeView() {
+  function factor(table) {
+    sumPrices(table, 1, 3);
+  }
+  $x('id("mainview")//table[@class="tablekontor"]').forEach(factor);
   clickResourceToSell();
-  sumPrices($X('id("mainview")//table[@class="tablekontor"]'), 1, 3);
 }
 
 // would ideally treat the horrid tooltips as above, but they're dynamic. X-|
