@@ -18,6 +18,7 @@ var DEBUT = new Date();
 // En fonction du language du naviguateur on va utiliser un langage associé.
 var language = 0, finished = 1, langUsed = 11, execTime = 12, wood = 14;
 var researching = 16, shown = 17, full = 19, monthshort = 20, empty = 21;
+var startExpand = 22, enqueue = 23;
 var langs = {
   "fr": ["Français", " Fini à ", "Fermer", "Upgrader plus tard.",
          "File de construction", "Ajouter un bâtiment.", "Construire dans",
@@ -25,14 +26,16 @@ var langs = {
          "valider", "Langue utilisée", "Temps d'exécution",
          "Pas de bâtiment en attente.", "Bois", "Luxe",
          "Recherches", "Visible", "Invisible", "plein: ",
-         "JanFévMarAvrMaiJunJuiAoûSepOctNovDéc", "vide: "],
+         "JanFévMarAvrMaiJunJuiAoûSepOctNovDéc", "vide: ",
+         "; commencer avant que ", "Enqueue"],
   "en": ["English", " Finished ", "Close", "Upgrade later.",
          "Building list", "Add building.", "Build at",
          "hours", "minutes and", "seconds",
          "confirm", "Language used", "Time of execution",
          "No building in waiting.", "Wood", "Luxe",
          "Researching", "Shown", "Hidden", "full: ",
-         "JanFebMarAprMayJunJulAugSepOctNovDec", "empty: "],
+         "JanFebMarAprMayJunJulAugSepOctNovDec", "empty: ",
+         "; start expanding before ", "Enqueue"],
   // By Tico:
   "pt": ["Portuguès", " acaba às ", "Fechar", "Evoluir mais tarde.",
          "Lista de construção", "Adicionar edificio.", "Construir em",
@@ -51,14 +54,14 @@ var langs = {
          "confirmar", "Idioma usado", "Tiempo de ejecución",
          "Nenhum Edificio em espera.", "Madera", "Luxe",
          "Investigación"],
-  // By Johan Sundström:
   "sv": ["Svenska", " Färdigt ", "Stäng", "Uppgradera senare",
          "Byggnadslista", "Lägg till byggnad", "Bygg klockan",
          "timmar", "minuter och", "sekunder",
          "bekräfta", "Språk", "Exekveringstid",
          "Inga byggnader väntar.", "Trä", "Lyx",
          "Forskning", "Visas", "Gömda", "fullt: ",
-         "janfebmaraprmajjunjulaugsepoktnovdec", "tomt: "]
+         "janfebmaraprmajjunjulaugsepoktnovdec", "tomt: ",
+         "; börja bygg ut före ", "Köa upp"]
 };
 var lang;
 
@@ -315,7 +318,7 @@ function annotateBuilding(node, level) {
   }
   div.title = a.title;
   node.appendChild(div);
-  clickTo(div, urlTo("building", id));
+  clickTo(div, a.href);
   div.style.visibility = "visible";
 }
 
@@ -355,7 +358,8 @@ function levelBat() { // Ajout d'un du level sur les batiments.
       var li = a.parentNode;
       var top = $X('div[@class="timetofinish"]', li) ? "73px": "";
       if (top && li.id == "position0") top = "0";
-      showResourceNeeds(buildingExpansionNeeds(a), li, hovering, top);
+      var div = showResourceNeeds(buildingExpansionNeeds(a), li, hovering, top);
+      clickTo(div, urlTo("building", buildingID(a)));
 
       var enough = haveEnoughToUpgrade(a);
       hovering.style.borderColor = enough ? "#B1AB89" : "#918B69";
@@ -532,14 +536,19 @@ function upgrade() {
   if (!q.length) return;
   var b = q.shift();
   var l = config.getCity("building"+ b, 0);
+  var p = config.getCity("posbldg"+ b);
+  var i = cityID();
   if (haveResources(costs[b][l])) {
     config.remCity("build");
     setQueue(q);
+    if (!l)
+      goto(url("?action=CityScreen&function=build&id="+ i + "&position="+ p +
+               "&building="+ b));
     return post("/index.php", {
       action: "CityScreen",
     function: "upgradeBuilding",
           id: cityID(),
-    position: config.getCity("posbldg"+ b),
+    position: p,
        level: l });
   }
 
@@ -613,9 +622,22 @@ function drawQueue() {
     li.setAttribute("rel", i + "");
     li.have = copyObject(have);
 
+    // erecting a new building, not upgrading an old
+    if (!level.hasOwnProperty(b)) {
+      level[b] = 0;
+      if ("city" == document.body.id) { // erect a placeholder ghost house
+        var pos = config.getCity("posbldg"+ b);
+        var spot = $("position"+ pos);
+        spot.className = buildingClass(b);
+        $X('a', spot).title = "Level 0";
+        if ((spot = $X('div[@class="flag"]', spot))) {
+          spot.className = "buildingimg";
+          spot.style.opacity = "0.5";
+        }
+      }
+    }
+
     // Will we have everything needed by then?
-    if (!level.hasOwnProperty(b))
-      level[b] = 0; // erecting a new building, not upgrading an old
     var need = costs[b][level[b]++];
     annotateBuilding(li, level[b]);
     var stall = {};
@@ -774,11 +796,15 @@ function processQueue() {
 ]]></>);
 }
 
-function alreadyAllocated(pos) {
+function alreadyAllocated(pos, building) {
   function isOnThisSpot(b) {
     return config.getCity("posbldg"+ b) == pos;
   }
-  return getQueue().some(isOnThisSpot);
+  function alreadyEnqueued(b) {
+    return b == building;
+  }
+  var q = getQueue();
+  return q.some(isOnThisSpot) || q.some(alreadyEnqueued);
 }
 
 function buildingGroundView() {
@@ -791,11 +817,10 @@ function buildingGroundView() {
   function addEnqueueButton(p) {
     var pos = parseInt(urlParse("position"), 10);
     var img = $X('preceding-sibling::div[@class="buildinginfo"]/img', p);
-    if (img && pos && !alreadyAllocated(pos)) {
-      var name = img.src.match(/([^\/.]+).gif$/)[1];
-      var id = buildingID(name);
+    var id = img && buildingID(img.src.match(/([^\/.]+).gif$/)[1]);
+    if (id && pos && !alreadyAllocated(pos, id)) {
       var but = createNode("", "button", null, "input");
-      but.value = "Enqueue";
+      but.value = lang[enqueue];
       but.style.width = "100px";
       clickTo(but, bind(build, this, id, pos));
       p.appendChild(but/*, p.firstChild*/);
@@ -1555,10 +1580,6 @@ function improveTopPanel() {
   $x('id("cityResources")/ul/li[contains("wood wine marble glass sulfur",'+
      '@class)]').forEach(tradeOnClick);
 
-  showHousingOccupancy();
-  projectPopulation();
-  showSafeWarehouseLevels();
-
   var build = config.getCity("build", 0), now = Date.now();
   if (build > now) {
     time = $X('//li[@class="serverTime"]');
@@ -1569,6 +1590,10 @@ function improveTopPanel() {
                              "span"));
     time.appendChild(a);
   }
+
+  showHousingOccupancy();
+  showSafeWarehouseLevels();
+  projectPopulation();
 }
 
 function hilightShip() {
@@ -1661,13 +1686,17 @@ function projectPopulation() {
   var people = $("value_inhabitants");
   var hqLevel = config.getCity("building0", 1);
   var nextHQUpgradeTime = parseTime(costs[0][hqLevel].t);
-  if (time < 15 * 60 + nextHQUpgradeTime) // < 15 min left for expanding Town
-    people.className = "storage_danger";  // Hall ahead of time to meet growth
+  var upgradingTownHall = $X('id("done")/../@href = "'+ urlTo("townHall") +'"');
+
+  // < 15 min left for expanding Town Hall ahead of time to meet growth?
+  if (time < 15 * 60 + nextHQUpgradeTime && !upgradingTownHall)
+    people.className = "storage_danger";
   if (population == maximumPopulation)
     people.className = "storage_full";
 
-  hint.title = lang[full] + resolveTime(time, 1) +"; start expanding before "+
-    resolveTime(time - nextHQUpgradeTime, 1);
+  hint.title = lang[full] + resolveTime(time, 1);
+  if (!upgradingTownHall)
+    hint.title += lang[startExpand] + resolveTime(time - nextHQUpgradeTime, 1);
   return population;
 }
 
@@ -2053,7 +2082,7 @@ function bind(fn, self) {
 }
 
 function rmNode(node) {
-  node.parentNode.removeChild(node);
+  node && node.parentNode.removeChild(node);
 }
 
 lang = langs[getLanguage()];
