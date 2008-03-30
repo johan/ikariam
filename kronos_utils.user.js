@@ -239,7 +239,7 @@ function reapingPace() {
 }
 
 var buildingIDs = {
-  townHall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
+  townHall: 0, townhall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
   warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11, palaceColony: 17,
   embassy: 12, branchOffice:13, "workshop-army": 15, safehouse: 16
 };
@@ -1580,6 +1580,8 @@ function improveTopPanel() {
   $x('id("cityResources")/ul/li[contains("wood wine marble glass sulfur",'+
      '@class)]').forEach(tradeOnClick);
 
+  if (!isMyCity()) return;
+
   var build = config.getCity("build", 0), now = Date.now();
   if (build > now) {
     time = $X('//li[@class="serverTime"]');
@@ -1876,6 +1878,10 @@ function cityIDs() {
 
 function isCapital() {
   return cityID() == cityIDs()[0];
+}
+
+function isMyCity() {
+  return cityIDs().indexOf(cityID()) != -1;
 }
 
 /*------------------------
