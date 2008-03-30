@@ -415,6 +415,10 @@ function levelBat() { // Ajout d'un du level sur les batiments.
   all.forEach(function(li) { annotateBuilding(li); });
 }
 
+function worldmap_isoView() { // FIXME: implement! :-)
+  ; // show the (old) getIsle("w") and getIsle(/WMCS/) levels for known islands
+}
+
 function islandView() {
   levelTown();
   levelResources();
@@ -423,7 +427,11 @@ function islandView() {
 function levelResources() {
   function annotate(what) {
     var node = $X('id("islandfeatures")/li['+ what +']');
-    var level = node.className.replace(/\D/g, "");
+    var level = number(node.className);
+    if (node.className.match(/wood/))
+      config.setIsle("w", level);
+    else
+      config.setIsle(node.className.charAt().toUpperCase(), level);
     var div = createNode("", "pointsLevelBat", level);
     node.appendChild(div);
   }
@@ -476,7 +484,7 @@ function linkTo(url, node, opts) {
   if (!url.match(/\?/))
     url = urlTo(url);
   if ("string" == typeof node)
-    node = $X(node, opts && opts.ccontext);
+    node = $X(node, opts && opts.context);
   if (!node || !url)
     return;
   var a = document.createElement("a");
@@ -1590,7 +1598,7 @@ function improveTopPanel() {
     var what = trim(li.className).split(" ")[0]; // "glass", for instance
     var luxe = luxuryType("glass");
     if (luxe != what && "wood" != what) // clicking those goes to the resource
-      clickTo(li, bind(buy, this, what));
+      clickTo(li, bind(buy, this, what), 'not(@class = "ellipsis")');
     dblClickTo(li, bind(sell, this, what));
   }
   function isFull(node, what, have, pace) {
@@ -2027,6 +2035,7 @@ function principal() {
     case "buildingDetail": buildingDetailView(); break;
     case "port": projectCompletion("outgoingOwnCountDown"); break;
     case "island": islandView(); break;
+    case "worldmap_iso": worldmap_isoView(); break;
     case "townHall": townHall(); break;
     case "shipyard":
       css(<><![CDATA[
@@ -2146,6 +2155,9 @@ var config = (function(data) {
   function getCity(name, value) {
     return getServer(name +":"+ cityID(), value);
   }
+  function getIsle(name, value) {
+    return getServer(name +"/"+ islandID(), value);
+  }
   function getServer(name, value) {
     return get(name +":"+ location.hostname, value);
   }
@@ -2160,11 +2172,17 @@ var config = (function(data) {
   function setCity(name, value) {
     return setServer(name +":"+ cityID(), value);
   }
+  function setIsle(name, value) {
+    return setServer(name +"/"+ islandID(), value);
+  }
   function setServer(name, value) {
     return set(name +":"+ location.hostname, value);
   }
   function remCity(name) {
     return remServer(name +":"+ cityID());
+  }
+  function remIsle(name) {
+    return remServer(name +"/"+ islandID());
   }
   function remServer(name) {
     return remove(name +":"+ location.hostname);
@@ -2193,6 +2211,7 @@ var config = (function(data) {
   }
   return { get:get, set:set, remove:remove, keys:keys,
            setCity:setCity, getCity:getCity, remCity:remCity,
+           setIsle:setIsle, getIsle:getIsle, remIsle:remIsle,
            setServer:setServer, getServer:getServer, remServer:remServer };
 })(eval(GM_getValue("config", "({})")));
 
