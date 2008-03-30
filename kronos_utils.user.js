@@ -230,7 +230,7 @@ function reapingPace() {
 
 var buildingIDs = {
   townHall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
-  warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11, palaceColony: 11,
+  warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11, palaceColony: 17,
   embassy: 12, branchOffice:13, "workshop-army": 15, safehouse: 16
 };
 
@@ -243,6 +243,13 @@ function buildingClass(id) {
 function buildingID(a) {
   var building = "string" == typeof a ? a : a.parentNode.className;
   return buildingIDs[building];
+}
+
+function buildingLevel(b, otherwise) {
+  if ("number" != typeof b)
+    b = buildingID(b);
+  b = config.getCity("building"+ b);
+  return "undefined" == typeof b ? otherwise : b;
 }
 
 function buildingLevels() {
@@ -301,7 +308,7 @@ function annotateBuilding(node, level) {
   }
   div.title = a.title;
   node.appendChild(div);
-  div.addEventListener("click", function() { goto(a.href); }, true);
+  clickTo(div, urlTo("building", id));
   div.style.visibility = "visible";
 }
 
@@ -358,8 +365,16 @@ function levelBat() { // Ajout d'un du level sur les batiments.
     node.addEventListener("mouseover", hoverHouse, false);
   }
 
+  for (var name in buildingIDs)
+    config.remCity("building"+ buildingIDs[name]); // clear old broken config
+
   var all = $x('id("locations")/li[not(contains(@class,"buildingGround"))]');
   all.forEach(function(li) { annotateBuilding(li); });
+}
+
+function islandView() {
+  levelTown();
+  levelResources();
 }
 
 function levelResources() {
@@ -434,7 +449,7 @@ function linkTo(url, node, context) {
   node.parentNode.replaceChild(a, node);
 }
 
-function urlTo(where) {
+function urlTo(where, id) {
   function building() {
     var id = buildingID(where);
     var pos = config.getCity("posbldg"+ id, "");
@@ -458,6 +473,7 @@ function urlTo(where) {
 
     case "city":	return url('?view=city&id='+ c);
     case "island":	return url('?view=island&id='+ i);
+    case "building":	return url("?view=buildingDetail&buildingId="+ id);
 
     case "library":
       return urlTo("academy").replace("academy", "researchOverview");
@@ -547,6 +563,26 @@ function replenishTime(lack, have, accumulate) {
   return lack;
 }
 
+function copyObject(o) {
+  var copy = {};
+  for (var n in o)
+    copy[n] = o;
+  return copy;
+}
+
+function hoverQueue(have, e) {
+  var node = e.target;
+  if ($X('self::li[@rel]', node)) {
+    var n = li.getAttribute("rel");
+    var h = $("qhave");
+
+    div = showResourceNeeds(have, $("container2"), div);
+    div.title = "Resources left "+ resolveTime((t-Date.now())/1e3, 1);
+
+  }
+  var last = $("q").lastChild.have;
+}
+
 function drawQueue() {
   var ul = $("q");
   if (ul)
@@ -568,6 +604,7 @@ function drawQueue() {
     var li = createNode("", what, "", "li");
     li.innerHTML = '<div class="img"></div><a href="'+ urlTo(what) +'"></a>';
     li.setAttribute("rel", i + "");
+    li.have = copyObject(have);
 
     // Will we have everything needed by then?
     var need = costs[b][level[b]++];
@@ -666,8 +703,7 @@ function processQueue() {
     upgrade();
   } else if (t == Infinity) { // no project going!
     if (u) { // Just completed one queue item
-      config.remCity("buildurl");
-      return location.href = u;
+      return config.remCity("buildurl");
     }
     // added item to empty queue -- go go go!
     upgrade();
@@ -727,6 +763,16 @@ function processQueue() {
 }
 
 ]]></>);
+}
+
+function buildingDetailView() {
+  var id = parseInt(urlParse("buildingId"));
+  var level = buildingLevel(id, 0) + 1;
+  var tr = $X('//th[.="Level"]/../../tr[td[@class="level"]]['+ level +']');
+  if (tr) {
+    tr.style.background = "pink";
+    tr.title = "Next building upgrade";
+  }
 }
 
 function safehouseView() {
@@ -1184,6 +1230,7 @@ var costs = [
   [{w:25, M:7, t:"18m 36s"}, {w:53, M:19, t:"33m 37s"}, {w:99, M:29, t:"52m 48s"}, {w:159, M:52, t:"1h 12m"}, {w:231, M:83, t:"1h 31m"}, {w:271, M:103, t:"1h 34m"}, {w:363, M:147, t:"1h 53m"}, {w:455, M:193, t:"2h 7m"}, {w:534, M:235, t:"2h 15m"}, {w:668, M:304, t:"2h 34m"}, {w:793, M:371, t:"2h 47m"}, {w:960, M:413, t:"3h 6m"}, {w:1016, M:450, t:"3h 2m"}, {w:1173, M:483, t:"3h 15m"}, {w:1478, M:627, t:"3h 28m"}, {w:1886, M:820, t:"3h 48m"}, {w:2304, M:1025, t:"4h 1m"}, {w:2618, M:1164, t:"4h 14m"}, {w:2825, M:1255, t:"4h 16m"}, {w:3027, M:1345, t:"4h 17m"}, {w:3238, M:1439, t:"4h 19m"}, {w:3834, M:1704, t:"4h 49m"}, {w:4148, M:1843, t:"4h 57m"}, {w:4471, M:1987, t:"5h 4m"}, {w:17886, M:7949, t:"20h 16m"}, {w:35773, M:15899, t:"1D 16h"}, {w:71547, M:31799, t:"3D 9h"}, {w:143095, M:63598, t:"6D 18h"}, {w:286191, M:127196, t:"13D 12h"}, {w:572382, M:254392, t:"27D 57m"}, {w:1144765, M:508784, t:"54D 1h"}, {w:2289530, M:1017569, t:"108D 3h"}],
   [{w:19, t:"15m 8s"}, {w:48, M:9, t:"42m"}, {w:93, M:26, t:"1h 8m"}, {w:159, M:47, t:"1h 41m"}, {w:260, M:86, t:"2h 10m"}, {w:398, M:143, t:"2h 38m"}, {w:582, M:223, t:"3h 23m"}, {w:849, M:344, t:"4h 25m"}, {w:1155, M:488, t:"5h 22m"}, {w:1527, M:672, t:"6h 26m"}, {w:1971, M:900, t:"7h 12m"}, {w:2620, M:1225, t:"8h 17m"}, {w:3276, M:1409, t:"9h 1m"}, {w:4044, M:1791, t:"9h 40m"}, {w:4920, M:2024, t:"10h 15m"}, {w:6177, M:2618, t:"11h 12m"}, {w:7382, M:3210, t:"11h 36m"}, {w:8731, M:3880, t:"11h 52m"}, {w:9636, M:4282, t:"12h 1m"}, {w:11007, M:4892, t:"12h 28m"}, {w:44029, M:19568, t:"2D 1h"}, {w:88058, M:39137, t:"4D 3h"}, {w:176117, M:78274, t:"8D 7h"}, {w:352235, M:156549, t:"16D 15h"}, {w:704471, M:313098, t:"33D 6h"}, {w:1408942, M:626196, t:"66D 13h"}, {w:2817884, M:1252392, t:"133D 2h"}, {w:5635768, M:2504785, t:"266D 5h"}, {w:11271536, M:5009571, t:"532D 11h"}, {w:22543073, M:10019143, t:"1064D 23h"}, {w:45086146, M:20038287, t:"2129D 22h"}, {w:90172293, M:40076574, t:"4259D 20h"}, {w:180344586, M:80153149, t:"8519D 16h"}, {w:360689172, M:160306298, t:"17039D 8h"}, {w:721378344, M:320612597, t:"34078D 17h"}, {w:1442756689, M:641225195, t:"68157D 10h"}, {w:2885513379, M:1282450391, t:"136314D 21h"}, {w:5771026759, M:2564900782, t:"272629D 18h"}, {w:11542053519, M:5129801564, t:"545259D 12h"}, {w:23084107038, M:10259603128, t:"1090519D 57m"}]
 ];
+costs[17] = costs[11]; // governor's residence == palace
 
 function visualResources(what) {
   var gold = <img src="skin/resources/icon_gold.gif" width="17" height="19"/>;
@@ -1345,18 +1392,29 @@ function post(url, args) {
   form.submit();
 }
 
+function buy(what, amount) {
+  trade("buy", what, amount);
+}
+
+function sell(what, amount) {
+  trade("sell", what, amount);
+}
+
+function trade(operation, what, amount) {
+  var id = { wood: "resource", wine: 1, marble: 2, glass: 3, sulfur: 4,
+                w: "resource", W: 1, M: 2, C: 3, crystal: 3, S: 4 };
+  post(urlTo("branchOffice"), { type: { buy:"444", sell:"333" }[operation],
+                                searchResource: id[what], range: "99" });
+}
+
 // projects wine shortage time and adds lots of shortcut clicking functionality
 function improveTopPanel() {
   function tradeOnClick(li) {
-    var id = { wood: "resource", wine: 1, marble: 2, glass: 3, sulfur: 4 };
-    var name = trim(li.className).split(" ")[0]; // "glass", for instance
-    var searchResource = id[name];
+    var what = trim(li.className).split(" ")[0]; // "glass", for instance
     var luxe = luxuryType("glass");
-    if (luxe != name && "wood" != name) // clicking those goes to the resource
-      clickTo(li, bind(post, this, trader, { type: "444", // buy
-              searchResource: id[name], range: "99" }));
-    dblClickTo(li, bind(post, this, trader, { type: "333", // sell
-               searchResource: id[name], range: "99" }));
+    if (luxe != what && "wood" != what) // clicking those goes to the resource
+      clickTo(li, bind(buy, this, what));
+    dblClickTo(li, bind(sell, this, what));
   }
   function isFull(node, what, have, pace) {
     var capacity = number($X('//li[@class="'+what+'"]/div[@class="tooltip"]'));
@@ -1451,12 +1509,8 @@ function improveTopPanel() {
           'self::*[@id="cityNav" or @id="gold"]');
   clickTo($X('id("value_wood")/parent::li'), urlTo("wood"));
   clickTo($X('id("value_'+ luxuryType("name") +'")/parent::li'), urlTo("luxe"));
-  var trader = config.getCity("posbldg13", "?");
-  if (trader != "?") {
-    trader = url("?view=branchOffice&id="+ cityID() +"&position="+ trader);
-    $x('id("cityResources")/ul/li[contains("wood wine marble glass sulfur",'+
-       '@class)]').forEach(tradeOnClick);
-  }
+  $x('id("cityResources")/ul/li[contains("wood wine marble glass sulfur",'+
+     '@class)]').forEach(tradeOnClick);
 
   showHousingOccupancy();
   projectPopulation();
@@ -1725,6 +1779,9 @@ function islandID() {
 }
 
 function cityID() {
+  var id = urlParse("id");
+  if (id && "island" != urlParse("view"))
+    return id;
   return urlParse("id", $X('//li[@class="viewCity"]/a').search);
 }
 
@@ -1749,12 +1806,21 @@ function principal() {
   processQueue();
   document.addEventListener("click", changeQueue, true);
 
-  switch (urlParse("view") || urlParse("action")) {
+  var view = urlParse("view");
+  var building = view && buildingID(view);
+  if ("undefined" != building) {
+    var level = $X('id("buildingUpgrade")//div[@class="buildingLevel"]');
+    if (level)
+      config.setCity("building"+ building, number(level));
+  }
+
+  switch (view || urlParse("action")) {
     case "loginAvatar":// &function=login
     case "CityScreen": // &function=build&id=...&position=4&building=13
     case "city": cityView(); break;
+    case "buildingDetail": buildingDetailView(); break;
     case "port": projectCompletion("outgoingOwnCountDown"); break;
-    case "island": levelTown(); levelResources(); break;
+    case "island": islandView(); break;
     case "townHall": townHall(); break;
     case "shipyard":
       css(<><![CDATA[
