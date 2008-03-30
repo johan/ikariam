@@ -198,6 +198,13 @@ function addCSSBubbles() { css(<><![CDATA[
 
 ]]></>); }
 
+function get(what, context) {
+  var xpath = {
+    ship: 'id("globalResources")/ul/li[@class="transporters"]/a'
+  };
+  return what in xpath ? $X(xpath[what], context) : undefined;
+}
+
 function currentResources() {
   return {
     p: number($("value_inhabitants").textContent.replace(/\s.*/, "")),
@@ -314,7 +321,7 @@ function annotateBuilding(node, level) {
 
 function showResourceNeeds(needs, parent, div, top, left) {
   if (div)
-    div.parentNode.removeChild(div);
+    rmNode(div);
   else
     div = createNode("", "pointsLevelBat toBuild");
   div.innerHTML = visualResources(needs);
@@ -524,7 +531,7 @@ function upgrade() {
   var q = getQueue();
   if (!q.length) return;
   var b = q.shift();
-  var l = config.getCity("building"+ b, 1);
+  var l = config.getCity("building"+ b, 0);
   if (haveResources(costs[b][l])) {
     config.remCity("build");
     setQueue(q);
@@ -607,6 +614,8 @@ function drawQueue() {
     li.have = copyObject(have);
 
     // Will we have everything needed by then?
+    if (!level.hasOwnProperty(b))
+      level[b] = 0; // erecting a new building, not upgrading an old
     var need = costs[b][level[b]++];
     annotateBuilding(li, level[b]);
     var stall = {};
@@ -763,6 +772,38 @@ function processQueue() {
 }
 
 ]]></>);
+}
+
+function alreadyAllocated(pos) {
+  function isOnThisSpot(b) {
+    return config.getCity("posbldg"+ b) == pos;
+  }
+  return getQueue().some(isOnThisSpot);
+}
+
+function buildingGroundView() {
+  function build(id, pos, e) {
+    buts.forEach(rmNode);
+    config.setCity("posbldg"+ id, pos);
+    var prepend = e.shiftKey;
+    addToQueue(id, prepend);
+  }
+  function addEnqueueButton(p) {
+    var pos = parseInt(urlParse("position"), 10);
+    var img = $X('preceding-sibling::div[@class="buildinginfo"]/img', p);
+    if (img && pos && !alreadyAllocated(pos)) {
+      var name = img.src.match(/([^\/.]+).gif$/)[1];
+      var id = buildingID(name);
+      var but = createNode("", "button", null, "input");
+      but.value = "Enqueue";
+      but.style.width = "100px";
+      clickTo(but, bind(build, this, id, pos));
+      p.appendChild(but/*, p.firstChild*/);
+      return but;
+    }
+  }
+  projectBuildStart("mainview");
+  var buts = $x('//p[@class="cannotbuild"]').map(addEnqueueButton);
 }
 
 function buildingDetailView() {
@@ -1188,7 +1229,7 @@ a.independent { padding-left: 9px; }
   tree.forEach(indent);
 
   var div = $X('id("mainview")/div/div[@class="content"]');
-  $x('br', div).forEach(function rm(br) { br.parentNode.removeChild(br); });
+  $x('br', div).forEach(rmNode);
   var maxLevel = Math.max.apply(Math, pluck(tree.filter(isKnown), "level"));
   vr(maxLevel);
 
@@ -1488,6 +1529,8 @@ function improveTopPanel() {
     var ap = $("value_maxActionPoints").parentNode;
     ap.style.top = "-49px";
     ap.style.left = "-67px";
+    ap.addEventListener("mouseover", hilightShip, false);
+    ap.addEventListener("mouseout", unhilightShip, false);
     clickTo(ap, urlTo("merchantNavy"));
     gold.title = " "; // trim(ap.textContent.replace(/\s+/g, " "));
   }
@@ -1526,6 +1569,16 @@ function improveTopPanel() {
                              "span"));
     time.appendChild(a);
   }
+}
+
+function hilightShip() {
+  var ship = get("ship");
+  if (ship) ship.style.backgroundPosition = "0 -53px";
+}
+
+function unhilightShip() {
+  var ship = get("ship");
+  if (ship) ship.style.backgroundPosition = "";
 }
 
 function showSafeWarehouseLevels() {
@@ -1780,8 +1833,11 @@ function islandID() {
 
 function cityID() {
   var id = urlParse("id");
-  if (id && "island" != urlParse("view"))
-    return id;
+  var view = urlParse("view");
+  if (id)
+    if (buildingIDs.hasOwnProperty(view) ||
+        { city:1 }[view])
+      return id;
   return urlParse("id", $X('//li[@class="viewCity"]/a').search);
 }
 
@@ -1826,7 +1882,7 @@ function principal() {
       css(<><![CDATA[
 #container #mainview .unit .resources li { float: none; padding-bottom: 5px; }
       ]]></>); break; // (can't fall-through yet:)
-    case "buildingGround": projectBuildStart("mainview"); break;
+    case "buildingGround": buildingGroundView(); break;
     case "branchOffice": clickResourceToSell(); break;
     case "researchOverview": techinfo(); break;
     case "colonize": colonize(); break;
@@ -1994,6 +2050,10 @@ function bind(fn, self) {
   return function() {
     fn.apply(self, args.concat([].slice.call(arguments)));
   };
+}
+
+function rmNode(node) {
+  node.parentNode.removeChild(node);
 }
 
 lang = langs[getLanguage()];
