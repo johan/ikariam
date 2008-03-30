@@ -305,6 +305,7 @@ function haveEnoughToUpgrade(a) {
 function annotateBuilding(node, level) {
   var a = $X('a', node);
   if (!a) return;
+  $x('div[@class="pointsLevelBat"]', node).forEach(rmNode);
   var id = buildingID(a);
   var level = level || number(a.title);
   if ("number" == typeof id && node.id) {
@@ -312,7 +313,7 @@ function annotateBuilding(node, level) {
     config.setCity("posbldg"+ id, number(node.id));
   }
   var div = createNode("", "pointsLevelBat", level);
-  if (haveEnoughToUpgrade(a)) {
+  if (haveEnoughToUpgrade(a, level)) {
     div.style.backgroundColor = "#FEFCE8";
     div.style.borderColor = "#B1AB89";
   }
@@ -374,6 +375,15 @@ function levelBat() { // Ajout d'un du level sur les batiments.
     hovering.style.display = "none";
     node.appendChild(hovering);
     node.addEventListener("mouseover", hoverHouse, false);
+    hovering.addEventListener("DOMMouseScroll", function(e) {
+      var li = hovering.parentNode;
+      var a = $X('a', li), b = buildingID(a);
+      var l = Math.min(Math.max(!b, number(a.title) + (e.detail < 0 ? 1 : -1)),
+                       costs[b].length - 1);
+      a.title = a.title.replace(/\d+/, l);
+      annotateBuilding(li, l);
+      hoverHouse({ target: hovering });
+    }, false);
   }
 
   for (var name in buildingIDs)
