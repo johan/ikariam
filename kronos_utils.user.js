@@ -18,7 +18,7 @@ var DEBUT = new Date();
 // En fonction du language du naviguateur on va utiliser un langage associé.
 var language = 0, finished = 1, langUsed = 11, execTime = 12, wood = 14;
 var researching = 16, shown = 17, full = 19, monthshort = 20, empty = 21;
-var startExpand = 22, enqueue = 23, shop = 24, left = 25;
+var startExpand = 22, enqueue = 23, shop = 24, left = 25, unreplenished = 26;
 var langs = {
   "fr": ["Français", " Fini à ", "Fermer", "Upgrader plus tard.",
          "File de construction", "Ajouter un bâtiment.", "Construire dans",
@@ -28,7 +28,8 @@ var langs = {
          "Recherches", "Visible", "Invisible", "plein: ",
          "JanFévMarAvrMaiJunJuiAoûSepOctNovDéc", "vide: ",
          "; commencer avant que ", "Enqueue",
-         "Acheter ça, s'il vous plaît", "Même available après "],
+         "Acheter ça, s'il vous plaît", "Même available après ",
+         "Il faut attendre pour ces ressources"],
   "en": ["English", " Finished ", "Close", "Upgrade later.",
          "Building list", "Add building.", "Build at",
          "hours", "minutes and", "seconds",
@@ -37,7 +38,8 @@ var langs = {
          "Researching", "Shown", "Hidden", "full: ",
          "JanFebMarAprMayJunJulAugSepOctNovDec", "empty: ",
          "; start expanding before ", "Enqueue",
-         "Shopping list", "Resources left "],
+         "Shopping list", "Resources left ",
+         "Resources unavailable by build time (and replenish time)"],
   // By Tico:
   "pt": ["Portuguès", " acaba às ", "Fechar", "Evoluir mais tarde.",
          "Lista de construção", "Adicionar edificio.", "Construir em",
@@ -64,7 +66,8 @@ var langs = {
          "Forskning", "Visas", "Gömda", "fullt: ",
          "janfebmaraprmajjunjulaugsepoktnovdec", "tomt: ",
          "; börja bygg ut före ", "Köa upp",
-         "Inköpslista", "Resurser kvar efter "]
+         "Inköpslista", "Resurser kvar efter ",
+         "Resurser som kommer saknas vid byggstart, och inskaffningstid"]
 };
 var lang;
 
@@ -692,6 +695,9 @@ function drawQueue() {
         stall.t = secsToDHMS(stalled, " ", 1);
       }
       var div = showResourceNeeds(stall, li, null, "112px", "");
+      div.style.backgroundColor = "#FCC";
+      div.style.borderColor = "#E88";
+      div.title = lang[unreplenished];
     }
 
     var done = trim(resolveTime((t - Date.now()) / 1000));
