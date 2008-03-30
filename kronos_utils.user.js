@@ -1514,6 +1514,8 @@ function colonize() {
   function annotate(what, time) {
     what.innerHTML += " ("+ time +")";
   }
+  css("#container .resources li { white-space: nowrap; }");
+
   var have = currentResources();
 
   var growth = config.getServer("growth", 0);
@@ -2031,6 +2033,7 @@ function principal() {
     case "island": islandView(); break;
     case "worldmap_iso": worldmap_isoView(); break;
     case "townHall": townHall(); break;
+    case "barracks":
     case "shipyard":
       css(<><![CDATA[
 #container #mainview .unit .resources li { float: none; padding-bottom: 5px; }
