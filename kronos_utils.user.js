@@ -143,7 +143,7 @@ function createLink(nom, href) {
 }
 
 function goto(href) {
-  location.href = href;
+  location.href = href.match(/\?/) ? href : urlTo(href);
 }
 
 function createBr() { // fonction de création saut de ligne
@@ -727,6 +727,7 @@ function drawQueue() {
   div.style.bottom = "35px";
   div.style.zIndex = "5000";
   div.style.position = "absolute";
+  clickTo(div, sellStuff);
   div.id = "qhave";
 
   div = $("qmiss") || undefined;
@@ -743,6 +744,7 @@ function drawQueue() {
   drawQueue.have = have;
 
   div = showResourceNeeds(miss, $("container2"), div);
+  clickTo(div, goShopping);
   div.title = lang[shop];
   div.style.top = "auto";
   div.style.margin = "0";
@@ -1462,7 +1464,7 @@ function clickTo(node, action, condition, capture, event) {
         if ("function" == typeof action)
           action(e);
         else
-          goto(action.match(/\?/) ? action : urlTo(action));
+          goto(action);
       }
     }, !!capture);
     node.style.cursor = "pointer";
@@ -1482,6 +1484,18 @@ function post(url, args) {
   }
   document.body.appendChild(form);
   form.submit();
+}
+
+function sellStuff(e) { buysell(e, sell); }
+function goShopping(e) { buysell(e, buy); }
+function buysell(e, func) {
+  var img = e.target;
+  if (img.src) {
+    var what = img.src.match(/_([^.]+).gif$/)[1];
+    if (what) func(what);
+  } else {
+    goto("branchOffice");
+  }
 }
 
 function buy(what, amount) {
