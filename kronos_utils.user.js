@@ -339,7 +339,7 @@ function showResourceNeeds(needs, parent, div, top, left) {
     rmNode(div);
   else
     div = createNode("", "pointsLevelBat toBuild");
-  div.innerHTML = visualResources(needs);
+  div.innerHTML = visualResources(needs, { nonegative: true });
   if (parent.id == "position3") { // far right
     div.style.top = top || "";
     div.style.left = "auto";
@@ -1326,7 +1326,7 @@ var costs = [
 ];
 costs[17] = costs[11]; // governor's residence == palace
 
-function visualResources(what) {
+function visualResources(what, opt) {
   var gold = <img src="skin/resources/icon_gold.gif" width="17" height="19"/>;
   var wood = <img src="skin/resources/icon_wood.gif" width="25" height="20"/>;
   var wine = <img src="skin/resources/icon_wine.gif" width="25" height="20"/>;
@@ -1345,10 +1345,13 @@ function visualResources(what) {
                  M: "marble", C: "glass", W: "wine", S: "sulfur" };
     var html = []
     for (var id in what) {
+      var count = what[id];
+      if (count < 0 && opt.nonegative)
+        count = 0;
       if (name[id])
-        html.push(what[id] +" $"+ name[id]);
+        html.push(count +" $"+ name[id]);
       else
-        html.push(what[id]); // (build time)
+        html.push(count); // (build time)
     }
     what = html.join(" \xA0 ");
   }
