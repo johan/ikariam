@@ -18,7 +18,7 @@ var DEBUT = new Date();
 // En fonction du language du naviguateur on va utiliser un langage associé.
 var language = 0, finished = 1, langUsed = 11, execTime = 12, wood = 14;
 var researching = 16, shown = 17, full = 19, monthshort = 20, empty = 21;
-var startExpand = 22, enqueue = 23;
+var startExpand = 22, enqueue = 23, shop = 24, left = 25;
 var langs = {
   "fr": ["Français", " Fini à ", "Fermer", "Upgrader plus tard.",
          "File de construction", "Ajouter un bâtiment.", "Construire dans",
@@ -27,7 +27,8 @@ var langs = {
          "Pas de bâtiment en attente.", "Bois", "Luxe",
          "Recherches", "Visible", "Invisible", "plein: ",
          "JanFévMarAvrMaiJunJuiAoûSepOctNovDéc", "vide: ",
-         "; commencer avant que ", "Enqueue"],
+         "; commencer avant que ", "Enqueue",
+         "Acheter ça, s'il vous plaît", "Même available après "],
   "en": ["English", " Finished ", "Close", "Upgrade later.",
          "Building list", "Add building.", "Build at",
          "hours", "minutes and", "seconds",
@@ -35,7 +36,8 @@ var langs = {
          "No building in waiting.", "Wood", "Luxe",
          "Researching", "Shown", "Hidden", "full: ",
          "JanFebMarAprMayJunJulAugSepOctNovDec", "empty: ",
-         "; start expanding before ", "Enqueue"],
+         "; start expanding before ", "Enqueue",
+         "Shopping list", "Resources left "],
   // By Tico:
   "pt": ["Portuguès", " acaba às ", "Fechar", "Evoluir mais tarde.",
          "Lista de construção", "Adicionar edificio.", "Construir em",
@@ -61,7 +63,8 @@ var langs = {
          "Inga byggnader väntar.", "Trä", "Lyx",
          "Forskning", "Visas", "Gömda", "fullt: ",
          "janfebmaraprmajjunjulaugsepoktnovdec", "tomt: ",
-         "; börja bygg ut före ", "Köa upp"]
+         "; börja bygg ut före ", "Köa upp",
+         "Inköpslista", "Resurser kvar efter "]
 };
 var lang;
 
@@ -307,10 +310,15 @@ function annotateBuilding(node, level) {
   if (!a) return;
   $x('div[@class="pointsLevelBat"]', node).forEach(rmNode);
   var id = buildingID(a);
-  var level = level || number(a.title);
-  if ("number" == typeof id && node.id) {
-    config.setCity("building"+ id, level);
+  if ("number" == typeof id && node.id && "undefined" == typeof level) {
+    config.setCity("building"+ id, number(a.title));
     config.setCity("posbldg"+ id, number(node.id));
+  }
+  if ("original" == level) {
+    level = config.getCity("building"+ id);
+    a.title = a.title.replace(/\d+/, level);
+  } else {
+    level = level || number(a.title);
   }
   var div = createNode("", "pointsLevelBat", level);
   if (haveEnoughToUpgrade(a, level)) {
@@ -347,7 +355,7 @@ function showResourceNeeds(needs, parent, div, top, left) {
   }
   if ("undefined" != typeof left)
     div.style.left = left;
-  div.style.display = "block";
+  show(div);
   parent.appendChild(div);
   return div;
 }
@@ -356,7 +364,7 @@ function levelBat() { // Ajout d'un du level sur les batiments.
   function hoverHouse(e) {
     var a = $X('(ancestor-or-self::li)/a[@title and @href]', e.target);
     if (a && a.title.match(/ \d+$/i)) {
-      var li = a.parentNode;
+      var li = a && a.parentNode;
       var top = $X('div[@class="timetofinish"]', li) ? "73px": "";
       if (top && li.id == "position0") top = "0";
       var div = showResourceNeeds(buildingExpansionNeeds(a), li, hovering, top);
@@ -365,15 +373,18 @@ function levelBat() { // Ajout d'un du level sur les batiments.
       var enough = haveEnoughToUpgrade(a);
       hovering.style.borderColor = enough ? "#B1AB89" : "#918B69";
       hovering.style.backgroundColor = enough ? "#FEFCE8" : "#FDF8C1";
-    } else
-      hovering.style.display = "none";
+    } else {
+      hide(hovering);
+      if (hovering.parentNode)
+        annotateBuilding(hovering.parentNode, "original");
+    }
   }
 
   var node = $("locations");
   if (node) {
     var hovering = createNode("hovering", "pointsLevelBat toBuild");
-    hovering.style.display = "none";
-    node.appendChild(hovering);
+    hide(hovering);
+    $('position0').appendChild(hovering);
     node.addEventListener("mouseover", hoverHouse, false);
     hovering.addEventListener("DOMMouseScroll", function(e) {
       var li = hovering.parentNode;
@@ -603,7 +614,7 @@ function hoverQueue(have, e) {
     var h = $("qhave");
 
     div = showResourceNeeds(have, $("container2"), div);
-    div.title = "Resources left "+ resolveTime((t-Date.now())/1e3, 1);
+    div.title = lang[left]+ resolveTime((t-Date.now())/1e3, 1);
 
   }
   var last = $("q").lastChild.have;
@@ -698,13 +709,12 @@ function drawQueue() {
 
   var div = $("qhave") || undefined;
   if (!q.length) {
-    if (div)
-      div.style.display = "none";
+    if (div) hide(div);
     return;
   }
   delete have.p; delete have.g;
   div = showResourceNeeds(have, $("container2"), div);
-  div.title = "Resources left "+ resolveTime((t-Date.now())/1e3, 1);
+  div.title = lang[left] + resolveTime((t-Date.now())/1e3, 1);
   div.style.left = div.style.top = "auto";
   div.style.margin = "0";
   div.style.right = "20px";
@@ -718,7 +728,7 @@ function drawQueue() {
   for (var r in miss)
     stalled = true;
   if (!stalled)
-    return div && (div.style.display = "none");
+    return div && hide(div);
 
   // t = secsToDHMS(miss.t);
   delete miss.t;
@@ -727,7 +737,7 @@ function drawQueue() {
   drawQueue.have = have;
 
   div = showResourceNeeds(miss, $("container2"), div);
-  div.title = "Shopping list";
+  div.title = lang[shop];
   div.style.top = "auto";
   div.style.margin = "0";
   div.style.left = "240px";
@@ -2098,7 +2108,15 @@ function bind(fn, self) {
 }
 
 function rmNode(node) {
-  node && node.parentNode.removeChild(node);
+  node && node.parentNode && node.parentNode.removeChild(node);
+}
+
+function hide(node) {
+  if (node) return node.style.display = "none";
+}
+
+function show(node) {
+  if (node) return node.style.display = "";
 }
 
 lang = langs[getLanguage()];
