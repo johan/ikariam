@@ -1598,12 +1598,10 @@ function trade(operation, what, amount) {
 function improveTopPanel() {
   function tradeOnClick(li) {
     var what = trim(li.className).split(" ")[0]; // "glass", for instance
-    var luxe = luxuryType("glass");
-    if (luxe != what && "wood" != what) // clicking those goes to the resource
-      clickTo(li, bind(buy, this, what), 'not(@class = "ellipsis")');
+    clickTo(li, bind(buy, this, what), 'not(self::a or self::span)');
     dblClickTo(li, bind(sell, this, what));
   }
-  function isFull(node, what, have, pace) {
+  function projectWarehouseFull(node, what, have, pace) {
     var capacity = number($X('//li[@class="'+what+'"]/div[@class="tooltip"]'));
     var time = resolveTime((capacity - have) / (pace/3600), 1);
     node.title = (node.title ? node.title +", " : "") + lang[full] + time;
@@ -1651,7 +1649,7 @@ function improveTopPanel() {
   else {
     var reap = secondsToHours(valueRecupJS("startTradegoodDelta"));
     time.title = "+"+ reap +"/-"+ (reap - flow.W);
-    isFull(time, "wine", number(span), flow.W);
+    projectWarehouseFull(time, "wine", number(span), flow.W);
   }
   linkTo("tavern", time).style.color = "#542C0F";
 
@@ -1666,7 +1664,8 @@ function improveTopPanel() {
     span = $("value_"+ name);
     var node = createNode("", "ellipsis", "+"+ income[name], "span");
     span.parentNode.insertBefore(node, span.nextSibling);
-    isFull(node, name, number(span), income[name]);
+    projectWarehouseFull(node, name, number(span), income[name]);
+    linkTo("port", node).style.color = "#542C0F";
   }
 
   var gold = config.getCity("gold", 0);
@@ -1685,18 +1684,11 @@ function improveTopPanel() {
     gold.title = " "; // trim(ap.textContent.replace(/\s+/g, " "));
   }
 
-  var warePos = config.getCity("posbldg7", "?");
-  if (warePos != "?") {
-    var warehouse = urlTo("warehouse");
-    var resources = $X('id("cityResources")/ul[@class="resources"]');
-    if (resources) {
-      $x('li/div[@class="tooltip"]', resources).forEach(function(tooltip) {
-        //clickTo(tooltip, warehouse, null, true);
-        var a = linkTo("warehouse", tooltip);
-        hideshow(a, [a, a.parentNode]);
-      });
-    }
-  }
+  $x('id("cityResources")/ul[@class="resources"]/li/div[@class="tooltip"]').
+    forEach(function(tooltip) {
+      var a = linkTo("warehouse", tooltip);
+      hideshow(a, [a, a.parentNode]);
+    });
 
   clickTo(cityNav, urlTo("townHall"),
           'self::*[@id="cityNav" or @id="gold"]');
