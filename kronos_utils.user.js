@@ -18,7 +18,8 @@ var DEBUT = new Date();
 // En fonction du language du naviguateur on va utiliser un langage associé.
 var language = 0, finished = 1, langUsed = 11, execTime = 12, wood = 14;
 var researching = 16, shown = 17, full = 19, monthshort = 20, empty = 21;
-var startExpand = 22, enqueue = 23, shop = 24, left = 25, unreplenished = 26;
+var startExpand = 22, enqueue = 23, shiftClick = 24, shop = 25, left = 26;
+var unreplenished = 27, popupInfo = 28;
 var langs = {
   "fr": ["Français", " Fini à ", "Fermer", "Upgrader plus tard.",
          "File de construction", "Ajouter un bâtiment.", "Construire dans",
@@ -28,8 +29,10 @@ var langs = {
          "Recherches", "Visible", "Invisible", "plein: ",
          "JanFévMarAvrMaiJunJuiAoûSepOctNovDéc", "vide: ",
          "; commencer avant que ", "Enqueue",
+         "Shift-clique, peut-être?",
          "Acheter ça, s'il vous plaît", "Même available après ",
-         "Il faut attendre pour ces ressources"],
+         "Il faut attendre pour ces ressources",
+         "Clique pour bàtiment information"],
   "en": ["English", " Finished ", "Close", "Upgrade later.",
          "Building list", "Add building.", "Build at",
          "hours", "minutes and", "seconds",
@@ -38,8 +41,10 @@ var langs = {
          "Researching", "Shown", "Hidden", "full: ",
          "JanFebMarAprMayJunJulAugSepOctNovDec", "empty: ",
          "; start expanding before ", "Enqueue",
+         "Shift click to put at the head of the queue",
          "Shopping list", "Resources left ",
-         "Resources unavailable by build time (and replenish time)"],
+         "Resources unavailable by build time (and replenish time)",
+         "Click for building info, use scroll wheel to browse levels"],
   // By Tico:
   "pt": ["Portuguès", " acaba às ", "Fechar", "Evoluir mais tarde.",
          "Lista de construção", "Adicionar edificio.", "Construir em",
@@ -66,8 +71,10 @@ var langs = {
          "Forskning", "Visas", "Gömda", "fullt: ",
          "janfebmaraprmajjunjulaugsepoktnovdec", "tomt: ",
          "; börja bygg ut före ", "Köa upp",
+         "Shift-klicka för att lägga först i kön",
          "Inköpslista", "Resurser kvar efter ",
-         "Resurser som kommer saknas vid byggstart, och inskaffningstid"]
+         "Resurser som kommer saknas vid byggstart, och inskaffningstid",
+         "Klicka för byggnadsinfo, använd scrollhjulet för andra nivåer"]
 };
 var lang;
 
@@ -386,6 +393,7 @@ function levelBat() { // Ajout d'un du level sur les batiments.
   var node = $("locations");
   if (node) {
     var hovering = createNode("hovering", "pointsLevelBat toBuild");
+    hovering.title = lang[popupInfo];
     hide(hovering);
     $('position0').appendChild(hovering);
     node.addEventListener("mouseover", hoverHouse, false);
@@ -464,11 +472,11 @@ function levelTown() {
   $x('//li[starts-with(@class,"cityLocation city level")]').forEach(level);
 }
 
-function linkTo(url, node, context) {
+function linkTo(url, node, opts) {
   if (!url.match(/\?/))
     url = urlTo(url);
   if ("string" == typeof node)
-    node = $X(node, context);
+    node = $X(node, opts && opts.ccontext);
   if (!node || !url)
     return;
   var a = document.createElement("a");
@@ -481,7 +489,14 @@ function linkTo(url, node, context) {
     a.className = node.className;
   if (node.hasAttribute("style"))
     a.setAttribute("style", node.getAttribute("style"));
-  node.parentNode.replaceChild(a, node);
+  if (opts && opts.saveParent) {
+    while (node.lastChild)
+      a.appendChild(node.removeChild(node.firstChild));
+    node.appendChild(a);
+  }
+  else
+    node.parentNode.replaceChild(a, node);
+  return a;
 }
 
 function urlTo(where, id) {
@@ -849,6 +864,7 @@ function buildingGroundView() {
     if (id && pos && !alreadyAllocated(pos, id)) {
       var but = createNode("", "button", null, "input");
       but.value = lang[enqueue];
+      but.title = lang[shiftClick];
       but.style.width = "100px";
       clickTo(but, bind(build, this, id, pos));
       p.appendChild(but/*, p.firstChild*/);
@@ -857,6 +873,35 @@ function buildingGroundView() {
   }
   projectBuildStart("mainview");
   var buts = $x('//p[@class="cannotbuild"]').map(addEnqueueButton);
+}
+
+function branchOfficeView() {
+  function price(tr) {
+    var prefixes = { G:1e9, M:1e6, k:1e3 };
+    var td = $x('td', tr);
+    if (td.length < 4) return;
+    var n = number(td[1]);
+    var p = number(td[3]);
+    if (isNaN(n) || isNaN(p)) return;
+    var s = n *= p;
+    for (var e in prefixes)
+      if (!(n % prefixes[e])) {
+        n /= prefixes[e];
+        n += e;
+        break;
+      } else if (!(n % (prefixes[e]/10))) {
+        n /= prefixes[e];
+        n += e;
+        break;
+      }
+    n = createNode("", "ellipsis", n+"", "span");
+    n.style.verticalAlign = "top";
+    n.style.position = "static";
+    n.style.marginLeft = "3px";
+    td[1].appendChild(n);
+  }
+  clickResourceToSell();
+  $x('id("mainview")//table[@class="tablekontor"]/tbody/tr[td]').forEach(price);
 }
 
 function buildingDetailView() {
@@ -894,7 +939,7 @@ function townHall() {
   var growth = $X('//li[contains(@class,"growth")]/span[@class="value"]');
   config.setServer("growth", number(growth));
 
-  var g = $("PopulationGraph");
+  var g = { context: $("PopulationGraph") };
   linkTo("wood", 'div[@class="woodworkers"]/span[@class="production"]', g);
   linkTo("luxe", 'div[@class="specialworkers"]/span[@class="production"]', g);
   linkTo("academy", 'div[@class="scientists"]/span[@class="production"]', g);
@@ -1561,6 +1606,7 @@ function improveTopPanel() {
 
 ]]></>);
 
+  // wine flow calculation
   var flow = reapingPace();
   var span = $("value_wine");
   var time = flow.W < 0 ? Math.floor(number(span)/-flow.W) +"h" :
@@ -1574,7 +1620,9 @@ function improveTopPanel() {
     time.title = "+"+ reap +"/-"+ (reap - flow.W);
     isFull(time, "wine", number(span), flow.W);
   }
+  linkTo("tavern", time).style.color = "#542C0F";
 
+  // other resource flow
   var income = { wood:flow.w };
   var luxe = flow[luxuryType()];
   var name = luxuryType("glass");
@@ -1594,6 +1642,7 @@ function improveTopPanel() {
     gold = createNode("gold", gold < 0 ? "negative" : "",
                       (gold > 0 ? "+" : "") + gold);
     cityNav.appendChild(gold);
+
     var ap = $("value_maxActionPoints").parentNode;
     ap.style.top = "-49px";
     ap.style.left = "-67px";
@@ -1603,23 +1652,23 @@ function improveTopPanel() {
     gold.title = " "; // trim(ap.textContent.replace(/\s+/g, " "));
   }
 
-  clickTo(time, urlTo("tavern"));
-
   var warePos = config.getCity("posbldg7", "?");
   if (warePos != "?") {
     var warehouse = urlTo("warehouse");
     var resources = $X('id("cityResources")/ul[@class="resources"]');
     if (resources) {
       $x('li/div[@class="tooltip"]', resources).forEach(function(tooltip) {
-        clickTo(tooltip, warehouse, null, true)
+        //clickTo(tooltip, warehouse, null, true);
+        var a = linkTo("warehouse", tooltip);
+        hideshow(a, [a, a.parentNode]);
       });
     }
   }
 
   clickTo(cityNav, urlTo("townHall"),
           'self::*[@id="cityNav" or @id="gold"]');
-  clickTo($X('id("value_wood")/parent::li'), urlTo("wood"));
-  clickTo($X('id("value_'+ luxuryType("name") +'")/parent::li'), urlTo("luxe"));
+  linkTo("luxe", $X('id("value_'+ luxuryType("name") +'")')).style.color =
+    linkTo("wood", $X('id("value_wood")')).style.color = "#542C0F";
   $x('id("cityResources")/ul/li[contains("wood wine marble glass sulfur",'+
      '@class)]').forEach(tradeOnClick);
 
@@ -1665,7 +1714,7 @@ function showSafeWarehouseLevels() {
               1090, 1260, 1450, 1670, 1910, 2180];
   var rest = [   0,   70,   90,  120,  150,  190,  230,  280,  330,  390,  460,
                540,  630,  720,  830,  950, 1090];
-  $x('id("cityResources")/ul/li/div[@class="tooltip"]').map(showSafeLevel);
+  $x('id("cityResources")/ul/li/*[@class="tooltip"]').map(showSafeLevel);
 }
 
 function showHousingOccupancy() {
@@ -1961,7 +2010,7 @@ function principal() {
 #container #mainview .unit .resources li { float: none; padding-bottom: 5px; }
       ]]></>); break; // (can't fall-through yet:)
     case "buildingGround": buildingGroundView(); break;
-    case "branchOffice": clickResourceToSell(); break;
+    case "branchOffice": branchOfficeView(); break;
     case "researchOverview": techinfo(); break;
     case "colonize": colonize(); break;
     case "militaryAdvisorMilitaryMovements":
@@ -2139,7 +2188,16 @@ function hide(node) {
 }
 
 function show(node) {
-  if (node) return node.style.display = "";
+  if (node) return node.style.display = "block";
+}
+
+function hideshow(node, nodes) {
+  function listen(on) {
+    on.addEventListener("mouseover", function(){ show(node); }, false);
+    on.addEventListener("mouseout",  function(){ hide(node); }, false);
+  }
+  nodes = nodes || [node];
+  nodes.forEach(listen);
 }
 
 lang = langs[getLanguage()];
