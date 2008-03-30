@@ -586,17 +586,19 @@ function upgrade() {
   var p = config.getCity("posbldg"+ b);
   var i = cityID();
   if (haveResources(costs[b][l])) {
-    config.remCity("build");
-    setQueue(q);
-    if (!l)
-      goto(url("?action=CityScreen&function=build&id="+ i + "&position="+ p +
-               "&building="+ b));
-    return post("/index.php", {
-      action: "CityScreen",
-    function: "upgradeBuilding",
-          id: cityID(),
-    position: p,
-       level: l });
+    return setTimeout(function() {
+      config.remCity("build");
+      setQueue(q);
+      if (!l)
+        return goto(url("?action=CityScreen&function=build&id="+ i +
+                        "&position="+ p +"&building="+ b));
+      post("/index.php", {
+        action: "CityScreen",
+      function: "upgradeBuilding",
+            id: cityID(),
+      position: p,
+         level: l });
+    }, 3e3);
   }
 
   // FIXME: figure out when to re-test, if at all, and setTimeout(upgrade)
