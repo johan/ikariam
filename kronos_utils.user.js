@@ -875,15 +875,14 @@ function buildingGroundView() {
   var buts = $x('//p[@class="cannotbuild"]').map(addEnqueueButton);
 }
 
-function branchOfficeView() {
+function sumPrices(table, c1, c2) {
   function price(tr) {
     var prefixes = { G:1e9, M:1e6, k:1e3 };
     var td = $x('td', tr);
-    if (td.length < 4) return;
-    var n = number(td[1]);
-    var p = number(td[3]);
+    if (td.length <= Math.max(c1, c2)) return;
+    var n = number(td[c1]);
+    var p = number(td[c2]);
     if (isNaN(n) || isNaN(p)) return;
-    var s = n *= p;
     for (var e in prefixes)
       if (!(n % prefixes[e])) {
         n /= prefixes[e];
@@ -900,9 +899,29 @@ function branchOfficeView() {
     n.style.marginLeft = "3px";
     td[1].appendChild(n);
   }
-  clickResourceToSell();
-  $x('id("mainview")//table[@class="tablekontor"]/tbody/tr[td]').forEach(price);
+  $x('tbody/tr[td]', table).forEach(price);
 }
+
+function branchOfficeView() {
+  clickResourceToSell();
+  sumPrices($X('id("mainview")//table[@class="tablekontor"]'), 1, 3);
+}
+
+// would ideally treat the horrid tooltips as above, but they're dynamic. X-|
+function merchantNavyView() {
+  function monkeypatch(html) {
+    var args = [].slice.call(arguments);
+    var node = createNode();
+    node.innerHTML = html;
+    sumPrices(node.firstChild, 1, 3);
+    $X('table/tbody/tr/th', node).setAttribute("colspan", "4");
+    args[0] = node.innerHTML;
+    ugh.apply(this, args);
+  }
+  var ugh = unsafeWindow.Tip;
+  unsafeWindow.Tip = monkeypatch;
+}
+
 
 function buildingDetailView() {
   var id = parseInt(urlParse("buildingId"));
@@ -2013,6 +2032,7 @@ function principal() {
     case "branchOffice": branchOfficeView(); break;
     case "researchOverview": techinfo(); break;
     case "colonize": colonize(); break;
+    case "merchantNavy": merchantNavyView(); break;
     case "militaryAdvisorMilitaryMovements":
       militaryAdvisorMilitaryMovementsView(); break
     case "Espionage":
