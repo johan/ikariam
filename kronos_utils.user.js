@@ -925,6 +925,44 @@ function portView() {
   setTimeout(projectCompletion, 4e3, "outgoingOwnCountDown");
 }
 
+function dontSubmitZero() {
+  function getCount(submit) {
+    return $X('preceding-sibling::input[@type="text"]', submit);
+  }
+  function setToOne(e) {
+    var count = getCount(e.target);
+    if (count && count.value == 0) {
+      count.setAttribute("was", "0");
+      count.value = 1;
+    }
+  }
+  function resetZero(e) {
+    var count = getCount(e.target);
+    var was = count && count.getAttribute("was");
+    if (was) {
+      count.removeAttribute("was");
+      count.value = was;
+    }
+  }
+  function groksArrows(event) {
+    var count = event.target;
+    var value = count.value;
+    var code = event.charCode || event.keyCode;
+    var keys = unsafeWindow.KeyEvent;
+    switch (code) {
+      case keys.DOM_VK_UP:	return count.value = ++value;
+      case keys.DOM_VK_DOWN:	return count.value = Math.max(0, value - 1);
+    }
+  }
+  function improveForm(submit) {
+    var count = getCount(submit);
+    count.addEventListener("keydown", groksArrows, false)
+    submit.addEventListener("mouseover", setToOne, false);
+    submit.addEventListener("mouseout", resetZero, false);
+  }
+  $x('//input[@type="submit"]').forEach(improveForm);
+}
+
 // would ideally treat the horrid tooltips as above, but they're dynamic. X-|
 function merchantNavyView() {
   function monkeypatch(html) {
@@ -2035,8 +2073,11 @@ function principal() {
     case "island": islandView(); break;
     case "worldmap_iso": worldmap_isoView(); break;
     case "townHall": townHall(); break;
+    case "fleetGarrisonEdit": // fall-through:
+    case "armyGarrisonEdit": dontSubmitZero(); break;
+    case "shipyard": // fall-through:
     case "barracks":
-    case "shipyard":
+      dontSubmitZero();
       css(<><![CDATA[
 #container #mainview .unit .resources li { float: none; padding-bottom: 5px; }
       ]]></>); break; // (can't fall-through yet:)
