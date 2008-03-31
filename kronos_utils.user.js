@@ -273,18 +273,23 @@ function buildingClass(id) {
 }
 
 function buildingID(a) {
+  if ("number" == typeof a) return a;
   var building = "string" == typeof a ? a : a.parentNode.className;
   return buildingIDs[building];
 }
 
-function buildingLevel(b, otherwise) {
-  if ("number" != typeof b)
-    b = buildingID(b);
-  if ("city" == urlParse("view"))
-    b = number($X('id("position0")/a[@title]').title);
+function buildingPosition(b, otherwise) {
+  var p = config.getCity("posbldg"+ buildingID(b), "?");
+  return "?" == p ? otherwise : p;
+}
+
+function buildingLevel(b, otherwise, saved) {
+  b = buildingID(b);
+  if (saved || "city" != urlParse("view"))
+    b = config.getCity("building"+ b, "?");
   else
-    b = config.getCity("building"+ b);
-  return "undefined" == typeof b ? otherwise : b;
+    b = number($X('a[@title]', $("position" + buildingPosition(b))).title);
+  return "?" == b ? otherwise : b;
 }
 
 function buildingLevels() {
@@ -345,7 +350,7 @@ function annotateBuilding(node, level) {
     config.setCity("posbldg"+ id, number(node.id));
   }
   if ("original" == level) {
-    level = buildingLevel(id);
+    level = buildingLevel(id, 0, "saved");
     a.title = a.title.replace(/\d+/, level);
   } else {
     level = level || number(a.title);
@@ -521,6 +526,7 @@ function levelTown() {
 function linkTo(url, node, opts) {
   if (!url.match(/\?/))
     url = urlTo(url);
+  if (!url) return;
   if ("string" == typeof node)
     node = $X(node, opts && opts.context);
   if (!node || !url)
@@ -547,18 +553,17 @@ function linkTo(url, node, opts) {
   return a;
 }
 
-function urlTo(where, id) {
+function urlTo(what, id) {
   function building() {
-    var id = buildingID(where);
-    var pos = config.getCity("posbldg"+ id, "");
-    if ("undefined" != pos)
-      return url("?view="+ where +"&id="+ c +"&position="+ pos);
+    var id = buildingID(what);
+    if ("-" != buildingLevel(id, "-"))
+      return url("?view="+ what +"&id="+ c +"&position="+ buildingPosition(id));
   }
-  var pos, c = cityID(), i = islandID();
-  if (where == "workshop")
-    where = "workshop-army";
-  switch (where) {
-    default:		return url("?view="+ where);
+  var c = cityID(), i = islandID();
+  if (what == "workshop")
+    what = "workshop-army";
+  switch (what) {
+    default:		return url("?view="+ what);
     case "wood":	return url("?view=resource&type=resource&id="+ i);
     case "luxe":	return url("?view=tradegood&type=tradegood&id="+ i);
 
@@ -622,8 +627,8 @@ function upgrade() {
   var q = getQueue();
   if (!q.length) return;
   var b = q.shift();
-  var l = config.getCity("building"+ b, 0);
-  var p = config.getCity("posbldg"+ b);
+  var l = buildingLevel(b, 0);
+  var p = buildingPosition(b);
   var i = cityID();
   if (haveResources(costs[b][l])) {
     return setTimeout(function() {
@@ -715,7 +720,7 @@ function drawQueue() {
     if (!level.hasOwnProperty(b)) {
       level[b] = 0;
       if ("city" == document.body.id) { // erect a placeholder ghost house
-        var pos = config.getCity("posbldg"+ b);
+        var pos = buildingPosition(b);
         var spot = $("position"+ pos);
         spot.className = buildingClass(b);
         $X('a', spot).title = "Level 0";
@@ -891,7 +896,7 @@ function processQueue() {
 
 function alreadyAllocated(pos, building) {
   function isOnThisSpot(b) {
-    return config.getCity("posbldg"+ b) == pos;
+    return buildingPosition(b) == pos;
   }
   function alreadyEnqueued(b) {
     return b == building;
