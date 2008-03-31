@@ -921,6 +921,10 @@ function branchOfficeView() {
   clickResourceToSell();
 }
 
+function portView() {
+  setTimeout(projectCompletion, 4e3, "outgoingOwnCountDown");
+}
+
 // would ideally treat the horrid tooltips as above, but they're dynamic. X-|
 function merchantNavyView() {
   function monkeypatch(html) {
@@ -2013,8 +2017,6 @@ function principal() {
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
   var chemin = panelInfo();
   addCSSBubbles();
-  processQueue();
-  document.addEventListener("click", changeQueue, true);
 
   var view = urlParse("view");
   var building = view && buildingID(view);
@@ -2029,7 +2031,7 @@ function principal() {
     case "CityScreen": // &function=build&id=...&position=4&building=13
     case "city": cityView(); break;
     case "buildingDetail": buildingDetailView(); break;
-    case "port": projectCompletion("outgoingOwnCountDown"); break;
+    case "port": portView(); break;
     case "island": islandView(); break;
     case "worldmap_iso": worldmap_isoView(); break;
     case "townHall": townHall(); break;
@@ -2060,6 +2062,9 @@ function principal() {
   projectCompletion("upgradeCountDown", "time");
   projectCompletion("buildCountDown");
   projectHaveResourcesToUpgrade();
+
+  processQueue();
+  document.addEventListener("click", changeQueue, true);
 
   var research = config.getServer("research", "");
   if (research) {
