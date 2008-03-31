@@ -1596,6 +1596,8 @@ function secsToDHMS(t, join, rough) {
 }
 
 function number(n) {
+  if ("undefined" == typeof n)
+    n = "0";
   if (n.textContent)
     n = n.textContent;
   return parseFloat(n.replace(/[^\d.-]+/g, ""));
@@ -1687,6 +1689,11 @@ function trade(operation, what, amount) {
                                 searchResource: id[what], range: "99" });
 }
 
+function sign(n) {
+  if ("undefined" == typeof n) n = 0;
+  return (n > 0 ? "+" : n == 0 ? "±" : "") + n;
+}
+
 // projects wine shortage time and adds lots of shortcut clicking functionality
 function improveTopPanel() {
   function tradeOnClick(li) {
@@ -1733,8 +1740,7 @@ function improveTopPanel() {
   // wine flow calculation
   var flow = reapingPace();
   var span = $("value_wine");
-  var time = flow.W < 0 ? Math.floor(number(span)/-flow.W) +"h" :
-             flow.W > 0 ? "+"+ flow.W : "±0";
+  var time = flow.W < 0 ? Math.floor(number(span)/-flow.W) +"h" : sign(flow.W);
   time = createNode("", "ellipsis", time, "span");
   span.parentNode.insertBefore(time, span.nextSibling);
   if (flow.W < 0)
@@ -1749,15 +1755,17 @@ function improveTopPanel() {
   // other resource flow
   var income = { wood:flow.w };
   var luxe = flow[luxuryType()];
-  var name = luxuryType("glass");
+  var name = luxuryType("name");
   if (name != "wine") // already did that
     income[name] = luxe;
 
   for (name in income) {
+    var amount = income[name];
     span = $("value_"+ name);
-    var node = createNode("", "ellipsis", "+"+ income[name], "span");
+    var node = createNode("", "ellipsis", sign(amount), "span");
     span.parentNode.insertBefore(node, span.nextSibling);
-    projectWarehouseFull(node, name, number(span), income[name]);
+    if (amount > 0)
+      projectWarehouseFull(node, name, number(span), income[name]);
     linkTo("port", node).style.color = "#542C0F";
   }
 
