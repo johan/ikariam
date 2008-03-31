@@ -316,6 +316,14 @@ function haveEnoughToUpgrade(a) {
 }
 
 function annotateBuilding(node, level) {
+  function annotate(msg) {
+    msg = createNode("", "ellipsis", msg, "span");
+    msg.style.position = "relative";
+    div.appendChild(msg);
+    div.style.padding = "0 3px 0 5px";
+    div.style.width = "auto";
+  }
+
   var a = $X('a', node);
   if (!a) return;
   $x('div[@class="pointsLevelBat"]', node).forEach(rmNode);
@@ -325,7 +333,7 @@ function annotateBuilding(node, level) {
     config.setCity("posbldg"+ id, number(node.id));
   }
   if ("original" == level) {
-    level = config.getCity("building"+ id);
+    level = buildingLevel(id);
     a.title = a.title.replace(/\d+/, level);
   } else {
     level = level || number(a.title);
@@ -339,15 +347,22 @@ function annotateBuilding(node, level) {
   clickTo(div, a.href);
   div.style.visibility = "visible";
 
-  if (id == buildingIDs.wall) {
-    var def = 10 * level * level / config.getCity("building0", 1);
-    if (def != parseInt(def))
-      def = def.toFixed(1);
-    def = createNode("", "ellipsis", def+"%", "span");
-    def.style.position = "relative";
-    div.appendChild(def);
-    div.style.padding = "0 3px 0 5px";
-    div.style.width = "auto";
+  switch (id) {
+    case buildingIDs.wall:
+      var def = 10 * level * level / config.getCity("building0", 1);
+      if (def != parseInt(def))
+        def = def.toFixed(1);
+      annotate(def + "%");
+      break;
+
+    case buildingIDs.townHall:
+      var originalLevel = buildingLevel(id);
+      if (originalLevel != level) {
+        var delta = getMaxPopulation(level) - getMaxPopulation(originalLevel);
+        if (delta > 0) delta = "+" + delta;
+        annotate(delta);
+      }
+      break;
   }
   div.title = a.title;
 }
@@ -1828,18 +1843,18 @@ function getPopulation() {
   return parseInt($("value_inhabitants").textContent.match(/\((\d+)/)[1], 10);
 }
 
-function getMaxPopulation() {
-  var townHallLevel = config.getCity("building0");
-  if (townHallLevel) {
-    var maxPopulation = [, 60, 96, 143, 200, 263, 333, 410, 492, 580, 672, 769,
-                         871, 977, 1087, 1201, 1320, 1441, 1567, 1696, 1828,
-                         1964, 2103, 2246, 2391][townHallLevel];
-    if (config.getServer("tech2080"))
-      maxPopulation += 50; // Holiday bonus
-    if (config.getServer("tech3010") && isCapital())
-      maxPopulation += 50; // Well Digging bonus (capital city only)
-  }
-  return maxPopulation || 0;
+function getMaxPopulation(townHallLevel) {
+  if ("undefined" == typeof townHallLevel)
+    townHallLevel = buildingLevel("townHall", 1);
+  var maxPopulation = [, 60, 96, 143, 200, 263, 333, 410, 492, 580, 672, 769,
+                       871, 977, 1087, 1201, 1320, 1441, 1567, 1696, 1828,
+                       1964, 2103, 2246, 2391, 2691, 2845, 3003, 3163, 3326,
+                       3492, 3360][townHallLevel];
+  if (config.getServer("tech2080"))
+    maxPopulation += 50; // Holiday bonus
+  if (config.getServer("tech3010") && isCapital())
+    maxPopulation += 50; // Well Digging bonus (capital city only)
+  return maxPopulation;
 }
 
 function projectPopulation() {
