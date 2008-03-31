@@ -214,10 +214,19 @@ function addCSSBubbles() { css(<><![CDATA[
 
 ]]></>); }
 
+function add(fmt) {
+  for (var i = 1; i<arguments.length; i++) {
+    var id = arguments[i];
+    xpath[id] = fmt.replace("%s", id);
+  }
+}
+
+var xpath = {
+  ship: 'id("globalResources")/ul/li[@class="transporters"]/a'
+};
+add('id("value_%s")', "wood", "wine", "marble", "crystal");
+
 function get(what, context) {
-  var xpath = {
-    ship: 'id("globalResources")/ul/li[@class="transporters"]/a'
-  };
   return what in xpath ? $X(xpath[what], context) : undefined;
 }
 
@@ -1596,8 +1605,6 @@ function secsToDHMS(t, join, rough) {
 }
 
 function number(n) {
-  if ("undefined" == typeof n)
-    n = "0";
   if (n.textContent)
     n = n.textContent;
   return parseFloat(n.replace(/[^\d.-]+/g, ""));
@@ -1702,7 +1709,7 @@ function improveTopPanel() {
     dblClickTo(li, bind(sell, this, what));
   }
   function projectWarehouseFull(node, what, have, pace) {
-    var capacity = number($X('//li[@class="'+what+'"]/div[@class="tooltip"]'));
+    var capacity = number('../*[@class="tooltip"]', get(what));
     var time = resolveTime((capacity - have) / (pace/3600), 1);
     node.title = (node.title ? node.title +", " : "") + lang[full] + time;
   }
@@ -1761,7 +1768,7 @@ function improveTopPanel() {
 
   for (name in income) {
     var amount = income[name];
-    span = $("value_"+ name);
+    span = get(name);
     var node = createNode("", "ellipsis", sign(amount), "span");
     span.parentNode.insertBefore(node, span.nextSibling);
     if (amount > 0)
@@ -2029,7 +2036,7 @@ function clickResourceToSell() {
   function haveHowMuch(e) {
     var img = e.target;
     var resource = img.src.match(/([^_]+).gif$/)[1].replace("glass", "crystal");
-    return number($("value_"+ resource));
+    return number(get(resource));
   }
   function sell100(e) {
     var have = haveHowMuch(e);
