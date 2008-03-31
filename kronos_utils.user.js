@@ -380,7 +380,7 @@ function annotateBuilding(node, level) {
       break;
 
     case buildingIDs.townHall:
-      var originalLevel = buildingLevel(id);
+      var originalLevel = buildingLevel(id, 0, "saved");
       if (originalLevel != level) {
         var delta = getMaxPopulation(level) - getMaxPopulation(originalLevel);
         if (delta > 0) delta = "+" + delta;
