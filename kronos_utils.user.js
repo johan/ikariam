@@ -1836,9 +1836,9 @@ function showSafeWarehouseLevels() {
     div.appendChild(safe);
   }
   var level = config.getCity("building7", 0);
-  var wood = [   0,  140,  190,  240,  310,  380,  470,  560,  670,  790,  930,
+  var wood = [ 100,  140,  190,  240,  310,  380,  470,  560,  670,  790,  930,
               1090, 1260, 1450, 1670, 1910, 2180];
-  var rest = [   0,   70,   90,  120,  150,  190,  230,  280,  330,  390,  460,
+  var rest = [  50,   70,   90,  120,  150,  190,  230,  280,  330,  390,  460,
                540,  630,  720,  830,  950, 1090];
   $x('id("cityResources")/ul/li/*[@class="tooltip"]').map(showSafeLevel);
 }
