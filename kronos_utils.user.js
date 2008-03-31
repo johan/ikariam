@@ -493,6 +493,8 @@ function linkTo(url, node, opts) {
   a.href = url;
   if (node.id)
     a.id = node.id;
+  if (node.title)
+    a.title = node.title;
   if (node.className)
     a.className = node.className;
   if (node.hasAttribute("style"))
