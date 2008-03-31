@@ -278,6 +278,10 @@ function buildingID(a) {
   return buildingIDs[building];
 }
 
+function haveBuilding(b) {
+  return buildingLevel(b, 0) && ("-" != buildingPosition(b, "-"));
+}
+
 function buildingPosition(b, otherwise) {
   var p = config.getCity("posbldg"+ buildingID(b), "?");
   return "?" == p ? otherwise : p;
@@ -285,10 +289,14 @@ function buildingPosition(b, otherwise) {
 
 function buildingLevel(b, otherwise, saved) {
   b = buildingID(b);
-  if (saved || "city" != urlParse("view"))
+  if (!saved && "city" == urlParse("view")) {
+    var div = $("position" + buildingPosition(b));
+    var a = $X('a[@title]', div);
+  }
+  if (saved || !a)
     b = config.getCity("building"+ b, "?");
   else
-    b = number($X('a[@title]', $("position" + buildingPosition(b))).title);
+    b = number(a.title);
   return "?" == b ? otherwise : b;
 }
 
@@ -523,7 +531,7 @@ function levelTown() {
   $x('//li[starts-with(@class,"cityLocation city level")]').forEach(level);
 }
 
-function linkTo(url, node, opts) {
+function linkTo(url, node, styles, opts) {
   if (!url.match(/\?/))
     url = urlTo(url);
   if (!url) return;
@@ -543,6 +551,9 @@ function linkTo(url, node, opts) {
     a.className = node.className;
   if (node.hasAttribute("style"))
     a.setAttribute("style", node.getAttribute("style"));
+  if (styles)
+    for (var prop in styles)
+      a.style[prop] = styles[prop];
   if (opts && opts.saveParent) {
     while (node.lastChild)
       a.appendChild(node.removeChild(node.firstChild));
@@ -797,7 +808,8 @@ function drawQueue() {
   div.style.bottom = "35px";
   div.style.zIndex = "5000";
   div.style.position = "absolute";
-  clickTo(div, sellStuff);
+  if (haveBuilding("branchOffice"))
+    clickTo(div, sellStuff);
   div.id = "qhave";
 
   div = $("qmiss") || undefined;
@@ -814,7 +826,8 @@ function drawQueue() {
   drawQueue.have = have;
 
   div = showResourceNeeds(miss, $("container2"), div);
-  clickTo(div, goShopping);
+  if (haveBuilding("branchOffice"))
+    clickTo(div, goShopping);
   div.title = lang[shop];
   div.style.top = "auto";
   div.style.margin = "0";
@@ -1078,9 +1091,9 @@ function townHall() {
   config.setServer("growth", number(growth));
 
   var g = { context: $("PopulationGraph") };
-  linkTo("wood", 'div[@class="woodworkers"]/span[@class="production"]', g);
-  linkTo("luxe", 'div[@class="specialworkers"]/span[@class="production"]', g);
-  linkTo("academy", 'div[@class="scientists"]/span[@class="production"]', g);
+  linkTo("wood", 'div[@class="woodworkers"]/span[@class="production"]', 0, g);
+  linkTo("luxe", 'div[@class="specialworkers"]/span[@class="production"]', 0,g);
+  linkTo("academy", 'div[@class="scientists"]/span[@class="production"]', 0, g);
   clickTo($X('id("SatisfactionOverview")//div[@class="cat wine"]'), "tavern");
 }
 
@@ -1478,13 +1491,12 @@ a.independent { padding-left: 9px; }
     var header = $X('preceding-sibling::h3/span', div);
     header.innerHTML += ": ";
     var toggle = createNode("hideshow", "", lang[shown], "span");
-    header.style.cursor = "pointer";
     header.appendChild(toggle);
-    header.addEventListener("click", function() {
+    clickTo(header, function() {
       hide.disabled = !hide.disabled;
       toggle.textContent = lang[shown + (hide.disabled ? 0 : 1)];
       hr.style.height = (div.offsetHeight - 22) + "px";
-    }, false);
+    });
   }
 
   div.addEventListener("mousemove", hover, false);
@@ -1681,7 +1693,7 @@ function buysell(e, func) {
   if (img.src) {
     var what = img.src.match(/_([^.]+).gif$/)[1];
     if (what) func(what);
-  } else {
+  } else if (haveBuilding("branchOffice")) {
     goto("branchOffice");
   }
 }
@@ -1710,6 +1722,7 @@ function sign(n) {
 function improveTopPanel() {
   function tradeOnClick(li) {
     var what = trim(li.className).split(" ")[0]; // "glass", for instance
+    if (!haveBuilding("branchOffice")) return;
     clickTo(li, bind(buy, this, what), 'not(self::a or self::span)');
     dblClickTo(li, bind(sell, this, what));
   }
@@ -1762,7 +1775,7 @@ function improveTopPanel() {
     time.title = "+"+ reap +"/-"+ (reap - flow.W);
     projectWarehouseFull(time, "wine", number(span), flow.W);
   }
-  linkTo("tavern", time).style.color = "#542C0F";
+  linkTo("tavern", time, { color: "#542C0F" });
 
   // other resource flow
   var income = { wood:flow.w };
@@ -1778,7 +1791,7 @@ function improveTopPanel() {
     span.parentNode.insertBefore(node, span.nextSibling);
     if (amount > 0)
       projectWarehouseFull(node, name, number(span), income[name]);
-    linkTo("port", node).style.color = "#542C0F";
+    linkTo("port", node, { color: "#542C0F" });
   }
 
   var gold = config.getCity("gold", 0);
@@ -1803,10 +1816,10 @@ function improveTopPanel() {
       hideshow(a, [a, a.parentNode]);
     });
 
-  clickTo(cityNav, urlTo("townHall"),
-          'self::*[@id="cityNav" or @id="gold"]');
-  linkTo("luxe", $X('id("value_'+ luxuryType("name") +'")')).style.color =
-    linkTo("wood", $X('id("value_wood")')).style.color = "#542C0F";
+  clickTo(cityNav, urlTo("townHall"), 'self::*[@id="cityNav" or @id="gold"]');
+  var normalColor = { color: "#542C0F" };
+  linkTo("luxe", $X('id("value_'+ luxuryType("name") +'")'), normalColor);
+  linkTo("wood", $X('id("value_wood")'), normalColor);
   $x('id("cityResources")/ul/li[contains("wood wine marble glass sulfur",'+
      '@class)]').forEach(tradeOnClick);
 
