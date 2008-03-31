@@ -929,7 +929,8 @@ function portView() {
 
 function dontSubmitZero() {
   function getCount(submit) {
-    return $X('preceding-sibling::input[@type="text"]', submit);
+    return $X('preceding-sibling::input[@type="text"]|' +
+              'self::input[@type="text"]', submit);
   }
   function setToOne(e) {
     var count = getCount(e.target);
@@ -941,7 +942,7 @@ function dontSubmitZero() {
   function resetZero(e) {
     var count = getCount(e.target);
     var was = count && count.getAttribute("was");
-    if (was) {
+    if (was && (1 == count.value)) {
       count.removeAttribute("was");
       count.value = was;
     }
@@ -956,11 +957,22 @@ function dontSubmitZero() {
       case keys.DOM_VK_DOWN:	return count.value = Math.max(0, value - 1);
     }
   }
+  function onScrollWheel(event) {
+    var count = getCount(event.target);
+    if (count) {
+      var value = parseInt(count.value, 10);
+      count.value = Math.max(0, value + (event.detail < 0 ? 1 : -1));
+      event.preventDefault();
+      count.onchange();
+    }
+  }
   function improveForm(submit) {
     var count = getCount(submit);
     count.addEventListener("keydown", groksArrows, false)
     submit.addEventListener("mouseover", setToOne, false);
     submit.addEventListener("mouseout", resetZero, false);
+    submit.addEventListener("DOMMouseScroll", onScrollWheel, false);
+    count.addEventListener("DOMMouseScroll", onScrollWheel, false);
   }
   $x('//input[@type="submit"]').forEach(improveForm);
 }
@@ -993,6 +1005,12 @@ function buildingDetailView() {
 
 function safehouseView() {
   $x('//li/div[starts-with(@id,"SpyCountDown")]').forEach(projectCompletion);
+}
+
+function highlightMeInTable() {
+  var tr = $x('id("mainview")/div[@class="othercities"]' +
+              '//tr[td[@class="actions"][count(*) = 0]]');
+  if (tr.length == 1) tr[0].style.background = "pink";
 }
 
 function militaryAdvisorMilitaryMovementsView() {
@@ -1551,6 +1569,7 @@ function secsToDHMS(t, join, rough) {
 function number(n) {
   if (n.textContent)
     n = n.textContent;
+  n = n.replace(/: \d+%$/, ""); // ignore wall level we added ourselves
   return parseFloat(n.replace(/[^\d.-]+/g, ""));
 }
 
@@ -2067,6 +2086,8 @@ function principal() {
   }
 
   switch (view || urlParse("action")) {
+    case "resource": // fall-through:
+    case "tradegood": highlightMeInTable(); break;
     case "loginAvatar":// &function=login
     case "CityScreen": // &function=build&id=...&position=4&building=13
     case "city": cityView(); break;
