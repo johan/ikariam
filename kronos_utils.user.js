@@ -374,10 +374,9 @@ function annotateBuilding(node, level) {
 
   switch (id) {
     case buildingIDs.wall:
-      var def = 10 * level * level / buildingLevel("townHall");
-      if (def != parseInt(def))
-        def = def.toFixed(1);
-      annotate(def + "%");
+      var wall = buildingLevel("townHall", 0);
+      if (wall)
+        annotate(Math.floor(10 * level * level / wall) + "%");
       break;
 
     case buildingIDs.townHall:
