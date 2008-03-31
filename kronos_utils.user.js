@@ -1709,7 +1709,7 @@ function improveTopPanel() {
     dblClickTo(li, bind(sell, this, what));
   }
   function projectWarehouseFull(node, what, have, pace) {
-    var capacity = number('../*[@class="tooltip"]', get(what));
+    var capacity = number($X('../*[@class="tooltip"]', get(what)));
     var time = resolveTime((capacity - have) / (pace/3600), 1);
     node.title = (node.title ? node.title +", " : "") + lang[full] + time;
   }
