@@ -271,7 +271,10 @@ function buildingID(a) {
 function buildingLevel(b, otherwise) {
   if ("number" != typeof b)
     b = buildingID(b);
-  b = config.getCity("building"+ b);
+  if ("city" == urlParse("view"))
+    b = number($X('id("position0")/a[@title]').title);
+  else
+    b = config.getCity("building"+ b);
   return "undefined" == typeof b ? otherwise : b;
 }
 
@@ -349,7 +352,7 @@ function annotateBuilding(node, level) {
 
   switch (id) {
     case buildingIDs.wall:
-      var def = 10 * level * level / config.getCity("building0", 1);
+      var def = 10 * level * level / buildingLevel("townHall");
       if (def != parseInt(def))
         def = def.toFixed(1);
       annotate(def + "%");
