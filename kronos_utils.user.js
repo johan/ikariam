@@ -341,6 +341,8 @@ function annotateBuilding(node, level) {
 
   if (id == buildingIDs.wall) {
     var def = 10 * level * level / config.getCity("building0", 1);
+    if (def != parseInt(def))
+      def = def.toFixed(1);
     def = createNode("", "ellipsis", def+"%", "span");
     def.style.position = "relative";
     div.appendChild(def);
