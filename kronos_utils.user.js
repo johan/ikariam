@@ -335,10 +335,19 @@ function annotateBuilding(node, level) {
     div.style.backgroundColor = "#FEFCE8";
     div.style.borderColor = "#B1AB89";
   }
-  div.title = a.title;
   node.appendChild(div);
   clickTo(div, a.href);
   div.style.visibility = "visible";
+
+  if (id == buildingIDs.wall) {
+    var def = 10 * level * level / config.getCity("building0", 1);
+    def = createNode("", "ellipsis", def+"%", "span");
+    def.style.position = "relative";
+    div.appendChild(def);
+    div.style.padding = "0 3px 0 5px";
+    div.style.width = "auto";
+  }
+  div.title = a.title;
 }
 
 function showResourceNeeds(needs, parent, div, top, left) {
@@ -1569,7 +1578,6 @@ function secsToDHMS(t, join, rough) {
 function number(n) {
   if (n.textContent)
     n = n.textContent;
-  n = n.replace(/: \d+%$/, ""); // ignore wall level we added ourselves
   return parseFloat(n.replace(/[^\d.-]+/g, ""));
 }
 
