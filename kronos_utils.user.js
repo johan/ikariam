@@ -357,9 +357,9 @@ function buildingLevels() {
   return levels;
 }
 
-function buildingExpansionNeeds(b, level) {
-  level = "undefined" == level ? number(a.title) : level;
-  var needs = costs[buildingID(b)][level];
+function buildingExpansionNeeds(a, level) {
+  level = "undefined" == typeof level ? number(a.title) : level;
+  var needs = costs[b = buildingID(a)][level];
   var value = {};
   var factor = 1.00;
   if (config.getServer("tech2100")) // Spirit Level
