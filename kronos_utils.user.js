@@ -214,6 +214,52 @@ function addCSSBubbles() { css(<><![CDATA[
 
 ]]></>); }
 
+
+// Military stuff:
+
+function militaryAdvisorMilitaryMovementsView() {
+  function project(div) {
+    var li = $X('ancestor::li', div)
+    projectCompletion(div);
+    li.style.height = "52px";
+  }
+  $x('//li/div/div[contains(@id,"CountDown")]').forEach(project);
+}
+
+function militaryAdvisorCombatReportsView() {
+  function parseDate(t) {
+    var Y, M, D, h, m;
+    if ((t = t && trim(t.textContent).split(/\D+/))) {
+      [t, D, M, h, m] = t;
+      Y = (new Date).getFullYear();
+      return  (new Date(Y, parseInt(M, 10)-1, D, h, m)).getTime();
+    }
+  }
+  function fileReport(tr) {
+    var a = $X('td[contains(@class,"subject")]/a', tr);
+    var w = $X('contains(../@class,"won")', a);
+    var r = urlParse("combatId", a.search);
+    var t = parseReportDate($X('td[@class="date"]', tr));
+    if (!oldreps[r]) {
+      w ? history.won++ : history.lost++;
+      newreps[r] = { id: r, t: t, w: w };
+      allreps[r] = newreps[r];
+    }
+  }
+  var table = $X('id("finishedReports")/table[@class="operations"]');
+  if (!table) return;
+  var history = eval(config.getServer("war", "({ won: 0, lost: 0 })"));
+  var allreps = eval(config.getServer("reports", "({})"));
+  var reports = $x('tbody/tr[td[contains(@class,"subject")]]', table);
+  var newreps = {};
+  reports.forEach(fileReport);
+  config.setServer("war", history);
+  config.setServer("reports", allreps);
+}
+
+
+
+
 function add(fmt) {
   for (var i = 1; i<arguments.length; i++) {
     var id = arguments[i];
@@ -311,9 +357,9 @@ function buildingLevels() {
   return levels;
 }
 
-function buildingExpansionNeeds(a) {
-  var level = number(a.title);
-  var needs = costs[buildingID(a)][level];
+function buildingExpansionNeeds(b, level) {
+  level = "undefined" == level ? number(a.title) : level;
+  var needs = costs[buildingID(b)][level];
   var value = {};
   var factor = 1.00;
   if (config.getServer("tech2100")) // Spirit Level
@@ -640,7 +686,7 @@ function upgrade() {
   var l = buildingLevel(b, 0);
   var p = buildingPosition(b);
   var i = cityID();
-  if (haveResources(costs[b][l])) {
+  if (haveResources(buildingExpansionNeeds(b, l))) {
     return setTimeout(function() {
       config.remCity("build");
       setQueue(q);
@@ -742,7 +788,7 @@ function drawQueue() {
     }
 
     // Will we have everything needed by then?
-    var need = costs[b][level[b]++];
+    var need = buildingExpansionNeeds(b, level[b]++);
     annotateBuilding(li, level[b]);
     var stall = {};
     var stalled = false;
@@ -1066,15 +1112,6 @@ function highlightMeInTable() {
   var tr = $x('id("mainview")/div[@class="othercities"]' +
               '//tr[td[@class="actions"][count(*) = 0]]');
   if (tr.length == 1) tr[0].style.background = "pink";
-}
-
-function militaryAdvisorMilitaryMovementsView() {
-  function project(div) {
-    var li = $X('ancestor::li', div)
-    projectCompletion(div);
-    li.style.height = "52px";
-  }
-  $x('//li/div/div[contains(@id,"CountDown")]').forEach(project);
 }
 
 function cityView() {
@@ -2169,8 +2206,10 @@ function principal() {
     case "researchOverview": techinfo(); break;
     case "colonize": colonize(); break;
     case "merchantNavy": merchantNavyView(); break;
+    case "militaryAdvisorCombatReports":
+      militaryAdvisorCombatReportsView(); break;
     case "militaryAdvisorMilitaryMovements":
-      militaryAdvisorMilitaryMovementsView(); break
+      militaryAdvisorMilitaryMovementsView(); break;
     case "Espionage":
     case "safehouse": safehouseView(); break;
     case "academy":
