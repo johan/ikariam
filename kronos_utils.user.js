@@ -1047,7 +1047,7 @@ function processQueue() {
     upgrade();
   } else if (t == Infinity) { // no project going!
     if (u) { // Just completed one queue item
-      return config.remCity("buildurl");
+      config.remCity("buildurl");
     }
     // added item to empty queue -- go go go!
     upgrade();
