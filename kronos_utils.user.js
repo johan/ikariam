@@ -417,8 +417,9 @@ function reapingPace() {
 
 var buildingIDs = {
   townHall: 0, townhall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
-  warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11, palaceColony: 17,
-  embassy: 12, branchOffice:13, "workshop-army": 15, safehouse: 16
+  warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11, embassy: 12,
+  branchOffice:13, "workshop-army": 15, "workshop-fleet": 15, safehouse: 16,
+  palaceColony: 17
 };
 
 function buildingClass(id) {
@@ -2336,6 +2337,10 @@ function principal() {
     if (level)
       config.setCity("building"+ building, number(level));
   }
+
+  var help = $X('id("buildingUpgrade")/h3/a[@class="help"]');
+  if (help)
+    linkTo(urlTo("building", buildingID(urlParse("view"))), help);
 
   switch (view || urlParse("action")) {
     case "resource": // fall-through:
