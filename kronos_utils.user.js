@@ -6,7 +6,6 @@
 // @description    Divers petits utilitaires.
 // @include        http://*.ikariam.*/*
 // @exclude        http://board.ikariam.*/
-// @exclude        http://*.ikariam.*/index.php?view=militaryAdvisorMilitaryMovements*
 // @exclude        http://*.ikariam.*/index.php?view=renameCity*
 // ==/UserScript==
 
@@ -78,6 +77,11 @@ var langs = {
 };
 var lang;
 
+function nth(n) {
+  var th = [, "st", "nd", "rd"];
+  return n + (th[n] || "th");
+}
+
 var name = "Kronos";
 var version = " 0.5";
 /*-------------------------------------
@@ -104,7 +108,7 @@ function luxuryType(type) {
   var what = script.match(/currTradegood.*?value_([^\x22\x27]+)/)[1];
   switch (type) {
     case undefined:
-    case 0: return what.charAt().toUpperCase();
+    case 0: return resourceIDs[what];
 
     case "name":
     case 1: return what;
@@ -230,19 +234,27 @@ function militaryAdvisorCombatReportsView() {
   function parseDate(t) {
     var Y, M, D, h, m;
     if ((t = t && trim(t.textContent).split(/\D+/))) {
-      [t, D, M, h, m] = t;
+      [D, M, h, m] = t.map(function(n) { return parseInt(n, 10); });
       Y = (new Date).getFullYear();
-      return  (new Date(Y, parseInt(M, 10)-1, D, h, m)).getTime();
+      return  (new Date(Y, M - 1, D, h, m)).getTime();
     }
   }
-  function fileReport(tr) {
+  function fileReport(tr, n) {
     var a = $X('td[contains(@class,"subject")]/a', tr);
     var w = $X('contains(../@class,"won")', a);
-    var r = urlParse("combatId", a.search);
-    var t = parseReportDate($X('td[@class="date"]', tr));
-    if (!oldreps[r]) {
+    var r = parseInt(urlParse("combatId", a.search));
+    var d = $X('td[@class="date"]', tr);
+    var t = parseDate(d);
+    repId[n] = r;
+    if (allreps[r]) {
+      var loot = allreps[r].l;
+      if (loot) {
+        d.innerHTML += " \xA0 " + visualResources(loot);
+        d.style.whiteSpace = "nowrap";
+      }
+    } else {
       w ? history.won++ : history.lost++;
-      newreps[r] = { id: r, t: t, w: w };
+      newreps[r] = { t: t, w: 0 + w };
       allreps[r] = newreps[r];
     }
   }
@@ -252,12 +264,70 @@ function militaryAdvisorCombatReportsView() {
   var allreps = eval(config.getServer("reports", "({})"));
   var reports = $x('tbody/tr[td[contains(@class,"subject")]]', table);
   var newreps = {};
+  var cities = {};
+  var repId = [];
   reports.forEach(fileReport);
+
+  var city = eval(config.getServer("cities", "({})"));
+  for (var i = reports.length; --i >= 0;) {
+    var a = $X('.//a', reports[i]);
+    var r = allreps[repId[i]];
+
+    var recent = r.t > Date.now() - (25 * 36e5);
+    // we won, we don't know what city, it's the past 24h (+ DST safety margin)
+    if (r.w && !r.c && recent) {
+      a.style.fontStyle = "italic"; // Warn about it! Read that report, please.
+      a.innerHTML = "?: "+ a.innerHTML;
+    }
+
+    if (r.c) {
+      if (recent)
+        var c = cities[r.c] = 1 + (cities[r.c] || 0);
+      var name = city[r.c].n;
+      var text = a.textContent;
+      text = text.slice(0, text.lastIndexOf(name));
+      if (r.w && recent) {
+        text = nth(c) +" "+ text;
+        if (c > 5)
+          a.style.fontStyle = "italic"; // warn about bashing
+      }
+      a.textContent = text;
+      var island = linkTo(urlTo("island", { island: city[r.c].i, city: r.c }),
+                          null, null, { text: name });
+      a.parentNode.appendChild(island);
+    }
+  }
+
   config.setServer("war", history);
   config.setServer("reports", allreps);
+  //console.log(history.toSource());
+  //console.log(allreps.toSource());
 }
 
-
+function militaryAdvisorReportViewView() {
+  var loot = parseResources('//td[@class="winner"]/ul[@class="resources"]/li');
+  var a =  $X('//a[normalize-space(preceding-sibling::text()[1]) = ' +
+              '"Battle for"]');
+  var cities = eval(config.getServer("cities", "({})"));
+  var city = parseInt(urlParse("selectCity", a.search));
+  var island = parseInt(urlParse("id", a.search));
+  var reports = eval(config.getServer("reports", "({})"));
+  var r = urlParse("combatId");
+  var report = reports[r];
+  if (report) {
+    if (loot) report.l = loot;
+    report.c = city;
+  }
+  if (!cities.hasOwnProperty(city))
+    cities[city] = {};
+  var c = cities[city];
+  c.n = a.textContent;
+  c.i = island;
+  config.setServer("cities", cities);
+  config.setServer("reports", reports);
+  //console.log(cities.toSource());
+  //console.log(reports[r].toSource());
+}
 
 
 function add(fmt) {
@@ -276,6 +346,11 @@ function get(what, context) {
   return what in xpath ? $X(xpath[what], context) : undefined;
 }
 
+var resourceIDs = {
+  wood: "w", wine: "W", marble: "M", glass: "C", crystal: "C", sulfur: "S",
+  gold: "g", inhabitants: "p", maxActionPoints: "a"
+};
+
 function currentResources() {
   return {
     p: number($("value_inhabitants").textContent.replace(/\s.*/, "")),
@@ -283,6 +358,40 @@ function currentResources() {
     W: number($("value_wine")), M: number($("value_marble")),
     C: number($("value_crystal")), S: number($("value_sulfur"))
   };
+}
+
+function addResources(a, b, onlyIterateA) {
+  return opResources(a, b, function(a, b) { return a + b; }, onlyIterateA);
+}
+function subResources(a, b, onlyIterateA) {
+  return opResources(a, b, function(a, b) { return a - b; }, onlyIterateA);
+}
+
+function opResources(a, b, op, onlyIterateA) {
+  var o = {}, r;
+  for (r in a)
+    o[r] = op(a[r], (b[r] || 0));
+  if (onlyIterateA) return o;
+  for (r in b) {
+    if (o.hasOwnProperty(r)) continue;
+    o[r] = op((a[r] || 0), b[r]);
+  }
+  return o;
+}
+
+function parseResources(res) {
+  if ("string" == typeof res)
+    res = $x(res);
+  var o = {}, r, id;
+  if (res.length)
+    for (var i = 0; i < res.length; i++) {
+      r = res[i];
+      id = resourceIDs[r.className.split(" ")[0]];
+      o[id] = number(r);
+    }
+  else
+    return null;
+  return o;
 }
 
 function haveResources(needs) {
@@ -515,19 +624,48 @@ function worldmap_isoView() { // FIXME: implement! :-)
   ; // show the (old) getIsle("w") and getIsle(/WMCS/) levels for known islands
 }
 
+function focusCity(city) {
+  var a = $("city_" + city);
+  location.href = "javascript:selectedCity = -1; try { (function() {" +
+    a.getAttribute("onclick") + "}).call(document.getElementById('city_" +
+    city +"')) } catch(e) {}; void 0";
+  setTimeout(function() { a.parentNode.className += " selected"; }, 1e3);
+}
+
 function islandView() {
+  var city = urlParse("selectCity");
+  if (city)
+    setTimeout(focusCity, 200, city);
   levelTown();
   levelResources();
 }
+
+function click(node) {
+  var event = node.ownerDocument.createEvent("MouseEvents");
+  event.initMouseEvent("click", true, true, node.ownerDocument.defaultView,
+                       1, 0, 0, 0, 0, false, false, false, false, 0, node);
+  node.dispatchEvent(event);
+  if (node.nodeName.match(/^a(rea)?$/i) && node.href) {
+    var win = node.target && getFrame(node.target) || window;
+    if (!node.href.match(/^#/))
+      win.location.href = node.href;
+    else if (node.getAttribute("onclick")) {
+      var js = node.getAttribute("onclick");
+      if (!js.match(/^javascript:/i))
+        js = "javascript:" + js;
+      win.location.href = js;
+    }
+    if (win != window)
+      win.focus();
+  }
+}
+
 
 function levelResources() {
   function annotate(what) {
     var node = $X('id("islandfeatures")/li['+ what +']');
     var level = number(node.className);
-    if (node.className.match(/wood/))
-      config.setIsle("w", level);
-    else
-      config.setIsle(node.className.charAt().toUpperCase(), level);
+    config.setIsle(resourceIDs[node.className.split(" ")[0]], level);
     var div = createNode("", "pointsLevelBat", level);
     node.appendChild(div);
   }
@@ -582,34 +720,40 @@ function linkTo(url, node, styles, opts) {
   if (!url) return;
   if ("string" == typeof node)
     node = $X(node, opts && opts.context);
-  if (!node || !url)
+  if (!url)
     return;
   var a = document.createElement("a");
-  while (node.lastChild)
-    a.insertBefore(node.lastChild, a.firstChild);
   a.href = url;
-  if (node.id)
-    a.id = node.id;
-  if (node.title)
-    a.title = node.title;
-  if (node.className)
-    a.className = node.className;
-  if (node.hasAttribute("style"))
-    a.setAttribute("style", node.getAttribute("style"));
+  if (node) {
+    while (node.lastChild)
+      a.insertBefore(node.lastChild, a.firstChild);
+    if (node.id)
+      a.id = node.id;
+    if (node.title)
+      a.title = node.title;
+    if (node.className)
+      a.className = node.className;
+    if (node.hasAttribute("style"))
+      a.setAttribute("style", node.getAttribute("style"));
+  }
   if (styles)
     for (var prop in styles)
       a.style[prop] = styles[prop];
-  if (opts && opts.saveParent) {
-    while (node.lastChild)
-      a.appendChild(node.removeChild(node.firstChild));
-    node.appendChild(a);
+  if (opts) {
+    if (opts.saveParent) {
+      while (node.lastChild)
+        a.appendChild(node.removeChild(node.firstChild));
+      return node.appendChild(a);
+    }
+    if (opts.text)
+      a.textContent = opts.text;
   }
-  else
+  if (node)
     node.parentNode.replaceChild(a, node);
   return a;
 }
 
-function urlTo(what, id) {
+function urlTo(what, id, opts) {
   function building() {
     var id = buildingID(what);
     if ("-" != buildingLevel(id, "-"))
@@ -631,7 +775,8 @@ function urlTo(what, id) {
       return building();
 
     case "city":	return url('?view=city&id='+ c);
-    case "island":	return url('?view=island&id='+ i);
+    case "island":	return url('?view=island&id='+ ("object" != typeof id ?
+                                   i : id.island + "&selectCity="+ id.city));
     case "building":	return url("?view=buildingDetail&buildingId="+ id);
 
     case "library":
@@ -757,6 +902,7 @@ function drawQueue() {
     ul = createNode("q", "", "", "ul");
     document.body.appendChild(ul);
   }
+
   var q = getQueue();
   var t = config.getCity("build"); // in ms
   var dt = (t - Date.now()) / 1e3; // in s
@@ -764,6 +910,15 @@ function drawQueue() {
   var pace = reapingPace();
   var miss = {};
   var level = buildingLevels();
+
+  // add a level for what is being built now, if anything
+  var building = config.getCity("buildurl");
+  var buildEnd = config.getCity("build");
+  if (buildEnd > Date.now() && building) {
+    building = buildingID(urlParse("view", building));
+    level[building] = 1 + (level[building] || 0);
+  }
+
   for (var i = 0; i < q.length; i++) {
     var b = q[i];
     var what = buildingClass(b);
@@ -789,6 +944,7 @@ function drawQueue() {
 
     // Will we have everything needed by then?
     var need = buildingExpansionNeeds(b, level[b]++);
+    //console.log(b, level[b]-1, need ? need.toSource() : need);
     annotateBuilding(li, level[b]);
     var stall = {};
     var stalled = false;
@@ -1743,10 +1899,9 @@ function sell(what, amount) {
 }
 
 function trade(operation, what, amount) {
-  var id = { wood: "resource", wine: 1, marble: 2, glass: 3, sulfur: 4,
-                w: "resource", W: 1, M: 2, C: 3, crystal: 3, S: 4 };
+  var id = { w: "resource", W: 1, M: 2, C: 3, S: 4 }[resourceIDs[what]];
   post(urlTo("branchOffice"), { type: { buy:"444", sell:"333" }[operation],
-                                searchResource: id[what], range: "99" });
+                                searchResource: id, range: "99" });
 }
 
 function sign(n) {
@@ -1769,7 +1924,7 @@ function improveTopPanel() {
   }
 
   css(<><![CDATA[
-#gold {
+#income {
   background:transparent url(skin/resources/icon_gold.gif) no-repeat 100% 0;
   line-height: 22px;
   padding-right: 18px;
@@ -1779,7 +1934,7 @@ function improveTopPanel() {
   top: 33px;
 }
 
-#gold.negative {
+#income.negative {
   background-position:49px -2px;
   background-image:url(skin/icons/corruption_24x24.gif);
 }
@@ -1833,7 +1988,7 @@ function improveTopPanel() {
   var gold = config.getCity("gold", 0);
   if (gold) {
     var cityNav = $("cityNav");
-    gold = createNode("gold", gold < 0 ? "negative" : "",
+    gold = createNode("income", gold < 0 ? "negative" : "",
                       (gold > 0 ? "+" : "") + gold);
     cityNav.appendChild(gold);
 
@@ -1852,7 +2007,7 @@ function improveTopPanel() {
       hideshow(a, [a, a.parentNode]);
     });
 
-  clickTo(cityNav, urlTo("townHall"), 'self::*[@id="cityNav" or @id="gold"]');
+  clickTo(cityNav, urlTo("townHall"), 'self::*[@id="cityNav" or @id="income"]');
   var normalColor = { color: "#542C0F" };
   linkTo("luxe", $X('id("value_'+ luxuryType("name") +'")'), normalColor);
   linkTo("wood", $X('id("value_wood")'), normalColor);
@@ -1995,7 +2150,7 @@ function projectBuildStart(root, result) {
                       'contains(@class,"wood") or contains(@class,"time"))]');
     for (var i = 0; i < needRest.length; i++) {
       var what = needRest[i];
-      var id = what.className.charAt().toUpperCase().replace("G","C");
+      var id = resourceIDs[what.className.split(" ")[0]];
       need[id] = what;
     }
     for (var r in need) {
@@ -2206,6 +2361,8 @@ function principal() {
     case "researchOverview": techinfo(); break;
     case "colonize": colonize(); break;
     case "merchantNavy": merchantNavyView(); break;
+    case "militaryAdvisorReportView":
+      militaryAdvisorReportViewView(); break;
     case "militaryAdvisorCombatReports":
       militaryAdvisorCombatReportsView(); break;
     case "militaryAdvisorMilitaryMovements":
