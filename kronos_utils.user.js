@@ -329,6 +329,11 @@ function militaryAdvisorReportViewView() {
   //console.log(reports[r].toSource());
 }
 
+function plunderView() {
+  scrollWheelable();
+  dontSubmitZero(2, 'id("selectArmy")//input[@type="submit"]');
+}
+
 
 function add(fmt) {
   for (var i = 1; i<arguments.length; i++) {
@@ -646,19 +651,6 @@ function click(node) {
   event.initMouseEvent("click", true, true, node.ownerDocument.defaultView,
                        1, 0, 0, 0, 0, false, false, false, false, 0, node);
   node.dispatchEvent(event);
-  if (node.nodeName.match(/^a(rea)?$/i) && node.href) {
-    var win = node.target && getFrame(node.target) || window;
-    if (!node.href.match(/^#/))
-      win.location.href = node.href;
-    else if (node.getAttribute("onclick")) {
-      var js = node.getAttribute("onclick");
-      if (!js.match(/^javascript:/i))
-        js = "javascript:" + js;
-      win.location.href = js;
-    }
-    if (win != window)
-      win.focus();
-  }
 }
 
 
@@ -1185,54 +1177,83 @@ function portView() {
   setTimeout(projectCompletion, 4e3, "outgoingOwnCountDown");
 }
 
-function dontSubmitZero() {
+function scrollWheelable(nodes) {
+  function getCount(node) {
+    return $X('preceding-sibling::input[@type="text"] |' +
+              'self::input[@type="text"]', node);
+  }
+  function add(count, sign, event) {
+    if (count && sign) {
+      event.preventDefault();
+      var alt = event.altKey ? 100 : 1;
+      var meta = event.metaKey ? 1000 : 1;
+      var shift = event.shiftKey ? 10 : 1;
+      count.value = Math.max(0, parseInt(count.value) +
+                                (meta * alt * shift * sign));
+      click(count);
+    }
+  }
+  function groksArrows(event) {
+    var sign = {};
+    var key = unsafeWindow.KeyEvent;
+    sign[key.DOM_VK_UP] = 1;
+    sign[key.DOM_VK_DOWN] = -1;
+    add(event.target, sign[event.charCode || event.keyCode], event);
+  }
+  function onScrollWheel(event) {
+    add(getCount(event.target), event.detail > 0 ? -1 : 1, event);
+  }
+  function listen(input) {
+    input.addEventListener("keydown", groksArrows, false);
+    input.addEventListener("DOMMouseScroll", onScrollWheel, false);
+    input.addEventListener("DOMMouseScroll", onScrollWheel, false);
+  }
+  if (stringOrUndefined(nodes))
+    nodes = $x(nodes || '//input[@type="text" and @class="textfield"]');
+  nodes.forEach(listen);
+}
+
+function stringOrUndefined(what) {
+  return { undefined: 1, string: 1 }[typeof what] || 0;
+}
+
+function dontSubmitZero(but, nodes) {
   function getCount(submit) {
-    return $X('preceding-sibling::input[@type="text"]|' +
-              'self::input[@type="text"]', submit);
+    var count = $X('preceding-sibling::input[@type="text"]|' +
+                   'self::input[@type="text"]', submit);
+    if (count) return count;
+    var inputs = submit.form.elements;
+    for (var i = 0; i<inputs.length; i++)
+      if (inputs[i].type == "text")
+        return inputs[i];
   }
   function setToOne(e) {
     var count = getCount(e.target);
     if (count && count.value == 0) {
       count.setAttribute("was", "0");
-      count.value = 1;
+      count.value = but;
+      click(count);
     }
   }
   function resetZero(e) {
     var count = getCount(e.target);
     var was = count && count.getAttribute("was");
-    if (was && (1 == count.value)) {
+    if (was && (but == count.value)) {
       count.removeAttribute("was");
       count.value = was;
-    }
-  }
-  function groksArrows(event) {
-    var count = event.target;
-    var value = count.value;
-    var code = event.charCode || event.keyCode;
-    var keys = unsafeWindow.KeyEvent;
-    switch (code) {
-      case keys.DOM_VK_UP:	return count.value = ++value;
-      case keys.DOM_VK_DOWN:	return count.value = Math.max(0, value - 1);
-    }
-  }
-  function onScrollWheel(event) {
-    var count = getCount(event.target);
-    if (count) {
-      var value = parseInt(count.value, 10);
-      count.value = Math.max(0, value + (event.detail < 0 ? 1 : -1));
-      event.preventDefault();
-      count.onchange();
+      click(count);
     }
   }
   function improveForm(submit) {
-    var count = getCount(submit);
-    count.addEventListener("keydown", groksArrows, false)
     submit.addEventListener("mouseover", setToOne, false);
     submit.addEventListener("mouseout", resetZero, false);
-    submit.addEventListener("DOMMouseScroll", onScrollWheel, false);
-    count.addEventListener("DOMMouseScroll", onScrollWheel, false);
+    noArgs && scrollWheelable([submit, getCount(submit)]);
   }
-  $x('//input[@type="submit"]').forEach(improveForm);
+  if (stringOrUndefined(nodes))
+    nodes = $x(nodes || '//input[@type="submit"]');
+  but = but || 1;
+  var noArgs = !arguments.length;
+  nodes.forEach(improveForm);
 }
 
 // would ideally treat the horrid tooltips as above, but they're dynamic. X-|
@@ -2372,6 +2393,7 @@ function principal() {
       militaryAdvisorCombatReportsView(); break;
     case "militaryAdvisorMilitaryMovements":
       militaryAdvisorMilitaryMovementsView(); break;
+    case "plunder": plunderView(); break;
     case "Espionage":
     case "safehouse": safehouseView(); break;
     case "academy":
