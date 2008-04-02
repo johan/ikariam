@@ -2044,7 +2044,8 @@ function improveTopPanel() {
   $x('id("cityResources")/ul[@class="resources"]/li/div[@class="tooltip"]').
     forEach(function(tooltip) {
       var a = linkTo("warehouse", tooltip);
-      hideshow(a, [a, a.parentNode]);
+      if (a)
+        hideshow(a, [a, a.parentNode]);
     });
 
   clickTo(cityNav, urlTo("townHall"), 'self::*[@id="cityNav" or @id="income"]');
