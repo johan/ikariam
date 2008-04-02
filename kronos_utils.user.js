@@ -136,12 +136,15 @@ function urlParse(param, url) {
   return param ? keys[param] : keys;
 }
 
-function createNode(id, classN, html, tag) { // On ajoute un div
+function createNode(id, classN, html, tag, styles) { // On ajoute un div
   var div = document.createElement(tag||"div"); // on crée le div
   if (id) div.id = id; // on lui ajoute l'id
   if (classN) div.className = classN; // le class
   if ("undefined" != typeof html)
     div.appendChild(document.createTextNode(html)); // on lui ajoute du texte
+  if (styles)
+    for (var prop in styles)
+      div.style[prop] = styles[prop];
   return div;
 }
 
@@ -343,12 +346,15 @@ function add(fmt) {
 }
 
 var xpath = {
-  ship: 'id("globalResources")/ul/li[@class="transporters"]/a'
+  ship: 'id("globalResources")/ul/li[@class="transporters"]/a',
+  citynames: 'id("changeCityForm")//ul[contains(@class,"optionList")]/li'
 };
 add('id("value_%s")', "wood", "wine", "marble", "crystal");
 
 function get(what, context) {
-  return what in xpath ? $X(xpath[what], context) : undefined;
+  var many = { citynames: 1 };
+  var func = many[what] ? $x : $X;
+  return what in xpath ? func(xpath[what], context) : undefined;
 }
 
 var resourceIDs = {
@@ -2063,6 +2069,31 @@ function improveTopPanel() {
 
   showHousingOccupancy();
   showSafeWarehouseLevels();
+  showCityBuildCompletions();
+}
+
+function showCityBuildCompletions() {
+  var lis = get("citynames");
+  var ids = cityIDs();
+  for (var i = 0; i < lis.length; i++) {
+    var id = ids[i];
+    var url = config.getCity("buildurl", 0, ids[i]);
+    var t = config.getCity("build", 0, ids[i]);
+    if (t && url) {
+      t = resolveTime((t - Date.now()) / 1e3, 1);
+      var styles = {
+        marginLeft: "3px",
+        background: "none",
+        position: "static",
+        display: "inline",
+        color: "#542C0F",
+      };
+      var a = createNode("", "ellipsis", t, "a", styles);
+      a.href = url;
+      lis[i].appendChild(a);
+    }
+    lis[i].title = " ";
+  }
 }
 
 function hilightShip() {
@@ -2092,18 +2123,18 @@ function showSafeWarehouseLevels() {
   $x('id("cityResources")/ul/li/*[@class="tooltip"]').map(showSafeLevel);
 }
 
-function showHousingOccupancy() {
+function showHousingOccupancy(opts) {
   var div = $("value_inhabitants");
   var node = div.firstChild;
   var text = node.nodeValue.replace(/\s/g, "\xA0");
-  var pop = projectPopulation();
+  var pop = projectPopulation(opts);
   var time = ":∞";
   if (pop.upgradeIn)
     time = ":" + secsToDHMS(pop.upgradeIn, 0);
   else //if (pop.asymptotic > pop.maximum)
     time = "/" + sign(pop.maximum - pop.current);
-  // console.log(pop.toSource());
-  node.nodeValue = text.replace(")", time +")");
+  //console.log(pop.toSource());
+  node.nodeValue = text.replace(new RegExp("[:)/].*$"), time +")");
   div.style.whiteSpace = "nowrap";
 }
 
@@ -2132,7 +2163,8 @@ function projectPopulation(opts) {
   var wellDigging = isCapital() && config.getServer("tech3010") ? 50 : 0;
   var holiday = config.getServer("tech2080") ? 25 : 0;
   var tavern = 12 * buildingLevel("tavern", 0);
-  var wineLevel = opts && opts.wine || config.getCity("wine", 0)
+  var wineLevel = opts && opts.hasOwnProperty("wine") ? opts.wine :
+    config.getCity("wine", 0);
   var wine = 80 *
     [0, 3, 5, 8, 11, 14, 17, 21, 25, 29, 33, 38, 42, 47, 52, 57, 63, 68,
      73, 79, 85, 91, 97, 103, 109].indexOf(wineLevel);
@@ -2174,12 +2206,15 @@ function projectPopulation(opts) {
       people.className = "storage_danger";
     if (population == maximumPopulation)
       people.className = "storage_full";
+    else
+      people.className = "";
 
     hint.title = lang[full] + resolveTime(time, 1);
     if (!upgradingTownHall)
       hint.title += lang[startExpand] +
         resolveTime(time - nextHQUpgradeTime, 1);
-  }
+  } else
+    people.className = "";
 
   var upgrade = !upgradingTownHall && asymptoticPopulation > maximumPopulation;
   return {
@@ -2281,12 +2316,18 @@ function projectCompletion(id, className, loc) {
   return time;
 }
 
-function detectWineChange() {
-  var wine = $("wineAmount");
-  if (wine) {
-    wine = wine.form.elements.namedItem("amount");
-    config.setCity("wine", number(wine.options[wine.selectedIndex]) || 0);
+function tavernView() {
+  function amount() {
+    return number(wine.options[wine.selectedIndex]) || 0;
   }
+  function recalcTownHall() {
+    showHousingOccupancy({ wine: amount() });
+  }
+  var wine = $("wineAmount").form.elements.namedItem("amount");
+  wine.parentNode.addEventListener("DOMNodeInserted", function() {
+    setTimeout(recalcTownHall, 10);
+  }, false);
+  config.setCity("wine", amount());
 }
 
 function title(detail) {
@@ -2368,6 +2409,10 @@ function cityIDs() {
   return pluck($x('id("citySelect")/option'), "value");
 }
 
+function cityNames() {
+  return pluck(get("citynames"), "textContent");
+}
+
 function isCapital() {
   return cityID() == cityIDs()[0];
 }
@@ -2401,6 +2446,8 @@ function principal() {
     linkTo(urlTo("building", buildingID(urlParse("view"))), help);
 
   switch (view || action) {
+    case "tavern": tavernView(); break;
+    case "transport": // fall-through:
     case "takeOffer": scrollWheelable(); break;
     case "resource": // fall-through:
     case "tradegood": highlightMeInTable(); break;
@@ -2444,7 +2491,6 @@ function principal() {
       break;
   }
   title();
-  detectWineChange();
   projectCompletion("upgradeCountDown", "time");
   projectCompletion("buildCountDown");
   projectHaveResourcesToUpgrade();
@@ -2540,8 +2586,8 @@ var config = (function(data) {
   function get(name, value) {
     return data.hasOwnProperty(name) ? data[name] : value;
   }
-  function getCity(name, value) {
-    return getServer(name +":"+ cityID(), value);
+  function getCity(name, value, id) {
+    return getServer(name +":"+ (id || cityID()), value);
   }
   function getIsle(name, value) {
     return getServer(name +"/"+ islandID(), value);
