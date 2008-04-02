@@ -507,7 +507,7 @@ function haveEnoughToUpgrade(a) {
   return enough;
 }
 
-function annotateBuilding(node, level) {
+function buildingExtraInfo(div, id, name, level) {
   function annotate(msg) {
     msg = createNode("", "ellipsis", msg, "span");
     msg.style.position = "relative";
@@ -516,6 +516,32 @@ function annotateBuilding(node, level) {
     div.style.width = "auto";
   }
 
+  switch (name) {
+    case "townHall":
+      var originalLevel = buildingLevel(id, 0, "saved");
+      if (originalLevel != level) {
+        var delta = getMaxPopulation(level) - getMaxPopulation(originalLevel);
+        if (delta > 0) delta = "+" + delta;
+        annotate(delta);
+      }
+      break;
+
+    case "wall":
+      var wall = buildingLevel("townHall", 0);
+      if (wall)
+        annotate(Math.floor(10 * level * level / wall) + "%");
+      break;
+
+    case "tavern":
+      var wineMax = wineLevels[level];
+      var wineCur = config.getCity("wine", 0);
+      if (wineCur != wineMax)
+        annotate(wineCur +"/"+ wineMax);
+      break;
+  }
+}
+
+function annotateBuilding(node, level) {
   var a = $X('a', node);
   if (!a) return;
   $x('div[@class="pointsLevelBat"]', node).forEach(rmNode);
@@ -538,23 +564,7 @@ function annotateBuilding(node, level) {
   node.appendChild(div);
   clickTo(div, a.href);
   div.style.visibility = "visible";
-
-  switch (id) {
-    case buildingIDs.wall:
-      var wall = buildingLevel("townHall", 0);
-      if (wall)
-        annotate(Math.floor(10 * level * level / wall) + "%");
-      break;
-
-    case buildingIDs.townHall:
-      var originalLevel = buildingLevel(id, 0, "saved");
-      if (originalLevel != level) {
-        var delta = getMaxPopulation(level) - getMaxPopulation(originalLevel);
-        if (delta > 0) delta = "+" + delta;
-        annotate(delta);
-      }
-      break;
-  }
+  buildingExtraInfo(div, id, buildingClass(id), level);
   div.title = a.title;
 }
 
@@ -1269,6 +1279,9 @@ function dontSubmitZero(but, nodes) {
 
 // would ideally treat the horrid tooltips as above, but they're dynamic. X-|
 function merchantNavyView() {
+  function dropDate(td) {
+    td.textContent = td.textContent.replace(date, "");
+  }
   function monkeypatch(html) {
     var args = [].slice.call(arguments);
     var node = createNode();
@@ -1279,7 +1292,12 @@ function merchantNavyView() {
     ugh.apply(this, args);
   }
   var ugh = unsafeWindow.Tip;
-  unsafeWindow.Tip = monkeypatch;
+  unsafeWindow.Tip = monkeypatch; // fixes up the tooltips a bit
+
+  // drop dates that are today and just makes things unreadable:
+  var date = trim($('servertime').textContent.replace(/\s.*/, ""));
+  $x('id("mainview")//table[@class="table01"]//td[contains(.,"'+ date +'")]').
+    forEach(dropDate);
 }
 
 
@@ -2080,7 +2098,7 @@ function showCityBuildCompletions() {
     var id = ids[i];
     var url = config.getCity("buildurl", 0, ids[i]);
     var t = config.getCity("build", 0, ids[i]);
-    if (t && url) {
+    if (t && t > Date.now() && url) {
       t = resolveTime((t - Date.now()) / 1e3, 1);
       var styles = {
         marginLeft: "3px",
@@ -2157,6 +2175,9 @@ function getMaxPopulation(townHallLevel) {
   return maxPopulation;
 }
 
+var wineLevels = [0, 3, 5, 8, 11, 14, 17, 21, 25, 29, 33, 38, 42, 47, 52, 57,
+                  63, 68, 73, 79, 85, 91, 97, 103, 109];
+
 function projectPopulation(opts) {
   function getGrowth(population) {
     return (happy - Math.floor(population)) / 50;
@@ -2166,9 +2187,7 @@ function projectPopulation(opts) {
   var tavern = 12 * buildingLevel("tavern", 0);
   var wineLevel = opts && opts.hasOwnProperty("wine") ? opts.wine :
     config.getCity("wine", 0);
-  var wine = 80 *
-    [0, 3, 5, 8, 11, 14, 17, 21, 25, 29, 33, 38, 42, 47, 52, 57, 63, 68,
-     73, 79, 85, 91, 97, 103, 109].indexOf(wineLevel);
+  var wine = 80 * wineLevels.indexOf(wineLevel);
   var museum = 20 * buildingLevel("museum", 0);
   var culture = 50 * config.getCity("culture", 0);
   var happy = 196 + wellDigging + holiday + tavern + wine + museum + culture;
