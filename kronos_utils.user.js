@@ -632,6 +632,11 @@ function worldmap_isoView() { // FIXME: implement! :-)
 
 function focusCity(city) {
   var a = $("city_" + city);
+  var other = $X('//a[starts-with(@id,"city_") and not(@id="city_'+city+'")]');
+  if (other) {
+    click(other);
+    return click(a);
+  }
   location.href = "javascript:selectedCity = -1; try { (function() {" +
     a.getAttribute("onclick") + "}).call(document.getElementById('city_" +
     city +"')) } catch(e) {}; void 0";
