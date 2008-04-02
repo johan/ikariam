@@ -967,7 +967,7 @@ function drawQueue() {
       } else {
         dt += stalled;
         t += stalled * 1e3;
-        stall.t = secsToDHMS(stalled, " ", 1);
+        stall.t = secsToDHMS(stalled, 1, " ");
       }
       var div = showResourceNeeds(stall, li, null, "112px", "");
       div.style.backgroundColor = "#FCC";
@@ -1169,6 +1169,7 @@ function branchOfficeView() {
   function factor(table) {
     sumPrices(table, 1, 3);
   }
+  scrollWheelable();
   $x('id("mainview")//table[@class="tablekontor"]').forEach(factor);
   clickResourceToSell();
 }
@@ -1188,7 +1189,7 @@ function scrollWheelable(nodes) {
       var alt = event.altKey ? 100 : 1;
       var meta = event.metaKey ? 1000 : 1;
       var shift = event.shiftKey ? 10 : 1;
-      count.value = Math.max(0, parseInt(count.value) +
+      count.value = Math.max(0, parseInt(count.value || "0") +
                                 (meta * alt * shift * sign));
       click(count);
     }
@@ -1206,10 +1207,9 @@ function scrollWheelable(nodes) {
   function listen(input) {
     input.addEventListener("keydown", groksArrows, false);
     input.addEventListener("DOMMouseScroll", onScrollWheel, false);
-    input.addEventListener("DOMMouseScroll", onScrollWheel, false);
   }
   if (stringOrUndefined(nodes))
-    nodes = $x(nodes || '//input[@type="text" and @class="textfield"]');
+    nodes = $x(nodes || '//input[@type="text" and @name]');
   nodes.forEach(listen);
 }
 
@@ -1297,7 +1297,7 @@ function cityView() {
   levelBat();
 }
 
-function townHall() {
+function townHallView() {
   var income = $X('//li[contains(@class,"incomegold")]/span[@class="value"]');
   config.setCity("gold", number(income));
 
@@ -1305,10 +1305,17 @@ function townHall() {
   config.setServer("growth", number(growth));
 
   var g = { context: $("PopulationGraph") };
+  var growth = $("SatisfactionOverview");
   linkTo("wood", 'div[@class="woodworkers"]/span[@class="production"]', 0, g);
   linkTo("luxe", 'div[@class="specialworkers"]/span[@class="production"]', 0,g);
   linkTo("academy", 'div[@class="scientists"]/span[@class="production"]', 0, g);
-  clickTo($X('id("SatisfactionOverview")//div[@class="cat wine"]'), "tavern");
+  clickTo($X('.//div[@class="cat wine"]', growth), "tavern");
+  clickTo($X('.//div[@class="cat culture"]', growth), "museum");
+}
+
+function museumView() {
+  var goods = $X('id("val_culturalGoodsDeposit")/..').textContent;
+  config.setCity("culture", goods.match(/\d+/)[0]);
 }
 
 function trim(str) {
@@ -1813,7 +1820,7 @@ function parseTime(t) {
   return s;
 }
 
-function secsToDHMS(t, join, rough) {
+function secsToDHMS(t, rough, join) {
   if (t == Infinity) return "∞";
   var result = [];
   var minus = t < 0 ? "-" : "";
@@ -2051,7 +2058,6 @@ function improveTopPanel() {
 
   showHousingOccupancy();
   showSafeWarehouseLevels();
-  projectPopulation();
 }
 
 function hilightShip() {
@@ -2082,10 +2088,18 @@ function showSafeWarehouseLevels() {
 }
 
 function showHousingOccupancy() {
-  var maxPop = getMaxPopulation();
-  var pop = $("value_inhabitants").firstChild;
-  var text = pop.nodeValue.replace(/\s/g, "\xA0");
-  pop.nodeValue = text.replace(")", "/"+ maxPop +")");
+  var div = $("value_inhabitants");
+  var node = div.firstChild;
+  var text = node.nodeValue.replace(/\s/g, "\xA0");
+  var pop = projectPopulation();
+  var time = ":∞";
+  if (pop.upgradeIn)
+    time = ":" + secsToDHMS(pop.upgradeIn, 0);
+  else //if (pop.asymptotic > pop.maximum)
+    time = "/" + sign(pop.maximum - pop.current);
+  // console.log(pop.toSource());
+  node.nodeValue = text.replace(")", time +")");
+  div.style.whiteSpace = "nowrap";
 }
 
 function getPopulation() {
@@ -2106,39 +2120,42 @@ function getMaxPopulation(townHallLevel) {
   return maxPopulation;
 }
 
-function projectPopulation() {
-  function getHappiness(population) {
-    return 0.02 * (bonus - Math.floor(population));
+function projectPopulation(opts) {
+  function getGrowth(population) {
+    return (happy - Math.floor(population)) / 50;
   }
   var wellDigging = isCapital() && config.getServer("tech3010") ? 50 : 0;
   var holiday = config.getServer("tech2080") ? 25 : 0;
-  var tavern = 12 * config.getCity("building9", 0);
+  var tavern = 12 * buildingLevel("tavern", 0);
+  var wineLevel = opts && opts.wine || config.getCity("wine", 0)
   var wine = 80 *
     [0, 3, 5, 8, 11, 14, 17, 21, 25, 29, 33, 38, 42, 47, 52, 57, 63, 68,
-     73, 79, 85, 91, 97, 103, 109].indexOf( config.getCity("wine", 0) );
-  var museum = 20 * config.getCity("building10", 0);
-  //var culture = 50 * goodsCount;
-  var bonus = 196 + wellDigging + holiday + wine + museum; // + culture;
+     73, 79, 85, 91, 97, 103, 109].indexOf(wineLevel);
+  var museum = 20 * buildingLevel("museum", 0);
+  var culture = 50 * config.getCity("culture", 0);
+  var happy = 196 + wellDigging + holiday + tavern + wine + museum + culture;
+  //console.log(wellDigging, holiday, tavern, wine, museum, culture, happy);
 
-  var population = getPopulation();
-  var asymptoticPopulation = population;
-  while (getHappiness(asymptoticPopulation) > 0)
+  var population = opts && opts.population || getPopulation();
+  var currentPopulation = population;
+  var asymptoticPopulation = population, asymAt;
+  while (getGrowth(asymptoticPopulation) > 0)
     asymptoticPopulation++;
 
   var time = 0;
-  var happiness = getHappiness(population);
+  var happiness = getGrowth(population);
   var maximumPopulation = getMaxPopulation();
   while ((happiness > 0) && (population < maximumPopulation)) {
-    happiness = getHappiness(population);
+    happiness = getGrowth(population);
     population += happiness / 4; // add 15 minutes of growth
     time += 60 * 15;
   }
 
-  var hint = $("cityNav");
+  var hint = $("cityNav"), warn = true;
   if (asymptoticPopulation <= maximumPopulation) {
-    hint.title = "Reaches asymptotic population "+ population +" at "+
-      resolveTime(time, 1);
-    return population;
+    hint.title = "Reaches asymptotic population "+ asymptoticPopulation +"/"+
+      maximumPopulation +" at "+ resolveTime(time, 1);
+    warn = false;
   }
 
   var people = $("value_inhabitants");
@@ -2147,15 +2164,30 @@ function projectPopulation() {
   var upgradingTownHall = $X('id("done")/../@href = "'+ urlTo("townHall") +'"');
 
   // < 15 min left for expanding Town Hall ahead of time to meet growth?
-  if (time < 15 * 60 + nextHQUpgradeTime && !upgradingTownHall)
-    people.className = "storage_danger";
-  if (population == maximumPopulation)
-    people.className = "storage_full";
+  if (warn) {
+    if (time < 15 * 60 + nextHQUpgradeTime && !upgradingTownHall)
+      people.className = "storage_danger";
+    if (population == maximumPopulation)
+      people.className = "storage_full";
 
-  hint.title = lang[full] + resolveTime(time, 1);
-  if (!upgradingTownHall)
-    hint.title += lang[startExpand] + resolveTime(time - nextHQUpgradeTime, 1);
-  return population;
+    hint.title = lang[full] + resolveTime(time, 1);
+    if (!upgradingTownHall)
+      hint.title += lang[startExpand] +
+        resolveTime(time - nextHQUpgradeTime, 1);
+  }
+
+  var upgrade = !upgradingTownHall && asymptoticPopulation > maximumPopulation;
+  return {
+      happy: happy - currentPopulation,
+     growth: getGrowth(currentPopulation),
+    current: currentPopulation,
+ asymptotic: asymptoticPopulation,
+    maximum: maximumPopulation,
+    finalAt: Date.now() + time * 1e3,
+  upgradeIn: upgrade ? time - nextHQUpgradeTime : 0,
+      final: Math.min(asymptoticPopulation, maximumPopulation),
+       time: time
+  };
 }
 
 function projectBuildStart(root, result) {
@@ -2307,10 +2339,9 @@ function panelInfo() { // Ajoute un element en plus dans le menu.
   panel.appendChild(corps);
   panel.appendChild(footer);
 
-  var sidepane = $("container2"), mainview = $("mainview");
-  if (sidepane) {
-    sidepane.insertBefore(panel, mainview);
-  }
+  var mainview = $("mainview");
+  if (mainview)
+    mainview.parentNode.insertBefore(panel, mainview);
   return corps;
 }
 
@@ -2352,6 +2383,7 @@ function principal() {
   addCSSBubbles();
 
   var view = urlParse("view");
+  var action = urlParse("action");
   var building = view && buildingID(view);
   if ("undefined" != building) {
     var level = $X('id("buildingUpgrade")//div[@class="buildingLevel"]');
@@ -2363,7 +2395,8 @@ function principal() {
   if (help)
     linkTo(urlTo("building", buildingID(urlParse("view"))), help);
 
-  switch (view || urlParse("action")) {
+  switch (view || action) {
+    case "takeOffer": scrollWheelable(); break;
     case "resource": // fall-through:
     case "tradegood": highlightMeInTable(); break;
     case "loginAvatar":// &function=login
@@ -2373,7 +2406,8 @@ function principal() {
     case "port": portView(); break;
     case "island": islandView(); break;
     case "worldmap_iso": worldmap_isoView(); break;
-    case "townHall": townHall(); break;
+    case "townHall": townHallView(); break;
+    case "museum": museumView(); break;
     case "fleetGarrisonEdit": // fall-through:
     case "armyGarrisonEdit": dontSubmitZero(); break;
     case "shipyard": // fall-through:
