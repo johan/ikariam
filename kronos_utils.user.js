@@ -570,7 +570,7 @@ function buildingExtraInfo(div, id, name, level) {
       break;
 
     case "museum":
-      var museum = buildingLevel(name);
+      var museum = buildingLevel(name) || 0;
       var culture = config.getCity("culture", 0);
       if (culture != museum)
         annotate(culture +"/"+ museum);
