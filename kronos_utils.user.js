@@ -92,9 +92,10 @@ function url(query) {
   return location.href.replace(/(\?.*)?$/, query||"");
 }
 
-function valueRecupJS(nameValue) {
-  if ($("cityResources").getElementsByTagName("script")[0]) {
-    var text = $("cityResources").getElementsByTagName("script")[0].innerHTML;
+function jsVariable(nameValue) {
+  var resourceScript = $X('id("cityResources")//script');
+  if (resourceScript) {
+    var text = resourceScript.innerHTML;
     text = text.substr(text.indexOf(nameValue+" = "),
                        text.length);
     text = text.substr(nameValue.length+3,
@@ -417,9 +418,9 @@ function reapingPace() {
   var pace = {
     g: config.getCity("gold", 0),
     p: config.getServer("growth", 0),
-    w: secondsToHours(valueRecupJS("startResourcesDelta"))
+    w: secondsToHours(jsVariable("startResourcesDelta"))
   };
-  pace[luxuryType()] = secondsToHours(valueRecupJS("startTradegoodDelta"));
+  pace[luxuryType()] = secondsToHours(jsVariable("startTradegoodDelta"));
   var wineUse = config.getCity("wine", 0);
   if (wineUse)
     pace.W = (pace.W || 0) - wineUse;
@@ -1955,7 +1956,7 @@ function colonize() {
   if (have.g < 12e3 && income > 0)
     annotate(needGold, resolveTime((12e3 - have.g) / (income / 3600), 1));
 
-  var woodadd = secondsToHours(valueRecupJS("startResourcesDelta"));
+  var woodadd = secondsToHours(jsVariable("startResourcesDelta"));
   var needWood = $X('//ul/li[@class="wood"]');
   if (have.w < 1250 && woodadd > 0)
     annotate(needWood, resolveTime((1250 - have.w) / (woodadd / 3600), 1));
@@ -2080,7 +2081,7 @@ function improveTopPanel() {
   if (flow.W < 0)
     time.title = lang[empty] + resolveTime(number(span)/-flow.W * 3600, 1);
   else {
-    var reap = secondsToHours(valueRecupJS("startTradegoodDelta"));
+    var reap = secondsToHours(jsVariable("startTradegoodDelta"));
     time.title = "+"+ reap +"/-"+ (reap - flow.W);
     projectWarehouseFull(time, "wine", number(span), flow.W);
   }
@@ -2213,6 +2214,7 @@ function showHousingOccupancy(opts) {
   //console.log(pop.toSource());
   node.nodeValue = text.replace(new RegExp("[:)/].*$"), time +")");
   div.style.whiteSpace = "nowrap";
+  return pop;
 }
 
 function getPopulation() {
@@ -2393,14 +2395,29 @@ function tavernView() {
   function amount() {
     return number(wine.options[wine.selectedIndex]) || 0;
   }
+  function makeGrowthrate() {
+    var style = {
+      position: "absolute",
+     textAlign: "center",
+        margin: "0 auto",
+         width: "100%"
+    };
+    var node = createNode("growthRate", "value", "", "span", style);
+    var next = $("citySatisfaction");
+    return next.parentNode.insertBefore(node, next);
+  }
   function recalcTownHall() {
-    showHousingOccupancy({ wine: amount() });
+    var pop = showHousingOccupancy({ wine: amount() });
+    var rate = $("growthRate") || makeGrowthrate();
+    rate.innerHTML = sign(pop.growth.toFixed(2));
+    console.log(pop.toSource(), rate);
   }
   var wine = $("wineAmount").form.elements.namedItem("amount");
   wine.parentNode.addEventListener("DOMNodeInserted", function() {
     setTimeout(recalcTownHall, 10);
   }, false);
   config.setCity("wine", amount());
+  recalcTownHall();
 }
 
 function title(detail) {
