@@ -434,6 +434,7 @@ var buildingIDs = {
 };
 
 function buildingClass(id) {
+  id = buildingID(id);
   for (var name in buildingIDs)
     if (buildingIDs[name] == id)
       return name;
@@ -476,6 +477,35 @@ function buildingLevels() {
       levels[id] = level;
   }
   return levels;
+}
+
+var buildingCapacities = {
+  townHall:
+    [, 60, 96, 143, 200, 263, 333, 410, 492, 580, 672, 769, 871, 977, 1087,
+     1201, 1320, 1441, 1567, 1696, 1828, 1964, 2103, 2246, 2391, 2691, 2845,
+     3003, 3163, 3326, 3492, 3360],
+
+  academy:
+    [0, 8, 12, 16, 22, 28, 35, 43, 51, 60, 69, 79, 89, 100, 111, 122, 134, 146,
+     159, 172, 185, 198, 212, 227, 241],
+
+  tavern:
+    [0, 3, 5, 8, 11, 14, 17, 21, 25, 29, 33, 38, 42, 47, 52, 57, 63, 68, 73, 79,
+     85, 91, 97, 103, 109],
+
+  warehouse: {
+    wood: [ 100,  140,  190,  240,  310,  380,  470,  560,  670,  790,  930,
+           1090, 1260, 1450, 1670, 1910, 2180],
+    rest: [  50,   70,   90,  120,  150,  190,  230,  280,  330,  390,  460,
+            540,  630,  720,  830,  950, 1090]
+  }
+}
+
+function buildingCapacity(b, l, warehouse) {
+  b = buildingClass(b);
+  var c = buildingCapacities[b];
+  c = c && c[l];
+  return "undefined" == typeof warehouse ? c : c && c[warehouse];
 }
 
 function buildingExpansionNeeds(a, level) {
@@ -533,11 +563,24 @@ function buildingExtraInfo(div, id, name, level) {
       break;
 
     case "tavern":
-      var wineMax = wineLevels[level];
+      var wineMax = buildingCapacity(name, level);
       var wineCur = config.getCity("wine", 0);
       if (wineCur != wineMax)
         annotate(wineCur +"/"+ wineMax);
       break;
+
+    case "museum":
+      var museum = buildingLevel(name);
+      var culture = config.getCity("culture", 0);
+      if (culture != museum)
+        annotate(culture +"/"+ museum);
+      break;
+
+    case "academy":
+      var seats = buildingCapacity(name, level);
+      var working = config.getCity("researchers", 0);
+      if (working != seats)
+        annotate(working +"/"+ seats);
   }
 }
 
@@ -1353,6 +1396,12 @@ function museumView() {
       config.setCity("culture", parseInt(goods.value||"0", 10), cities[i]);
 }
 
+function academyView() {
+  var research = $("inputScientists");
+  if (research)
+    config.setCity("researchers", number(research));
+}
+
 function trim(str) {
   return str.replace(/^\s+|\s+$/g, "");
 }
@@ -1878,8 +1927,11 @@ function secsToDHMS(t, rough, join) {
 }
 
 function number(n) {
-  if (n.textContent)
-    n = n.textContent;
+  if ("object" == typeof n)
+    if (/input/i.test(n.nodeName||""))
+      n = n.value;
+    else if (n.textContent)
+      n = n.textContent;
   return parseFloat(n.replace(/[^\d.-]+/g, ""));
 }
 
@@ -2133,7 +2185,7 @@ function unhilightShip() {
 
 function showSafeWarehouseLevels() {
   function showSafeLevel(div) {
-    var n = "wood" == div.parentNode.className ? wood[level] : rest[level];
+    var n = "wood" == div.parentNode.className ? wood : rest;
     var safe = createNode("", "ellipsis", n);
     safe.style.position = "absolute";
     safe.style.bottom = "5px";
@@ -2141,10 +2193,8 @@ function showSafeWarehouseLevels() {
     div.appendChild(safe);
   }
   var level = config.getCity("building7", 0);
-  var wood = [ 100,  140,  190,  240,  310,  380,  470,  560,  670,  790,  930,
-              1090, 1260, 1450, 1670, 1910, 2180];
-  var rest = [  50,   70,   90,  120,  150,  190,  230,  280,  330,  390,  460,
-               540,  630,  720,  830,  950, 1090];
+  var wood = buildingCapacity("warehouse", "wood", level);
+  var rest = buildingCapacity("warehouse", "rest", level);
   $x('id("cityResources")/ul/li/*[@class="tooltip"]').map(showSafeLevel);
 }
 
@@ -2170,10 +2220,7 @@ function getPopulation() {
 function getMaxPopulation(townHallLevel) {
   if ("undefined" == typeof townHallLevel)
     townHallLevel = buildingLevel("townHall", 1);
-  var maxPopulation = [, 60, 96, 143, 200, 263, 333, 410, 492, 580, 672, 769,
-                       871, 977, 1087, 1201, 1320, 1441, 1567, 1696, 1828,
-                       1964, 2103, 2246, 2391, 2691, 2845, 3003, 3163, 3326,
-                       3492, 3360][townHallLevel];
+  var maxPopulation = buildingCapacity("townHall", townHallLevel);
   if (config.getServer("tech2080"))
     maxPopulation += 50; // Holiday bonus
   if (config.getServer("tech3010") && isCapital())
@@ -2181,8 +2228,6 @@ function getMaxPopulation(townHallLevel) {
   return maxPopulation;
 }
 
-var wineLevels = [0, 3, 5, 8, 11, 14, 17, 21, 25, 29, 33, 38, 42, 47, 52, 57,
-                  63, 68, 73, 79, 85, 91, 97, 103, 109];
 
 function projectPopulation(opts) {
   function getGrowth(population) {
@@ -2193,7 +2238,7 @@ function projectPopulation(opts) {
   var tavern = 12 * buildingLevel("tavern", 0);
   var wineLevel = opts && opts.hasOwnProperty("wine") ? opts.wine :
     config.getCity("wine", 0);
-  var wine = 80 * wineLevels.indexOf(wineLevel);
+  var wine = 80 * buildingCapacities.tavern.indexOf(wineLevel);
   var museum = 20 * buildingLevel("museum", 0);
   var culture = 50 * config.getCity("culture", 0);
   var happy = 196 + wellDigging + holiday + tavern + wine + museum + culture;
@@ -2509,7 +2554,7 @@ function principal() {
     case "plunder": plunderView(); break;
     case "Espionage":
     case "safehouse": safehouseView(); break;
-    case "academy":
+    case "academy": academyView(); // fall-through:
     case "researchAdvisor":
       var research = $X('//div[@class="researchName"]/a');
       if (research)
