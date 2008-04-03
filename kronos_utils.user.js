@@ -546,6 +546,8 @@ function buildingExtraInfo(div, id, name, level) {
     div.style.width = "auto";
   }
 
+  if (-1 == cityIDs().indexOf(cityID()) && "wall" != name) return;
+
   switch (name) {
     case "townHall":
       var originalLevel = buildingLevel(id, 0, "saved");
