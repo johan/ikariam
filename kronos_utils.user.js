@@ -1343,8 +1343,14 @@ function townHallView() {
 }
 
 function museumView() {
-  var goods = $X('id("val_culturalGoodsDeposit")/..').textContent;
-  config.setCity("culture", goods.match(/\d+/)[0]);
+  var goods = $X('id("val_culturalGoodsDeposit")/..');
+  if (goods)
+    config.setCity("culture", goods.textContent.match(/\d+/)[0]);
+
+  var cities = cityIDs();
+  for (var i = 0; i<cities.length; i++)
+    if ((goods = $("textfield_city_"+ cities[i])))
+      config.setCity("culture", parseInt(goods.value||"0", 10), cities[i]);
 }
 
 function trim(str) {
@@ -2479,6 +2485,7 @@ function principal() {
     case "island": islandView(); break;
     case "worldmap_iso": worldmap_isoView(); break;
     case "townHall": townHallView(); break;
+    case "culturalPossessions_assign": // fall-through:
     case "museum": museumView(); break;
     case "fleetGarrisonEdit": // fall-through:
     case "armyGarrisonEdit": dontSubmitZero(); break;
@@ -2623,8 +2630,8 @@ var config = (function(data) {
     GM_setValue("config", uneval(data));
     return value;
   }
-  function setCity(name, value) {
-    return setServer(name +":"+ cityID(), value);
+  function setCity(name, value, id) {
+    return setServer(name +":"+ (id || cityID()), value);
   }
   function setIsle(name, value) {
     return setServer(name +"/"+ islandID(), value);
