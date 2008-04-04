@@ -97,7 +97,7 @@ function init() {
   cities.forEach(lookupOnClick);
   var body = document.body;
   addEventListener("keypress", tab, true);
-  inlineScores && onClick(body, lookup, 0, "dbl");
+  inlineScore && onClick(body, lookup, 0, "dbl");
 }
 
 function tab(e) {
@@ -106,6 +106,7 @@ function tab(e) {
     case "j".charCodeAt(): dir--; break;
     case "k".charCodeAt(): dir++; break;
     case 9: /* tab key */  dir = e.shiftKey ? -1 : 1;
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
   }
   if (!dir) return;
 
@@ -114,7 +115,6 @@ function tab(e) {
   var cur = $X('id("cityLocation'+ now +'")/a') || all[all.length - 1];
   if (all.length) {
     now = all.map(function(a) { return a.id; }).indexOf(cur.id);
-    console.log(now, (now + dir + all.length) % all.length);
     click(all[(now + dir + all.length * 3) % all.length]);
     e.stopPropagation();
     e.preventDefault();
