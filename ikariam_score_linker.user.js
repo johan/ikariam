@@ -1,6 +1,6 @@
 //
-// version 0.5.7
-// 2008-11-03
+// version 0.6.0
+// 2008-04-04
 // Copyright (c) 2008, ImmortalNights
 // Special Enhancements: wphilipw
 // Released under the GPL license
@@ -36,11 +36,12 @@
 // 0.5.5: BugFix for multiple scores + timeout for saved scores (10min)
 // 0.5.6: BugFix: "undefined" scores (timestamp too long, now stored in string)
 // 0.5.7: Options on Options page, no longer inline
-// 
+// 0.6.0: Saves scores in the page after loading them once. Code cleanup. Does not try to run on the forums.
+//
 // --------------------------------------------------------------------
 //
-// This script places an icon to the right of a players 
-// name after selecting their town on the Island overview, 
+// This script places an icon to the right of a players
+// name after selecting their town on the Island overview,
 // or when viewing their Town. This icon links the user to
 // the scoreboard, where you can see the players score.
 //
@@ -48,8 +49,8 @@
 // a little credit, and of course publish for the players
 // of Ikariam!
 //
-// This script was originally created by ImmortalNights, 
-// and further edited and enhanced by wphilipw.
+// This script was originally created by ImmortalNights,
+// and further edited and enhanced by wphilipw and ecmanaut.
 //
 // --------------------------------------------------------------------
 //
@@ -58,153 +59,218 @@
 // @namespace      ikariamScript
 // @description    Adds a link to the Scoreboard besides a players name after selecting their town on the Island Overview or when viewing their Town.
 // @include        http://*.ikariam.*/*
+// @exclude        http://board.ikariam.*/*
 // ==/UserScript==
 
 /*
-This function lets us access an element by it's class name
-Original Author: wphilipw
-For version: 0.4.0
-Last changed: 0.4.0
+The startup functions and global variables.
+Original Author: ImmortalNights & wphilipw
+For version: 0.3.0
+Last changed: 0.6.0
 */
 
-document.getElementsByClass = function(className) {
-  var all = document.getElementsByTagName('*');
-  var elements = new Array();
-  for (var e = 0; e < all.length; e++)
-    if (all[e].className == className)
-      elements[elements.length] = all[e];
-  return elements;
-}
-
-/*
-This function runs when the system starts
-Original Author: wphilipw
-For version: 0.4.5
-Last changed: 0.4.5
-*/
+var show = { gold: 4, military: 2, total: 1 };
+var whatToShow = GM_getValue("show", "7");
+var inlineScore = GM_getValue("inline", true);
+var gameServer = location.host;
+if ($("options_changePass"))
+  displayOnOptions_fn();
+else
+  init();
 
 function init() {
-    var cityInformation = document.getElementById('information');
-    if (cityInformation) {
-        var listElements = cityInformation.getElementsByTagName('li');
-        if (listElements.length > 0) {
-            cityInformation_fn();
-        }
-    }
-    var linkElements = document.getElementsByTagName('a');
-    for (var i = 0; i < linkElements.length; i++) {
-        if (linkElements[i].id.search(/city_[0-9]*/) != -1) {
-            linkElements[i].addEventListener('click', function() { window.setTimeout(cityInformation_fn, 1); }, false);
-        }
-    }
+  function maybeLookup(e) {
+    var n = $X('.//span[@class="textLabel"]', e.target);
+    var ul = $X('ancestor-or-self::li[1]/ul[@class="cityinfo"]', e.target);
+    if ($X('li[contains(@class," name")]', ul)) return; // already fetched!
+    var who = $X('li[@class="owner"]/text()[preceding::*[1]/self::span]', ul);
+    var name = trim(who.textContent);
+    fetchScoresFor(name, ul, n);
+  }
+  function lookupOnClick(a) {
+    onClick(a, function(e) { setTimeout(maybeLookup, 10, e); });
+  }
+  function lookup(e) {
+    cities.map(click);
+  }
+  var cities = getCities();
+  cities.forEach(lookupOnClick);
+  var body = document.body;
+  addEventListener("keypress", tab, true);
+  onClick(body, lookup, 0, "dbl");
 }
 
-/*
-runs on first run to set up default values
-Original Author: ImmortalNights
-For version: 0.5.2
-Last changed: 0.5.3
-*/
+function tab(e) {
+  var dir = 0;
+  switch (e.keyCode || e.charCode) {
+    case "j".charCodeAt(): dir--; break;
+    case "k".charCodeAt(): dir++; break;
+    case 9: /* tab key */  dir = e.shiftKey ? -1 : 1;
+  }
+  if (!dir) return;
 
-function setDefaults_fn() {
-    whatToShow = "7";
-    GM_setValue("show", "7");
-    GM_setValue("inline", true);
+  var all = getCities();
+  var now = unsafeWindow.selectedCity;
+  var cur = $X('id("cityLocation'+ now +'")/a') || all[all.length - 1];
+  if (all.length) {
+    now = all.map(function(a) { return a.id; }).indexOf(cur.id);
+    console.log(now, (now + dir + all.length) % all.length);
+    click(all[(now + dir + all.length * 3) % all.length]);
+    e.stopPropagation();
+    e.preventDefault();
+  }
 }
 
-/*
-runs on first run to set up default values
-Original Author: ImmortalNights
-For version: 0.5.4
-Last changed: 0.5.7
-*/
-
-function displayOnOptions_fn() {
-    var mybox = document.createElement("div");
-    mybox.setAttribute("id", "scoreOptions");
-    mybox.setAttribute("style", "text-align: left;");
-    var opt_out = "\n\n<h3>Score Display Options</h3>";
-    opt_out += "\n<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\">";
-    opt_out += "\n<tr>";
-    opt_out += "\n<td style=\"width:43%;text-align:right\">Show Total Score:</td>";
-    opt_out += "<td style=\"width:57%;\"><input type=\"checkbox\" id=\"scoreTotalOption\" ";
-    if (whatToShow in {1:'', 3:'', 5:'', 7:''}) {
-        opt_out += "checked=\"checked\" ";
-    }
-    opt_out += "/></td>\n</tr>";
-    opt_out += "\n<tr>";
-    opt_out += "<td style=\"width:43%;text-align:right\">Show Army Score:</td>";
-    opt_out += "<td><input type=\"checkbox\" id=\"scoreMilOption\" ";
-    if (whatToShow in {2:'', 3:'', 6:'', 7:''}) {
-        opt_out += "checked=\"checked\" ";
-    }
-    opt_out += "/></td>\n</tr>";
-    opt_out += "\n<tr>";
-    opt_out += "<td style=\"width:43%;text-align:right\">Show Gold Score:</td>";
-    opt_out += "<td><input type=\"checkbox\" id=\"scoreMonOption\" ";
-    if (whatToShow in {4:'', 5:'', 6:'', 7:''}) {
-        opt_out += "checked=\"checked\" ";
-    }
-    opt_out += "/></td>\n</tr>";
-    opt_out += "\n<tr>";
-    opt_out += "<td style=\"width:43%;text-align:right\">Show Score Inline:</td>";
-    opt_out += "<td><input type=\"checkbox\" id=\"inline_score\" ";
-    if (inlineScore) {
-        opt_out += "checked=\"checked\" ";
-    }
-    opt_out += "/></td>\n</tr>";
-    opt_out += "\n</table>";
-    mybox.innerHTML = opt_out;
-    document.getElementById('options_changePass').appendChild(mybox);
-    var inputs = document.getElementsByTagName('input');
-    for (e = 0; e < inputs.length; e++) {
-      if (inputs[e].getAttribute('type') == "submit") {
-        inputs[e].setAttribute('type', 'button');
-        inputs[e].addEventListener('click', function() { changeShow_fn() }, true);
-        inputs[e].parentNode.id = "optionsForm";
-      }
-    }
+function fetchScoresFor(name, ul, n) {
+  function searchbutton(type) {
+    var url = "url(/skin/" + ({
+       total: "layout/medallie32x32_gold.gif) no-repeat -7px -9px",
+    military: "layout/sword-icon2.gif) no-repeat 0 2px;",
+        gold: "resources/icon_gold.gif) no-repeat 0 0; width:18px"
+      })[type];
+    return <input type="submit" name="highscoreType"
+      value=" " title={"View player's "+ type +" score"}
+      style={"border:0;height:23px;width:16px;cursor:pointer;background:"+ url}
+      onclick={"this.type = 'hidden'; "+
+               "this.value='"+ post[type] +"'; "+
+               "this.form.submit()"}/>;
+  }
+  var post = {
+     total: "score",
+  military: "army_score_main",
+      gold: "trader_score_secondary"
+  };
+  var scores = <a href="/index.php?view=options"
+                 title="Change score options">Change Options</a>;
+  if (!inlineScore) {
+    var form = <form action="/index.php" method="post">
+      <input type="hidden" name="view" value="highscore"/>
+      <input type="hidden" name="" id="searchfor"/>
+      <input type="hidden" name="searchUser" value={name}/>
+    </form>;
+    for (var type in post)
+      if (whatToShow & show[type])
+        form.* += searchbutton(type);
+    scores.@style = "position: relative; top: -6Px;";
+    form.* += scores;
+    form.@style = "position: relative; left:-26px; white-space: nowrap;";
+    scores = form;
+  }
+  addItem("options", scores, ul);
+  if (!inlineScore) return;
+  for (var type in show) {
+    if (!(whatToShow & show[type]))
+      continue;
+    addItem(type, "fetching...");
+    requestScore(name, post[type], makeShowScoreCallback(name, type, ul, n));
+  }
 }
 
-/*
-This function saves the options chosen above
-Original Author: wphilipw
-For version: 0.4.5
-Last changed: 0.5.7
-*/
-
-function changeShow_fn() {
-    var totalScore = document.getElementById('scoreTotalOption').checked;
-    var generalScore = document.getElementById('scoreMilOption').checked;
-    var goldScore = document.getElementById('scoreMonOption').checked;
-    inlineScore = document.getElementById('inline_score').checked;
-    if (totalScore == true && generalScore == true && goldScore == true) {
-        GM_setValue("show", "7");
-        whatToShow = "7";
-    } else if (totalScore == true && generalScore == false && goldScore == true) {
-        GM_setValue("show", "5");
-        whatToShow = "5";
-    } else if (totalScore == true && generalScore == true && goldScore == false) {
-        GM_setValue("show", "3");
-        whatToShow = "3";
-    } else if (totalScore == true && generalScore == false && goldScore == false) {
-        GM_setValue("show", "1");
-        whatToShow = "1";
-    } else if (totalScore == false && generalScore == true && goldScore == true) {
-        GM_setValue("show", "6");
-        whatToShow = "6";
-    } else if (totalScore == false && generalScore == true && goldScore == false) {
-        GM_setValue("show", "2");
-        whatToShow = "2";
-    } else if (totalScore == false && generalScore == true && goldScore == false) {
-        GM_setValue("show", "4");
-        whatToShow = "4";
-    } else {
-        GM_setValue("show", "0");
-        whatToShow = "0";
+function makeShowScoreCallback(name, type, ul, n) {
+  return function showScore(xhr) {
+    var html = node("div", "", null, xhr.responseText);
+    var score = $X('.//div[@class="content"]//tr[td[@class="name"]="' +
+                   name + '"]/td[@class="score" or @class="§"]', html);
+    if (score) {
+      score = score.innerHTML;
+      var next = $X('li[@class="ally"]/following-sibling::*', ul);
+      ul.insertBefore(mkItem(type, score), next);
+      if ("0" == score && "military" == type)
+        n.style.fontStyle = "italic";
+      var saved = $X('li[@class="name"]/text()[last()]', ul);
+      var panel = $X('li[@class="name"]/text()[last()]', cityinfoPanel());
+      if (panel.textContent == saved.textContent)
+        addItem(type, score); // avoid race conditions
     }
-    GM_setValue("inline", inlineScore);
-    document.getElementById('optionsForm').submit();
+  };
+}
+
+function getCities() {
+  return $x('id("cities")/li[contains(@class,"city level")]/a');
+}
+
+function getItem(type) {
+  return $X('li[contains(@class,"'+ type +'")]', cityinfoPanel());
+}
+
+function mkItem(type, value) {
+  var li = node("li", type + " name", null, value);
+  var title = (type in show) ?
+    type.charAt().toUpperCase() + type.slice(1) + " Score:" : "Scores:";
+  li.insertBefore(node("span", "textLabel", null, title), li.firstChild);
+  return li;
+}
+
+function addItem(type, value, save) {
+  var li = getItem(type);
+  if (li)
+    li.lastChild.nodeValue = value;
+  else {
+    var ul = cityinfoPanel();
+    var next = $X('li[@class="ally"]/following-sibling::*', ul);
+    ul.insertBefore(li = mkItem(type, value), next);
+    if (save) {
+      next = $X('li[@class="ally"]/following-sibling::*', save);
+      save.insertBefore(li.cloneNode(true), next);
+    }
+  }
+  return li;
+}
+
+function cityinfoPanel() {
+  return $X('id("information")/ul[@class="cityinfo"]');
+}
+
+function node(type, className, styles, content) {
+  var n = document.createElement(type||"div");
+  if (className) n.className = className;
+  if (styles)
+    for (var prop in styles)
+      n.style[prop] = styles[prop];
+  if (content)
+    n.innerHTML = "string" == typeof content ? content : content.toXMLString();
+  return n;
+}
+
+function click(node) {
+  var event = node.ownerDocument.createEvent("MouseEvents");
+  event.initMouseEvent("click", true, true, node.ownerDocument.defaultView,
+                       1, 0, 0, 0, 0, false, false, false, false, 0, node);
+  node.dispatchEvent(event);
+}
+
+function trim(str) {
+  return str.replace(/^\s+|\s+$/g, "");
+}
+
+function onClick(node, fn, capture, e) {
+  node.addEventListener((e||"") + "click", fn, !!capture);
+}
+
+function $(id) {
+  return document.getElementById(id);
+}
+
+function $x( xpath, root ) {
+  var doc = root ? root.evaluate ? root : root.ownerDocument : document, next;
+  var got = doc.evaluate( xpath, root||doc, null, 0, null ), result = [];
+  switch (got.resultType) {
+    case got.STRING_TYPE:
+      return got.stringValue;
+    case got.NUMBER_TYPE:
+      return got.numberValue;
+    case got.BOOLEAN_TYPE:
+      return got.booleanValue;
+    default:
+      while (next = got.iterateNext())
+        result.push( next );
+      return result;
+  }
+}
+
+function $X( xpath, root ) {
+  var got = $x( xpath, root );
+  return got instanceof Array ? got[0] : got;
 }
 
 /*
@@ -215,197 +281,81 @@ Last changed: 0.5.0
 */
 
 function requestScore(playerName, type, onload) {
-    GM_xmlhttpRequest({
-      method:'POST',
-      url:'http://' + gameServer + '/index.php',
-      data:"view=highscore&highscoreType=" + type + "&searchUser=" + playerName,
-      headers: {
-        'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
-        'Content-type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/atom+xml,application/xml,text/xml',
-        'Referer': 'http://' + gameServer + '/index.php'
-      },
-      onload:onload
-    });
+  GM_xmlhttpRequest({
+    method: "POST",
+    url: "http://" + gameServer + "/index.php",
+    data: "view=highscore&highscoreType="+ type +"&searchUser="+ playerName,
+    headers: {
+      "User-agent": "Mozilla/4.0 (compatible) Greasemonkey",
+      "Content-type": "application/x-www-form-urlencoded",
+      "Accept": "application/atom+xml,application/xml,text/xml",
+      "Referer": "http://" + gameServer + "/index.php"
+    },
+    onload: onload
+  });
 }
 
 /*
-The main core function <- this does the heavy lifting
-Original Author: ImmortalNights & wphilipw
-For version: 0.3.0
-Last changed: 0.5.5
-*/
-
-function cityInformation_fn() {
-    if (!checkAlreadyShown()) {
-      playerAllycont = document.getElementsByClass("ally")[0];
-      if (whatToShow != 0) { // If the value of this is 0, then nothing is to be displayed.
-        var listParts = document.getElementsByClass("owner")[0].innerHTML.split(">");
-        listParts[2] = listParts[2].split("<")[0];
-        var playerName = listParts[2].replace(/^\s+|\s+$/g, ''); // trim up the Player Name
-        var mainspan = document.createElement("span");
-        mainspan.setAttribute("id", "score_main");
-        var linkspan = document.getElementById('magicdiv');
-        if (linkspan != null ) {
-            playerAllycont.insertBefore(mainspan, linkspan);
-        } else {
-            playerAllycont.appendChild(mainspan);
-        }
-        scoreMainCont = document.getElementById('score_main');
-        if (whatToShow in {1:'', 3:'', 5:'', 7:''}) { //Show Total Score Link
-            if (inlineScore == false) { // Show only link
-                if (whatToShow == 1) { // Show Total Score Link (in end of line method)
-                    scoreMainCont.innerHTML = scoreMainCont.innerHTML + "<div style=\"clear: both;\"></div><span style=\"font-weight: normal; margin-top: 3px;\" class=\"textLabel\">Score Links:</span><form name='searchFormTotal' id='searchFormTotal' action='http://" + gameServer + "/index.php' method='POST'>\n<img style=\"display: inline; margin: 0px; width: 16px; height: 16px; cursor: pointer;\" alt=\"View players total score\" title=\"View players total score\" src=\"http://" + gameServer + "/skin/layout/medallie32x32_gold.gif\" onclick=\"document.searchFormTotal.submit();\" />\n<div style=\"display: none;\"><input type='hidden' name='view' value='highscore' />\n<input type='hidden' name='highscoreType' value='score' />\n<input type='hidden' name='searchUser' value='" + playerName + "' /></div></form>";
-                }
-                if (whatToShow == 3 || whatToShow == 5 || whatToShow == 7) { // Show Total Score Link (float'ed so line can continue)
-                    scoreMainCont.innerHTML = scoreMainCont.innerHTML + "<div style=\"clear: both;\"></div><span style=\"font-weight: normal; margin-top: 3px;\" class=\"textLabel\">Score Links:</span><form name='searchFormTotal' id='searchFormTotal' action='http://" + gameServer + "/index.php' method='POST'>\n<img style=\"float:left; display: inline; margin: 0px; width: 16px; height: 16px; cursor: pointer;\" alt=\"View players total score\" title=\"View players total score\" src=\"http://" + gameServer + "/skin/layout/medallie32x32_gold.gif\" onclick=\"document.searchFormTotal.submit();\" />\n<div style=\"display: none;\"><input type='hidden' name='view' value='highscore' />\n<input type='hidden' name='highscoreType' value='score' />\n<input type='hidden' name='searchUser' value='" + playerName + "' /></div></form>";
-                }
-            } else { // Show total score inline
-                scoreMainCont.innerHTML = scoreMainCont.innerHTML + "<div style=\"clear: both;\"></div><span style=\"font-weight: normal; margin-top: 3px;\" class=\"textLabel\">Total Score:</span><span style=\"float: left; font-weight: normal; margin-top: 3px;\" id=\"bod_tot_score\">fetching...</span>";
-                if (playerName != GM_getValue("lastPlayerCheck") || GM_getValue("totalScore") =='undefined' || GM_getValue("lastCheckedTimestamp") < (new Date().getTime() - (1000*60*10))) {
-                    requestScore(playerName, 'score', function(responseDetails){
-                      var mybox = document.createElement("div");
-                      mybox.setAttribute("style", "display: none;");
-                      document.body.appendChild(mybox);
-                      mybox.innerHTML = responseDetails.responseText
-                      var all = mybox.getElementsByTagName('*');
-                      var score = new Array();
-                      for (var e = 0; e < all.length; e++)
-                        if (all[e].className == "score")
-                          score[score.length] = all[e];
-                      var pname = new Array();
-                      for (var e = 0; e < all.length; e++)
-                        if (all[e].className == "name")
-                          pname[pname.length] = all[e];
-                      for (var e = 0; e < pname.length; e++)
-                        if (pname[e].innerHTML == playerName)
-                          var totalScore = score[e].innerHTML;
-                      document.getElementById('bod_tot_score').innerHTML = totalScore;
-                      document.body.removeChild(mybox);
-                      GM_setValue("totalScore", totalScore);
-                    });
-                    GM_setValue("lastCheckedTimestamp", (new Date().getTime()) + "");
-                } else {
-                    document.getElementById('bod_tot_score').innerHTML = GM_getValue("totalScore");
-                }
-            }
-        }
-        if (whatToShow in {2:'', 3:'', 6:'', 7:''}) { // Show Military Score Link
-            if (inlineScore == false) { // Show only link
-                if (whatToShow == 2) { // Military Score Link is only link
-                    scoreMainCont.innerHTML = scoreMainCont.innerHTML + "<div style=\"clear: both;\"></div><span style=\"font-weight: normal; margin-top: 3px;\" class=\"textLabel\">Score Links:</span><form name='searchFormMil' id='searchFormMil' action='http://" + gameServer + "/index.php' method='POST'>\n<img style=\"display: inline; margin: 0px; width: 16px; height: 16px; cursor: pointer;\" alt=\"View players military score\" title=\"View players military score\" src=\"http://" + gameServer + "/skin/layout/sword-icon2.gif\" onclick=\"document.searchFormMil.submit();\" />\n<div style=\"display: none;\"><input type='hidden' name='view' value='highscore' />\n<input type='hidden' name='highscoreType' value='army_score_main' />\n<input type='hidden' name='searchUser' value='" + playerName + "' /></div></form>";
-                }
-                if (whatToShow == 3 || whatToShow == 6 || whatToShow == 7) { // Show Military Score Link
-                    scoreMainCont.innerHTML = scoreMainCont.innerHTML + "<form name='searchFormMil' id='searchFormMil' action='http://" + gameServer + "/index.php' method='POST'>\n<img style=\"float: left; display: inline; margin: 0px; width: 16px; height: 16px; cursor: pointer;\" alt=\"View players military score\" title=\"View players military score\" src=\"http://" + gameServer + "/skin/layout/sword-icon2.gif\" onclick=\"document.searchFormMil.submit();\" />\n<div style=\"display: none;\"><input type='hidden' name='view' value='highscore' />\n<input type='hidden' name='highscoreType' value='army_score_main' />\n<input type='hidden' name='searchUser' value='" + playerName + "' /></div></form>";
-                }
-            } else { // Show military score inline
-                scoreMainCont.innerHTML = scoreMainCont.innerHTML + "<div style=\"clear: both;\"></div><span style=\"font-weight: normal; margin-top: 3px;\" class=\"textLabel\">Military Score:</span><span style=\"float: left; font-weight: normal; margin-top: 3px;\" id=\"bod_mil_score\">fetching...</span>";
-                if (playerName != GM_getValue("lastPlayerCheck") || GM_getValue("militaryScore") =='undefined' || GM_getValue("lastCheckedTimestamp") < (new Date().getTime() - (1000*60*10))) {
-                    requestScore(playerName, 'army_score_main', function(responseDetails){
-                      var mybox = document.createElement("div");
-                      mybox.setAttribute("style", "display: none;");
-                      document.body.appendChild(mybox);
-                      mybox.innerHTML = responseDetails.responseText
-                      var all = mybox.getElementsByTagName('*');
-                      var score = new Array();
-                      for (var e = 0; e < all.length; e++)
-                        if (all[e].className == "score")
-                          score[score.length] = all[e];
-                      var pname = new Array();
-                      for (var e = 0; e < all.length; e++)
-                        if (all[e].className == "name")
-                          pname[pname.length] = all[e];
-                      for (var e = 0; e < pname.length; e++)
-                        if (pname[e].innerHTML == playerName)
-                          var militaryScore = score[e].innerHTML;
-                      document.getElementById('bod_mil_score').innerHTML = militaryScore;
-                      document.body.removeChild(mybox);
-                      GM_setValue("militaryScore", militaryScore);
-                    });
-                    GM_setValue("lastCheckedTimestamp", (new Date().getTime()) + "");
-                } else {
-                    document.getElementById('bod_mil_score').innerHTML = GM_getValue("militaryScore");
-                }
-            }
-        }
-        if (whatToShow in {4:'', 5:'', 6:'', 7:''}) { // Show Military Score Link
-            if (inlineScore == false) { // Show only link
-                if (whatToShow == 4) { // Gold Score Link is only link
-                    scoreMainCont.innerHTML = scoreMainCont.innerHTML + "<div style=\"clear: both;\"></div><span style=\"font-weight: normal; margin-top: 3px;\" class=\"textLabel\">Score Links:</span>";
-                } // Show Gold Score Link
-                scoreMainCont.innerHTML = scoreMainCont.innerHTML + "<form name='searchFormMon' id='searchFormMon' action='http://" + gameServer + "/index.php' method='POST'>\n<img style=\"display: inline; margin: 0px; width: 16px; height: 16px; cursor: pointer;\" alt=\"View players gold score\" title=\"View players gold score\" src=\"http://" + gameServer + "/skin/resources/icon_gold.gif\" onclick=\"document.searchFormMon.submit();\" />\n<div style=\"display: none;\"><input type='hidden' name='view' value='highscore' />\n<input type='hidden' name='highscoreType' value='trader_score_secondary' />\n<input type='hidden' name='searchUser' value='" + playerName + "' /></div></form>";
-            } else { // Show gold score inline
-                scoreMainCont.innerHTML = scoreMainCont.innerHTML + "<div style=\"clear: both;\"></div><span style=\"font-weight: normal; margin-top: 3px;\" class=\"textLabel\">Gold Score:</span><span style=\"float: left; font-weight: normal; margin-top: 3px;\" id=\"bod_mon_score\">fetching...</span>";
-                if (playerName != GM_getValue("lastPlayerCheck") || GM_getValue("goldScore") =='undefined' || GM_getValue("lastCheckedTimestamp") < (new Date().getTime() - (1000*60*10))) {
-                    requestScore(playerName, 'trader_score_secondary', function(responseDetails){
-                      var mybox = document.createElement("div");
-                      mybox.setAttribute("style", "display: none;");
-                      document.body.appendChild(mybox);
-                      mybox.innerHTML = responseDetails.responseText
-                      var all = mybox.getElementsByTagName('*');
-                      var score = new Array();
-                      for (var e = 0; e < all.length; e++)
-                        if (all[e].className == "score")
-                          score[score.length] = all[e];
-                      var pname = new Array();
-                      for (var e = 0; e < all.length; e++)
-                        if (all[e].className == "name")
-                          pname[pname.length] = all[e];
-                      for (var e = 0; e < pname.length; e++)
-                        if (pname[e].innerHTML == playerName)
-                          var goldScore = score[e].innerHTML;
-                      document.getElementById('bod_mon_score').innerHTML = goldScore;
-                      document.body.removeChild(mybox);
-                      GM_setValue("goldScore", goldScore);
-                    });
-                    GM_setValue("lastCheckedTimestamp", (new Date().getTime()) + "");
-                } else {
-                    document.getElementById('bod_mon_score').innerHTML = GM_getValue("goldScore");
-                }
-            }
-        }
-        GM_setValue("lastPlayerCheck", playerName);
-      }
-      playerAllycont.innerHTML = playerAllycont.innerHTML + "<div style=\"clear: both;\"></div><div id=\"magicdiv\" style=\"clear: both; text-align: center;\"><span id=\"playertag\" title=\"Change score options\" style=\"cursor: pointer; text-decoration: underline;\">Score Options</span></div>";
-      document.getElementById('playertag').addEventListener('click', function() { window.location = "http://" + gameServer + "/index.php?view=options"; }, true);
-      if (typeof GM_getValue("lastPlayerCheck")  == 'undefined') {
-        GM_setValue("lastPlayerCheck", playerName);
-      }
-    }
-}
-
-/*
-This function makes sure the score doesn't show up more then once.
+runs on first run to set up default values
 Original Author: ImmortalNights
-For version: 0.4.7
-Last changed: 0.5.3
+For version: 0.5.4
+Last changed: 0.6.0
 */
 
-function checkAlreadyShown() {
-    var scoreLinkerSpan = document.getElementById('score_main');
-    if (scoreLinkerSpan != null ) {
-        return true;
-    } else {
-        return false;
-    }
-    return false
+function displayOnOptions_fn() {
+  var mybox = node("div", "", { textAlign: "left" });
+  var opts = <>
+<h3>Score Display Options</h3>
+<table border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td style="width:43%; text-align:right;">Show Total Score:</td>
+    <td style="width:57%"><input type="checkbox" id="totalScore"/></td>
+  </tr>
+  <tr>
+    <td style="width:43%;text-align:right">Show Army Score:</td>
+    <td><input type="checkbox" id="militaryScore"/></td>
+  </tr>
+  <tr>
+    <td style="width:43%;text-align:right">Show Gold Score:</td>
+    <td><input type="checkbox" id="goldScore"/></td>
+  </tr>
+  <tr>
+    <td style="width:43%;text-align:right">Show Score Inline:</td>
+    <td><input type="checkbox" id="inlineScore"/></td>
+  </tr>
+</table></>;
+
+  mybox.innerHTML = opts.toXMLString();
+  var pwd = $('options_changePass');
+  pwd.appendChild(mybox);
+  var checkboxes = $x('//input[@type="checkbox" and contains(@id,"Score")]');
+  for (var i = 0; i < checkboxes.length; i++) {
+    var input = checkboxes[i];
+    var id = input.id.replace("Score", "");
+    if (id == "inline")
+      input.checked = !!inlineScore;
+    else
+      input.checked = !!(show[id] & whatToShow);
+  }
+
+  var inputs = $x('//input[@type="submit"]');
+  for (var e = 0; e < inputs.length; e++)
+    onClick(inputs[e], changeShow_fn, true);
 }
 
 /*
-The startup functions and global variables.
-Original Author: ImmortalNights & wphilipw
-For version: 0.3.0
-Last changed: 0.5.2
+This function saves the options chosen above
+Original Author: wphilipw
+For version: 0.4.5
+Last changed: 0.6.0
 */
 
-var whatToShow = GM_getValue("show");
-var inlineScore = GM_getValue("inline");
-var gameServer = top.location.host;
-if (document.getElementById('options_changePass')) {
-    displayOnOptions_fn();
-} else {
-    if (typeof whatToShow  == 'undefined' || typeof inlineScore  == 'undefined') {
-        setDefaults_fn();
-    }
-    init();
+function changeShow_fn(e) {
+  GM_setValue("show", (
+                (show.total * $('totalScore').checked) |
+                (show.military * $('militaryScore').checked) |
+                (show.gold * $('goldScore').checked)
+              ) + "");
+  GM_setValue("inline", $('inlineScore').checked);
+  e.target.form.submit();
 }
