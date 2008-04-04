@@ -97,7 +97,7 @@ function init() {
   cities.forEach(lookupOnClick);
   var body = document.body;
   addEventListener("keypress", tab, true);
-  onClick(body, lookup, 0, "dbl");
+  inlineScores && onClick(body, lookup, 0, "dbl");
 }
 
 function tab(e) {
