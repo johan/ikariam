@@ -70,9 +70,18 @@ Last changed: 0.6.0
 */
 
 var show = { gold: 4, military: 2, total: 1 };
+var post = {
+    total: "score",
+ military: "army_score_main",
+     gold: "trader_score_secondary"
+};
+
+var gameServer = location.host;
 var whatToShow = GM_getValue("show", "7");
 var inlineScore = GM_getValue("inline", true);
-var gameServer = location.host;
+var goldHiscore = GM_getValue("maxgold "+ gameServer, 0);
+var goldUpdated = GM_getValue("updated "+ gameServer, 0);
+
 if ($("options_changePass"))
   displayOnOptions_fn();
 else
@@ -86,6 +95,21 @@ function init() {
     var who = $X('li[@class="owner"]/text()[preceding::*[1]/self::span]', ul);
     var name = trim(who.textContent);
     fetchScoresFor(name, ul, n);
+
+    if (goldHiscore) {
+      var panel = $X('li[@class="citylevel"]', cityinfoPanel());
+      var level = $X('li[@class="citylevel"]', ul);
+      var size = level.lastChild.textContent;
+      var max = Math.round(size * (size - 1) / 10000 * goldHiscore);
+      if (isNaN(max)) return; else max += "";
+      for (var i = max.length - 3; i > 0; i -= 3)
+        max = max.slice(0, i) +","+ max.slice(i);
+      max = node("span", "", null, "\xA0(max\xA0gold:\xA0"+ max +")");
+      max.title = "Largest amount of money lootable from a town of this size";
+      level.appendChild(max);
+      if (viewingRightCity(ul))
+        panel.appendChild(max.cloneNode(true));
+    }
   }
   function lookupOnClick(a) {
     onClick(a, function(e) { setTimeout(maybeLookup, 10, e); });
@@ -93,7 +117,11 @@ function init() {
   function lookup(e) {
     cities.map(click);
   }
-  var cities = getCities();
+
+  if (!goldHiscore || (Date.now() - goldUpdated) > 864e5) // update gold hiscore
+    requestScore("", post.gold, setHiscore); // but at most once every 24 hours
+
+  var cities = getCityLinks();
   cities.forEach(lookupOnClick);
   var body = document.body;
   addEventListener("keypress", tab, true);
@@ -110,7 +138,7 @@ function tab(e) {
   }
   if (!dir) return;
 
-  var all = getCities();
+  var all = getCityLinks();
   var now = unsafeWindow.selectedCity;
   var cur = $X('id("cityLocation'+ now +'")/a') || all[all.length - 1];
   if (all.length) {
@@ -135,13 +163,10 @@ function fetchScoresFor(name, ul, n) {
                "this.value='"+ post[type] +"'; "+
                "this.form.submit()"}/>;
   }
-  var post = {
-     total: "score",
-  military: "army_score_main",
-      gold: "trader_score_secondary"
-  };
+
   var scores = <a href="/index.php?view=options"
                  title="Change score options">Change Options</a>;
+
   if (!inlineScore) {
     var form = <form action="/index.php" method="post">
       <input type="hidden" name="view" value="highscore"/>
@@ -156,14 +181,31 @@ function fetchScoresFor(name, ul, n) {
     form.@style = "position: relative; left:-26px; white-space: nowrap;";
     scores = form;
   }
+
   addItem("options", scores, ul);
   if (!inlineScore) return;
+
   for (var type in show) {
     if (!(whatToShow & show[type]))
       continue;
     addItem(type, "fetching...");
     requestScore(name, post[type], makeShowScoreCallback(name, type, ul, n));
   }
+}
+
+function viewingRightCity(ul) {
+  var saved = $X('li[@class="name"]/text()[last()]', ul);
+  var panel = $X('li[@class="name"]/text()[last()]', cityinfoPanel());
+  return panel.textContent == saved.textContent;
+}
+
+function setHiscore(xhr) {
+  var html = node("div", "", null, xhr.responseText);
+  var score = $X('.//div[@class="content"]' +
+                 '//tr[@class="first"]/td[@class="score"]', html);
+  goldHiscore = score.textContent.replace(/\D+/g, "") || "0";
+  GM_setValue("maxgold "+ gameServer, goldHiscore);
+  GM_setValue("updated "+ gameServer, Date.now() + "");
 }
 
 function makeShowScoreCallback(name, type, ul, n) {
@@ -173,19 +215,17 @@ function makeShowScoreCallback(name, type, ul, n) {
                    name + '"]/td[@class="score" or @class="§"]', html);
     if (score) {
       score = score.innerHTML;
-      var next = $X('li[@class="ally"]/following-sibling::*', ul);
-      ul.insertBefore(mkItem(type, score), next);
       if ("0" == score && "military" == type)
         n.style.fontStyle = "italic";
-      var saved = $X('li[@class="name"]/text()[last()]', ul);
-      var panel = $X('li[@class="name"]/text()[last()]', cityinfoPanel());
-      if (panel.textContent == saved.textContent)
-        addItem(type, score); // avoid race conditions
+      var next = $X('li[@class="ally"]/following-sibling::*', ul);
+      ul.insertBefore(mkItem(type, score), next);
+      if (viewingRightCity(ul)) // avoids race conditions
+        addItem(type, score);
     }
   };
 }
 
-function getCities() {
+function getCityLinks() {
   return $x('id("cities")/li[contains(@class,"city level")]/a');
 }
 
