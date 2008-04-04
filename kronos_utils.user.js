@@ -220,6 +220,12 @@ function addCSSBubbles() { css(<><![CDATA[
   margin-left: 10px;
 }
 
+#townhallfits {
+  margin-left: 4px;
+  vertical-align: top;
+  position: static;
+  display: inline;
+}
 ]]></>); }
 
 
@@ -2217,6 +2223,9 @@ function showHousingOccupancy(opts) {
   //console.log(pop.toSource());
   node.nodeValue = text.replace(new RegExp("[:)/].*$"), time +")");
   div.style.whiteSpace = "nowrap";
+  var townSize = $X('id("information")//ul/li[@class="citylevel"]');
+  if (townSize)
+    townSize.appendChild(createNode("townhallfits", "ellipsis", pop.maximum));
   return pop;
 }
 
