@@ -1386,6 +1386,9 @@ function townHallView() {
   linkTo("academy", 'div[@class="scientists"]/span[@class="production"]', 0, g);
   clickTo($X('.//div[@class="cat wine"]', growth), "tavern");
   clickTo($X('.//div[@class="cat culture"]', growth), "museum");
+
+  if ($X('.//div[@class="capital"]', growth))
+    config.setServer("capital", cityID());
 }
 
 function museumView() {
@@ -2504,7 +2507,11 @@ function cityNames() {
 }
 
 function isCapital() {
-  return cityID() == cityIDs()[0];
+  var city = cityID();
+  var capital = config.getServer("capital", 0);
+  if (capital)
+    return city == capital;
+  return city == cityIDs()[0];
 }
 
 function isMyCity() {
