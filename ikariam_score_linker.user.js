@@ -175,7 +175,7 @@ function fetchScoresFor(name, ul, n, id) {
       value=" " title={"View player's "+ type +" score"}
       style={"border:0;height:23px;width:16px;cursor:pointer;background:"+ url}
       onclick={"this.type = 'hidden'; "+
-               "this.value='"+ post[type] +"'; "+
+               "this.value='"+ type +"'; "+
                "this.form.submit()"}/>;
   }
 
@@ -211,8 +211,7 @@ function fetchScoresFor(name, ul, n, id) {
       continue;
     }
     addItem(type, "fetching...");
-    requestScore(name, post[type], id,
-                 makeShowScoreCallback(name, type, ul, n, id));
+    requestScore(name, type, id, makeShowScoreCallback(name, type, ul, n, id));
   }
 }
 
@@ -410,16 +409,16 @@ For version: 0.5.0
 Last changed: 0.5.0
 */
 
-function requestScore(playerName, type, id, onload) {
-  var cached = id && valueCache[id];
-  if (cached && cached[type.charAt()] && ((time() - cached.T) < 10))
-    return onload(cached[type.charAt()], "yes");
+function requestScore(name, type, id, onload) {
+  var cached = id && valueCache[id], key = type.charAt();
+  if (cached && cached[key] && ((time() - cached.T) < 10))
+    return onload(cached[key], "yes");
   //else delete valueCache[id]; // stale -- but save for now; could be useful
 
   GM_xmlhttpRequest({
     method: "POST",
     url: "http://" + gameServer + "/index.php",
-    data: "view=highscore&highscoreType="+ type +"&searchUser="+ playerName,
+    data: "view=highscore&highscoreType="+ post[type] +"&searchUser="+ name,
     headers: {
       "User-agent": "Mozilla/4.0 (compatible) Greasemonkey",
       "Content-type": "application/x-www-form-urlencoded",
