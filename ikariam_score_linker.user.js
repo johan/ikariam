@@ -38,6 +38,8 @@
 // 0.5.7: Options on Options page, no longer inline
 // 0.6.0: Saves scores in the page after loading them once. Code cleanup. Does not try to run on the forums.
 // 0.6.1: Shows max lootable gold, according to a formula by Lirave. Keyboard selection via (shift)tab, or j/k.
+// 0.6.2: Removed the 'Change Options' link and the 'loot:' prefix on lootable gold.
+// 0.6.3: Made the 'Change Options' link configurable. Bugfixed non-inline links. (And loot is back; sorry. ;-)
 //
 // --------------------------------------------------------------------
 //
@@ -80,6 +82,7 @@ var post = {
 var saving;
 var gameServer = location.host;
 var valueCache = eval(GM_getValue(gameServer, "({})"));
+var changeLink = GM_getValue("link", true);
 var whatToShow = GM_getValue("show", "7");
 var inlineScore = GM_getValue("inline", true);
 
@@ -173,14 +176,14 @@ function fetchScoresFor(name, ul, n, id) {
       })[type];
     return <input type="submit" name="highscoreType"
       value=" " title={"View player's "+ type +" score"}
-      style={"border:0;height:23px;width:16px;cursor:pointer;background:"+ url}
-      onclick={"this.type = 'hidden'; "+
-               "this.value='"+ type +"'; "+
-               "this.form.submit()"}/>;
+      style={"border: 0; height: 23px; width: 16px; cursor: pointer; " +
+             "color: transparent; background:"+ url}
+      onclick={"this.value = '"+ post[type] +"'; this.form.submit();"}/>;
   }
 
-  var scores = <a href="/index.php?view=options"
-                 title="Change score options">Change Options</a>;
+  var scores = changeLink &&
+    <a href="/index.php?view=options"
+      title="Change score options">Change Options</a>;
 
   if (!inlineScore) {
     var form = <form action="/index.php" method="post">
@@ -191,13 +194,17 @@ function fetchScoresFor(name, ul, n, id) {
     for (var type in post)
       if (whatToShow & show[type])
         form.* += searchbutton(type);
-    scores.@style = "position: relative; top: -6Px;";
-    form.* += scores;
-    form.@style = "position: relative; left:-26px; white-space: nowrap;";
+    if (changeLink) {
+      scores.@style = "position: relative; top: -6Px;";
+      form.* += scores;
+    }
+    form.@style = "position: relative; "+ (changeLink ? "left:-26px; " : "") +
+      "white-space: nowrap;";
     scores = form;
   }
 
-  addItem("options", scores, ul);
+  if (!inlineScore || changeLink)
+    addItem("options", scores, ul);
   if (!inlineScore) return;
 
   for (type in show) {
@@ -263,7 +270,7 @@ function makeShowScoreCallback(name, type, ul, n, id) {
 
       ul = ul || cityinfoPanel();
       if (n && "0" == score && "military" == type)
-        n.style.fontStyle = "italic";
+        n.style.fontWeight = "bold"; // n.style.fontStyle = "italic";
 
       // You rob gold (size * (size - 1)) % of the treasury of the city:
       if ("gold" == type)
@@ -442,20 +449,24 @@ function displayOnOptions_fn() {
 <h3>Score Display Options</h3>
 <table border="0" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width:43%; text-align:right;">Show Total Score:</td>
-    <td style="width:57%"><input type="checkbox" id="totalScore"/></td>
+    <td style="width: 43%; text-align: right;">Show Total Score:</td>
+    <td style="width: 57%"><input type="checkbox" id="totalScore"/></td>
   </tr>
   <tr>
-    <td style="width:43%;text-align:right">Show Army Score:</td>
+    <td style="width:43%; text-align: right">Show Army Score:</td>
     <td><input type="checkbox" id="militaryScore"/></td>
   </tr>
   <tr>
-    <td style="width:43%;text-align:right">Show Gold Score:</td>
+    <td style="width: 43%; text-align: right">Show Gold Score:</td>
     <td><input type="checkbox" id="goldScore"/></td>
   </tr>
   <tr>
-    <td style="width:43%;text-align:right">Show Score Inline:</td>
+    <td style="width: 43%; text-align: right">Show Score Inline:</td>
     <td><input type="checkbox" id="inlineScore"/></td>
+  </tr>
+  <tr>
+    <td style="width: 43%; text-align: right">Show Score Options link:</td>
+    <td><input type="checkbox" id="changeScoreOptions"/></td>
   </tr>
 </table></>;
 
@@ -468,6 +479,8 @@ function displayOnOptions_fn() {
     var id = input.id.replace("Score", "");
     if (id == "inline")
       input.checked = !!inlineScore;
+    else if ("changeOptions" == id)
+      input.checked = !!changeLink;
     else
       input.checked = !!(show[id] & whatToShow);
   }
@@ -491,5 +504,6 @@ function changeShow_fn(e) {
                 (show.gold * $('goldScore').checked)
               ) + "");
   GM_setValue("inline", $('inlineScore').checked);
+  GM_setValue("link", $('changeScoreOptions').checked);
   e.target.form.submit();
 }
