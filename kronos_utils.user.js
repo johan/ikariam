@@ -2223,9 +2223,11 @@ function showHousingOccupancy(opts) {
   //console.log(pop.toSource());
   node.nodeValue = text.replace(new RegExp("[:)/].*$"), time +")");
   div.style.whiteSpace = "nowrap";
+/*
   var townSize = $X('id("information")//ul/li[@class="citylevel"]');
   if (townSize)
     townSize.appendChild(createNode("townhallfits", "ellipsis", pop.maximum));
+*/
   return pop;
 }
 
@@ -2477,7 +2479,14 @@ function panelInfo() { // Ajoute un element en plus dans le menu.
 
   var titre = document.createElement("h3");
   titre.setAttribute("class", "header");
-  titre.appendChild(document.createTextNode(name + version));
+  titre.appendChild(document.createTextNode(name + version +": "));
+
+  var langPref = document.createTextNode(lang[language]);
+  var langChoice = document.createElement("a");
+  langChoice.href = "#";
+  langChoice.appendChild(langPref);
+  langChoice.addEventListener("click", promptLanguage, false);
+  titre.appendChild(langChoice);
 
   var corps = createNode("Kronos", "content");
   corps.style.margin = "3px 10px";
@@ -2490,7 +2499,7 @@ function panelInfo() { // Ajoute un element en plus dans le menu.
   var mainview = $("mainview");
   if (mainview)
     mainview.parentNode.insertBefore(panel, mainview);
-  return corps;
+  return langChoice;
 }
 
 function islandID() {
@@ -2535,7 +2544,8 @@ function isMyCity() {
 
 function principal() {
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
-  var chemin = panelInfo();
+  var langChoice = panelInfo();
+  var chemin = $("Kronos");
   addCSSBubbles();
 
   var view = urlParse("view");
@@ -2619,13 +2629,6 @@ function principal() {
     chemin.appendChild(a);
     chemin.appendChild(createBr());
   }
-
-  var langPref = document.createTextNode(lang[langUsed] +": "+ lang[language]);
-  var langChoice = document.createElement("a");
-  langChoice.href = "#";
-  langChoice.appendChild(langPref);
-  langChoice.addEventListener("click", promptLanguage, false);
-  chemin.appendChild(langChoice);
 
   improveTopPanel();
 
