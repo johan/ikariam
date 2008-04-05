@@ -171,7 +171,7 @@ function fetchScoresFor(name, ul, n) {
   addItem("options", scores, ul);
   if (!inlineScore) return;
 
-  for (var type in show) {
+  for (type in show) {
     if (!(whatToShow & show[type]))
       continue;
     addItem(type, "fetching...");
@@ -195,7 +195,6 @@ function makeShowScoreCallback(name, type, ul, n) {
       score = score.innerHTML;
       if (n && "0" == score && "military" == type)
         n.style.fontStyle = "italic";
-      updateItem(type, score, ul, !!n);
 
       // You rob gold (size * (size - 1)) % of the treasury of the city:
       if ("gold" == type) {
@@ -208,12 +207,11 @@ function makeShowScoreCallback(name, type, ul, n) {
         if (isNaN(max)) return; else max += "";
         for (var i = max.length - 3; i > 0; i -= 3)
           max = max.slice(0, i) +","+ max.slice(i);
-        max = node("span", "", null, "\xA0(max\xA0gold:\xA0"+ max +")");
-        max.title = "Largest amount of money lootable from a town of this size";
-        level.appendChild(max);
-        if (viewingRightCity(ul) && n)
-          panel.appendChild(max.cloneNode(true));
+        max = node("span", "", null, "\xA0(loot:\xA0"+ max +")");
+        max.title = "Amount of gold lootable from this town";
       }
+
+      updateItem(type, score, ul, !!n, max);
     }
   };
 }
@@ -251,16 +249,18 @@ function addItem(type, value, save) {
   return li;
 }
 
-function updateItem(type, value, ul, islandView) {
+function updateItem(type, value, ul, islandView, append) {
   var li = getItem(type, ul);
   if (li) {
     li.lastChild.nodeValue = value;
   } else {
     var next = $X('li[@class="ally"]/following-sibling::*', ul);
-    ul.insertBefore(mkItem(type, value), next);
-    if (viewingRightCity(ul) && islandView) // avoids race conditions
-      addItem(type, value);
+    ul.insertBefore(li = mkItem(type, value), next);
+    if (viewingRightCity(ul) && islandView) // only touch panel on right focus
+      updateItem(type, value, null, null, append && append.cloneNode(true));
   }
+  if (append) li.appendChild(append);
+  return li;
 }
 
 function cityinfoPanel() {
