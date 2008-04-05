@@ -40,6 +40,7 @@
 // 0.6.1: Shows max lootable gold, according to a formula by Lirave. Keyboard selection via (shift)tab, or j/k.
 // 0.6.2: Removed the 'Change Options' link and the 'loot:' prefix on lootable gold.
 // 0.6.3: Made the 'Change Options' link configurable. Bugfixed non-inline links. (And loot is back; sorry. ;-)
+// 0.6.4: Bugfix for confusion when Kronos Utils adds info to the town size field. Also made sure Gold Scores don't wrap even if their contents get long.
 //
 // --------------------------------------------------------------------
 //
@@ -125,9 +126,9 @@ function init() {
     addEventListener("keypress", tab, true);
     return inlineScore && onClick(body, peek, 0, "dbl");
   }
-  var player = getItem("owner");
+  var player = itemValue("owner");
   if (player)
-    fetchScoresFor(trim(player.lastChild.textContent), null, null, id);
+    fetchScoresFor(player, null, null, id);
 }
 
 function saveCache() {
@@ -210,9 +211,7 @@ function fetchScoresFor(name, ul, n, id) {
   for (type in show) {
     if (!(whatToShow & show[type]))
       continue;
-    if ("gold" == type && isMyCity(ul) &&
-        itemValue("owner", ul) == itemValue("owner") &&
-        itemValue("name", ul) == itemValue("name")) {
+    if ("gold" == type && isMyCity(ul) && viewingRightCity(ul)) {
       var gold = $("value_gold").innerHTML;
       updateItem(type, gold, cityinfoPanel(), null, lootable(gold));
       continue;
@@ -240,7 +239,7 @@ function lootable(score, ul) {
   var amount = parseInt((score||"").replace(/\D+/g, "") || "0", 10);
   var panel = getItem("citylevel");
   var level = getItem("citylevel", ul);
-  var size = level.lastChild.textContent;
+  var size = itemValue(level);
   var max = Math.round(size * (size - 1) / 10000 * amount);
   if (isNaN(max)) return;
   max = node("span", "", null, "\xA0("+ fmtNumber(max) +"\xA0loot)");
@@ -249,9 +248,8 @@ function lootable(score, ul) {
 }
 
 function viewingRightCity(ul) {
-  var panel = getItem("name").lastChild;
-  var saved = getItem("name", ul).lastChild;
-  return panel.textContent == saved.textContent;
+  return itemValue("name") == itemValue("name", ul) &&
+        itemValue("owner") == itemValue("owner", ul);
 }
 
 function makeShowScoreCallback(name, type, ul, n, id) {
@@ -331,8 +329,10 @@ function updateItem(type, value, ul, islandView, append) {
     if (viewingRightCity(ul) && islandView) // only touch panel on right focus
       updateItem(type, value, null, null, append && append.cloneNode(true));
   }
-  if (append && !$X('span[@title]', li))
+  if (append && !$X('span[@title]', li)) {
+    li.style.whiteSpace = "nowrap";
     li.appendChild(append);
+  }
   return li;
 }
 
