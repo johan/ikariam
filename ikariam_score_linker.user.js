@@ -77,7 +77,9 @@ var post = {
      gold: "trader_score_secondary"
 };
 
+var saving;
 var gameServer = location.host;
+var valueCache = eval(GM_getValue(gameServer, "({})"));
 var whatToShow = GM_getValue("show", "7");
 var inlineScore = GM_getValue("inline", true);
 
@@ -93,15 +95,26 @@ function init() {
     if ($X('li[contains(@class," name")]', ul)) return; // already fetched!
     var who = $X('li[@class="owner"]/text()[preceding::*[1]/self::span]', ul);
     var name = trim(who.textContent);
-    fetchScoresFor(name, ul, n);
+    fetchScoresFor(name, ul, n, number(n.parentNode.id));
   }
   function lookupOnClick(a) {
     onClick(a, function(e) { setTimeout(maybeLookup, 10, e); });
   }
   function peek(e) {
+    var on = e.target;
     cities.map(click);
+    if (/^a$/i.test(on.nodeName))
+      click(on);
   }
 
+  if ("island" == document.body.id) {
+    GM_addStyle(<><![CDATA[#island #information .messageSend img {
+      position: absolute;
+      margin: -3px 0 0 4px;
+    }]]></>.toXMLString());
+    var id = location.href.match(/[&?]id=(\d+)/);
+    if (id) id = id[1];
+  }
   var cities = getCityLinks();
   if (cities.length) {
     cities.forEach(lookupOnClick);
@@ -111,7 +124,23 @@ function init() {
   }
   var player = getItem("owner");
   if (player)
-    fetchScoresFor(trim(player.lastChild.textContent));
+    fetchScoresFor(trim(player.lastChild.textContent), null, null, id);
+}
+
+function saveCache() {
+  //console.log("Saving cache: %x", uneval(valueCache));
+  GM_setValue(gameServer, uneval(valueCache).replace(/ /g, ""));
+}
+
+function cacheValue(id, type, value) {
+  //console.log("caching", id, type, value);
+  var city = valueCache[id] || {};
+  type = type.charAt();
+  city[type] = number(value);
+  city.T = time();
+  valueCache[id] = city;
+  saving && clearTimeout(saving);
+  saving = setTimeout(saveCache, 1e3);
 }
 
 function tab(e) {
@@ -135,7 +164,7 @@ function tab(e) {
   }
 }
 
-function fetchScoresFor(name, ul, n) {
+function fetchScoresFor(name, ul, n, id) {
   function searchbutton(type) {
     var url = "url(/skin/" + ({
        total: "layout/medallie32x32_gold.gif) no-repeat -7px -9px",
@@ -174,9 +203,43 @@ function fetchScoresFor(name, ul, n) {
   for (type in show) {
     if (!(whatToShow & show[type]))
       continue;
+    if ("gold" == type && isMyCity(ul) &&
+        itemValue("owner", ul) == itemValue("owner") &&
+        itemValue("name", ul) == itemValue("name")) {
+      var gold = $("value_gold").innerHTML;
+      updateItem(type, gold, cityinfoPanel(), null, lootable(gold));
+      continue;
+    }
     addItem(type, "fetching...");
-    requestScore(name, post[type], makeShowScoreCallback(name, type, ul, n));
+    requestScore(name, post[type], id,
+                 makeShowScoreCallback(name, type, ul, n, id));
   }
+}
+
+function isMyCity(ul, name) {
+  if ("city" == document.body.id)
+    return $X('id("position0")/a').href != "#";
+
+  var name = getItem("owner", ul);
+  var a = $X('a', name);
+  if (a) {
+    var id = a.search.match(/destinationCityId=(\d+)/)[1];
+    return $X('id("citySelect")/option[@value="'+ id +'"]');
+  }
+  var city = itemValue("name", ul);
+  return $X('id("citySelect")/option[.="'+ city +'"]');
+}
+
+function lootable(score, ul) {
+  var amount = parseInt((score||"").replace(/\D+/g, "") || "0", 10);
+  var panel = getItem("citylevel");
+  var level = getItem("citylevel", ul);
+  var size = level.lastChild.textContent;
+  var max = Math.round(size * (size - 1) / 10000 * amount);
+  if (isNaN(max)) return;
+  max = node("span", "", null, "\xA0("+ fmtNumber(max) +"\xA0loot)");
+  max.title = "Amount of gold lootable from this town";
+  return max;
 }
 
 function viewingRightCity(ul) {
@@ -185,31 +248,27 @@ function viewingRightCity(ul) {
   return panel.textContent == saved.textContent;
 }
 
-function makeShowScoreCallback(name, type, ul, n) {
-  return function showScore(xhr) {
-    var html = node("div", "", null, xhr.responseText);
-    var score = $X('.//div[@class="content"]//tr[td[@class="name"]="' +
-                   name + '"]/td[@class="score" or @class="§"]', html);
-    ul = ul || cityinfoPanel();
-    if (score) {
+function makeShowScoreCallback(name, type, ul, n, id) {
+  return function showScore(xhr, cached) {
+    var score = xhr;
+    if ("yes" == cached) {
+      score = fmtNumber(score);
+    } else { // need to parse out the score
+      score = $X('.//div[@class="content"]//tr[td[@class="name"]="' +
+                 name + '"]/td[@class="score" or @class="§"]',
+                 node("div", "", null, xhr.responseText));
       score = score.innerHTML;
+    }
+    if (score) {
+      if ("yes" != cached) cacheValue(id, type, score);
+
+      ul = ul || cityinfoPanel();
       if (n && "0" == score && "military" == type)
         n.style.fontStyle = "italic";
 
       // You rob gold (size * (size - 1)) % of the treasury of the city:
-      if ("gold" == type) {
-        var amount = parseInt(score.replace(/\D+/g, "") || "0", 10);
-        var panel = getItem("citylevel");
-        var level = ul ? getItem("citylevel", ul) : panel;
-        var size = level.lastChild.textContent;
-        console.log(score, amount, size);
-        var max = Math.round(size * (size - 1) / 10000 * amount);
-        if (isNaN(max)) return; else max += "";
-        for (var i = max.length - 3; i > 0; i -= 3)
-          max = max.slice(0, i) +","+ max.slice(i);
-        max = node("span", "", null, "\xA0(loot:\xA0"+ max +")");
-        max.title = "Amount of gold lootable from this town";
-      }
+      if ("gold" == type)
+        var max = lootable(score, ul);
 
       updateItem(type, score, ul, !!n, max);
     }
@@ -218,6 +277,13 @@ function makeShowScoreCallback(name, type, ul, n) {
 
 function getCityLinks() {
   return $x('id("cities")/li[contains(@class,"city level")]/a');
+}
+
+function itemValue(item, ul) {
+  var li = "string" == typeof item ? getItem(item, ul) : item;
+  var xpath = 'text()[preceding-sibling::*[1]/self::span[@class="textLabel"]]';
+  var text = $X(xpath, li);
+  return text && trim(text.textContent || "");
 }
 
 function getItem(type, ul) {
@@ -241,10 +307,10 @@ function addItem(type, value, save) {
     var ul = cityinfoPanel();
     var next = $X('li[@class="ally"]/following-sibling::*', ul);
     ul.insertBefore(li = mkItem(type, value), next);
-    if (save && !getItem(type, ul)) {
-      next = $X('li[@class="ally"]/following-sibling::*', save);
-      save.insertBefore(li.cloneNode(true), next);
-    }
+  }
+  if (save && !getItem(type, save)) {
+    next = $X('li[@class="ally"]/following-sibling::*', save);
+    save.insertBefore(li.cloneNode(true), next);
   }
   return li;
 }
@@ -259,7 +325,8 @@ function updateItem(type, value, ul, islandView, append) {
     if (viewingRightCity(ul) && islandView) // only touch panel on right focus
       updateItem(type, value, null, null, append && append.cloneNode(true));
   }
-  if (append) li.appendChild(append);
+  if (append && !$X('span[@title]', li))
+    li.appendChild(append);
   return li;
 }
 
@@ -283,6 +350,18 @@ function click(node) {
   event.initMouseEvent("click", true, true, node.ownerDocument.defaultView,
                        1, 0, 0, 0, 0, false, false, false, false, 0, node);
   node.dispatchEvent(event);
+}
+
+function fmtNumber(n) {
+  n += "";
+  for (var i = n.length - 3; i > 0; i -= 3)
+    n = n.slice(0, i) +","+ n.slice(i);
+  return n;
+}
+
+function number(n) {
+  n = { string: 1, number: 1 }[typeof n] ? n+"" : n.textContent;
+  return parseInt(n.replace(/\D+/g, "") || "0", 10);
 }
 
 function trim(str) {
@@ -314,6 +393,11 @@ function $x( xpath, root ) {
   }
 }
 
+function time(t) {
+  t = t || Date.now();
+  return Math.floor(t / 6e4) - 2e7; // ~minute precision is enough
+}
+
 function $X( xpath, root ) {
   var got = $x( xpath, root );
   return got instanceof Array ? got[0] : got;
@@ -326,7 +410,12 @@ For version: 0.5.0
 Last changed: 0.5.0
 */
 
-function requestScore(playerName, type, onload) {
+function requestScore(playerName, type, id, onload) {
+  var cached = id && valueCache[id];
+  if (cached && cached[type.charAt()] && ((time() - cached.T) < 10))
+    return onload(cached[type.charAt()], "yes");
+  //else delete valueCache[id]; // stale -- but save for now; could be useful
+
   GM_xmlhttpRequest({
     method: "POST",
     url: "http://" + gameServer + "/index.php",
