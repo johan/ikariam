@@ -41,6 +41,7 @@
 // 0.6.2: Removed the 'Change Options' link and the 'loot:' prefix on lootable gold.
 // 0.6.3: Made the 'Change Options' link configurable. Bugfixed non-inline links. (And loot is back; sorry. ;-)
 // 0.6.4: Bugfix for confusion when Kronos Utils adds info to the town size field. Also made sure Gold Scores don't wrap even if their contents get long.
+// 0.6.5: Paints demilitarized (but neither allied nor your own) cities yellow.
 //
 // --------------------------------------------------------------------
 //
@@ -267,8 +268,13 @@ function makeShowScoreCallback(name, type, ul, n, id) {
       if ("yes" != cached) cacheValue(id, type, score);
 
       ul = ul || cityinfoPanel();
-      if (n && "0" == score && "military" == type)
+      if (n && "0" == score && "military" == type) {
         n.style.fontWeight = "bold"; // n.style.fontStyle = "italic";
+        n = $X('../preceding-sibling::div[@class="cityimg"]', n);
+        if (n)
+          n.style.backgroundImage = getComputedStyle(n,"").
+            backgroundImage.replace("red.gif", "yellow.gif");
+      }
 
       // You rob gold (size * (size - 1)) % of the treasury of the city:
       if ("gold" == type)
