@@ -1,8 +1,8 @@
 //
-// version 0.6.0
+// version 0.6.1
 // 2008-04-04
 // Copyright (c) 2008, ImmortalNights
-// Special Enhancements: wphilipw
+// Special Enhancements: wphilipw, ecamanaut
 // Released under the GPL license
 // http://www.gnu.org/copyleft/gpl.html
 //
@@ -37,6 +37,7 @@
 // 0.5.6: BugFix: "undefined" scores (timestamp too long, now stored in string)
 // 0.5.7: Options on Options page, no longer inline
 // 0.6.0: Saves scores in the page after loading them once. Code cleanup. Does not try to run on the forums.
+// 0.6.1: Shows max lootable gold, according to a formula by Lirave. Keyboard selection via (shift)tab, or j/k.
 //
 // --------------------------------------------------------------------
 //
@@ -94,27 +95,12 @@ function init() {
     if ($X('li[contains(@class," name")]', ul)) return; // already fetched!
     var who = $X('li[@class="owner"]/text()[preceding::*[1]/self::span]', ul);
     var name = trim(who.textContent);
-    fetchScoresFor(name, ul, n);
-
-    if (goldHiscore) {
-      var panel = $X('li[@class="citylevel"]', cityinfoPanel());
-      var level = $X('li[@class="citylevel"]', ul);
-      var size = level.lastChild.textContent;
-      var max = Math.round(size * (size - 1) / 10000 * goldHiscore);
-      if (isNaN(max)) return; else max += "";
-      for (var i = max.length - 3; i > 0; i -= 3)
-        max = max.slice(0, i) +","+ max.slice(i);
-      max = node("span", "", null, "\xA0(max\xA0gold:\xA0"+ max +")");
-      max.title = "Largest amount of money lootable from a town of this size";
-      level.appendChild(max);
-      if (viewingRightCity(ul))
-        panel.appendChild(max.cloneNode(true));
-    }
+    lookup(name, ul, n);
   }
   function lookupOnClick(a) {
     onClick(a, function(e) { setTimeout(maybeLookup, 10, e); });
   }
-  function lookup(e) {
+  function peek(e) {
     cities.map(click);
   }
 
@@ -122,10 +108,34 @@ function init() {
     requestScore("", post.gold, setHiscore); // but at most once every 24 hours
 
   var cities = getCityLinks();
-  cities.forEach(lookupOnClick);
-  var body = document.body;
-  addEventListener("keypress", tab, true);
-  inlineScore && onClick(body, lookup, 0, "dbl");
+  if (cities.length) {
+    cities.forEach(lookupOnClick);
+    var body = document.body;
+    addEventListener("keypress", tab, true);
+    return inlineScore && onClick(body, peek, 0, "dbl");
+  }
+  var player = getItem("owner");
+  if (player)
+    lookup(trim(player.lastChild.textContent));
+}
+
+function lookup(name, ul) {
+  fetchScoresFor.apply(this, arguments);
+
+  if (goldHiscore) {
+    var panel = getItem("citylevel");
+    var level = ul ? getItem("citylevel", ul) : panel;
+    var size = level.lastChild.textContent;
+    var max = Math.round(size * (size - 1) / 10000 * goldHiscore);
+    if (isNaN(max)) return; else max += "";
+    for (var i = max.length - 3; i > 0; i -= 3)
+      max = max.slice(0, i) +","+ max.slice(i);
+    max = node("span", "", null, "\xA0(max\xA0gold:\xA0"+ max +")");
+    max.title = "Largest amount of money lootable from a town of this size";
+    level.appendChild(max);
+    if (viewingRightCity(ul) && arguments.length == 3)
+      panel.appendChild(max.cloneNode(true));
+  }
 }
 
 function tab(e) {
@@ -194,8 +204,8 @@ function fetchScoresFor(name, ul, n) {
 }
 
 function viewingRightCity(ul) {
-  var saved = $X('li[@class="name"]/text()[last()]', ul);
-  var panel = $X('li[@class="name"]/text()[last()]', cityinfoPanel());
+  var panel = getItem("name").lastChild;
+  var saved = getItem("name", ul).lastChild;
   return panel.textContent == saved.textContent;
 }
 
@@ -213,14 +223,12 @@ function makeShowScoreCallback(name, type, ul, n) {
     var html = node("div", "", null, xhr.responseText);
     var score = $X('.//div[@class="content"]//tr[td[@class="name"]="' +
                    name + '"]/td[@class="score" or @class="§"]', html);
+    ul = ul || cityinfoPanel();
     if (score) {
       score = score.innerHTML;
-      if ("0" == score && "military" == type)
+      if (n && "0" == score && "military" == type)
         n.style.fontStyle = "italic";
-      var next = $X('li[@class="ally"]/following-sibling::*', ul);
-      ul.insertBefore(mkItem(type, score), next);
-      if (viewingRightCity(ul)) // avoids race conditions
-        addItem(type, score);
+      updateItem(type, score, ul, !!n);
     }
   };
 }
@@ -229,8 +237,9 @@ function getCityLinks() {
   return $x('id("cities")/li[contains(@class,"city level")]/a');
 }
 
-function getItem(type) {
-  return $X('li[contains(@class,"'+ type +'")]', cityinfoPanel());
+function getItem(type, ul) {
+  return $X('li[contains(concat(" ",normalize-space(@class)," ")," '+
+            type +' ")]', ul || cityinfoPanel());
 }
 
 function mkItem(type, value) {
@@ -243,13 +252,13 @@ function mkItem(type, value) {
 
 function addItem(type, value, save) {
   var li = getItem(type);
-  if (li)
+  if (li) {
     li.lastChild.nodeValue = value;
-  else {
+  } else {
     var ul = cityinfoPanel();
     var next = $X('li[@class="ally"]/following-sibling::*', ul);
     ul.insertBefore(li = mkItem(type, value), next);
-    if (save) {
+    if (save && !getItem(type, ul)) {
       next = $X('li[@class="ally"]/following-sibling::*', save);
       save.insertBefore(li.cloneNode(true), next);
     }
@@ -257,8 +266,20 @@ function addItem(type, value, save) {
   return li;
 }
 
+function updateItem(type, value, ul, islandView) {
+  var li = getItem(type, ul);
+  if (li) {
+    li.lastChild.nodeValue = value;
+  } else {
+    var next = $X('li[@class="ally"]/following-sibling::*', ul);
+    ul.insertBefore(mkItem(type, value), next);
+    if (viewingRightCity(ul) && islandView) // avoids race conditions
+      addItem(type, value);
+  }
+}
+
 function cityinfoPanel() {
-  return $X('id("information")/ul[@class="cityinfo"]');
+  return $X('id("information")//ul[@class="cityinfo"]');
 }
 
 function node(type, className, styles, content) {
