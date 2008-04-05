@@ -80,8 +80,6 @@ var post = {
 var gameServer = location.host;
 var whatToShow = GM_getValue("show", "7");
 var inlineScore = GM_getValue("inline", true);
-var goldHiscore = GM_getValue("maxgold "+ gameServer, 0);
-var goldUpdated = GM_getValue("updated "+ gameServer, 0);
 
 if ($("options_changePass"))
   displayOnOptions_fn();
@@ -95,7 +93,7 @@ function init() {
     if ($X('li[contains(@class," name")]', ul)) return; // already fetched!
     var who = $X('li[@class="owner"]/text()[preceding::*[1]/self::span]', ul);
     var name = trim(who.textContent);
-    lookup(name, ul, n);
+    fetchScoresFor(name, ul, n);
   }
   function lookupOnClick(a) {
     onClick(a, function(e) { setTimeout(maybeLookup, 10, e); });
@@ -103,9 +101,6 @@ function init() {
   function peek(e) {
     cities.map(click);
   }
-
-  if (!goldHiscore || (Date.now() - goldUpdated) > 864e5) // update gold hiscore
-    requestScore("", post.gold, setHiscore); // but at most once every 24 hours
 
   var cities = getCityLinks();
   if (cities.length) {
@@ -116,26 +111,7 @@ function init() {
   }
   var player = getItem("owner");
   if (player)
-    lookup(trim(player.lastChild.textContent));
-}
-
-function lookup(name, ul) {
-  fetchScoresFor.apply(this, arguments);
-
-  if (goldHiscore) {
-    var panel = getItem("citylevel");
-    var level = ul ? getItem("citylevel", ul) : panel;
-    var size = level.lastChild.textContent;
-    var max = Math.round(size * (size - 1) / 10000 * goldHiscore);
-    if (isNaN(max)) return; else max += "";
-    for (var i = max.length - 3; i > 0; i -= 3)
-      max = max.slice(0, i) +","+ max.slice(i);
-    max = node("span", "", null, "\xA0(max\xA0gold:\xA0"+ max +")");
-    max.title = "Largest amount of money lootable from a town of this size";
-    level.appendChild(max);
-    if (viewingRightCity(ul) && arguments.length == 3)
-      panel.appendChild(max.cloneNode(true));
-  }
+    fetchScoresFor(trim(player.lastChild.textContent));
 }
 
 function tab(e) {
@@ -209,15 +185,6 @@ function viewingRightCity(ul) {
   return panel.textContent == saved.textContent;
 }
 
-function setHiscore(xhr) {
-  var html = node("div", "", null, xhr.responseText);
-  var score = $X('.//div[@class="content"]' +
-                 '//tr[@class="first"]/td[@class="score"]', html);
-  goldHiscore = score.textContent.replace(/\D+/g, "") || "0";
-  GM_setValue("maxgold "+ gameServer, goldHiscore);
-  GM_setValue("updated "+ gameServer, Date.now() + "");
-}
-
 function makeShowScoreCallback(name, type, ul, n) {
   return function showScore(xhr) {
     var html = node("div", "", null, xhr.responseText);
@@ -229,6 +196,24 @@ function makeShowScoreCallback(name, type, ul, n) {
       if (n && "0" == score && "military" == type)
         n.style.fontStyle = "italic";
       updateItem(type, score, ul, !!n);
+
+      // You rob gold (size * (size - 1)) % of the treasury of the city:
+      if ("gold" == type) {
+        var amount = parseInt(score.replace(/\D+/g, "") || "0", 10);
+        var panel = getItem("citylevel");
+        var level = ul ? getItem("citylevel", ul) : panel;
+        var size = level.lastChild.textContent;
+        console.log(score, amount, size);
+        var max = Math.round(size * (size - 1) / 10000 * amount);
+        if (isNaN(max)) return; else max += "";
+        for (var i = max.length - 3; i > 0; i -= 3)
+          max = max.slice(0, i) +","+ max.slice(i);
+        max = node("span", "", null, "\xA0(max\xA0gold:\xA0"+ max +")");
+        max.title = "Largest amount of money lootable from a town of this size";
+        level.appendChild(max);
+        if (viewingRightCity(ul) && n)
+          panel.appendChild(max.cloneNode(true));
+      }
     }
   };
 }
