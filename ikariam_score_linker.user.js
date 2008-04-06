@@ -42,6 +42,7 @@
 // 0.6.3: Made the 'Change Options' link configurable. Bugfixed non-inline links. (And loot is back; sorry. ;-)
 // 0.6.4: Bugfix for confusion when Kronos Utils adds info to the town size field. Also made sure Gold Scores don't wrap even if their contents get long.
 // 0.6.5: Paints demilitarized (but neither allied nor your own) cities yellow.
+// 0.6.6: Added some more key bindings: d/t/p/b/s, for all(?) the city actions.
 //
 // --------------------------------------------------------------------
 //
@@ -124,7 +125,7 @@ function init() {
   if (cities.length) {
     cities.forEach(lookupOnClick);
     var body = document.body;
-    addEventListener("keypress", tab, true);
+    addEventListener("keypress", keyboard, true);
     return inlineScore && onClick(body, peek, 0, "dbl");
   }
   var player = itemValue("owner");
@@ -148,24 +149,39 @@ function cacheValue(id, type, value) {
   saving = setTimeout(saveCache, 1e3);
 }
 
-function tab(e) {
-  var dir = 0;
-  switch (e.keyCode || e.charCode) {
-    case "j".charCodeAt(): dir--; break;
-    case "k".charCodeAt(): dir++; break;
-    case 9: /* tab key */  dir = e.shiftKey ? -1 : 1;
-      if (e.altKey || e.ctrlKey || e.metaKey) return;
-  }
-  if (!dir) return;
-
+function focus(direction) {
   var all = getCityLinks();
   var now = unsafeWindow.selectedCity;
   var cur = $X('id("cityLocation'+ now +'")/a') || all[all.length - 1];
   if (all.length) {
     now = all.map(function(a) { return a.id; }).indexOf(cur.id);
-    click(all[(now + dir + all.length * 3) % all.length]);
+    click(all[(now + direction + all.length * 3) % all.length]);
+  }
+}
+
+function keyboard(e) {
+  function invoke(a) {
+    a = $X('id("actions")/ul[@class="cityactions"]/li[@class="'+ a +'"]/a');
+    return function() { if (a && a.href) location.href = a.href; };
+  }
+  function counterClockwise() { focus(-1); }
+  function clockwise() { focus(1); }
+  function tab() {
+    if (!e.altKey && !e.ctrlKey && !e.metaKey)
+      focus(e.shiftKey ? -1 : 1);
+  }
+
+  var keys = {
+    "\t": tab, j: counterClockwise, k: clockwise,
+    d: invoke("diplomacy"), t: invoke("transport"),
+    p: invoke("plunder"), b: invoke("blockade"), s: invoke("espionage")
+  };
+
+  var action = keys[String.fromCharCode(e.keyCode || e.charCode)];
+  if (action) {
     e.stopPropagation();
     e.preventDefault();
+    action();
   }
 }
 
