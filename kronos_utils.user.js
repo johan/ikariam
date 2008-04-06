@@ -141,7 +141,7 @@ function createNode(id, classN, html, tag, styles) { // On ajoute un div
   var div = document.createElement(tag||"div"); // on crée le div
   if (id) div.id = id; // on lui ajoute l'id
   if (classN) div.className = classN; // le class
-  if ("undefined" != typeof html)
+  if (isDefined(html))
     div.appendChild(document.createTextNode(html)); // on lui ajoute du texte
   if (styles)
     for (var prop in styles)
@@ -166,7 +166,7 @@ function createBr() { // fonction de création saut de ligne
 }
 
 function css(rules) {
-  return GM_addStyle(typeof rules == "string" ? rules : rules.toString()) || 1;
+  return GM_addStyle(isString(rules) ? rules : rules.toString()) || 1;
 }
 
 function addCSSBubbles() { css(<><![CDATA[
@@ -204,8 +204,8 @@ function addCSSBubbles() { css(<><![CDATA[
   margin-left: -18px;
 }
 #islandfeatures .wine .pointsLevelBat {
-  margin-top: 9px;
-  margin-left: -18px;
+  margin-left: 8px;
+  margin-top: 0px;
 }
 #islandfeatures .marble .pointsLevelBat {
   margin-top: 18px;
@@ -221,10 +221,11 @@ function addCSSBubbles() { css(<><![CDATA[
 }
 
 #townhallfits {
-  margin-left: 4px;
-  vertical-align: top;
-  position: static;
+  top: 1px;
   display: inline;
+  margin-left: 4px;
+  position: relative;
+  vertical-align: top;
 }
 ]]></>); }
 
@@ -398,7 +399,7 @@ function opResources(a, b, op, onlyIterateA) {
 }
 
 function parseResources(res) {
-  if ("string" == typeof res)
+  if (isString(res))
     res = $x(res);
   var o = {}, r, id;
   if (res.length)
@@ -448,8 +449,8 @@ function buildingClass(id) {
 }
 
 function buildingID(a) {
-  if ("number" == typeof a) return a;
-  var building = "string" == typeof a ? a : a.parentNode.className;
+  if (isNumber(a)) return a;
+  var building = isString(a) ? a : a.parentNode.className;
   return buildingIDs[building];
 }
 
@@ -512,11 +513,11 @@ function buildingCapacity(b, l, warehouse) {
   b = buildingClass(b);
   var c = buildingCapacities[b];
   c = c && c[l];
-  return "undefined" == typeof warehouse ? c : c && c[warehouse];
+  return isDefined(warehouse) ? c && c[warehouse] : c;
 }
 
 function buildingExpansionNeeds(a, level) {
-  level = "undefined" == typeof level ? number(a.title) : level;
+  level = isDefined(level) ? level : a && number(a.title);
   var needs = costs[b = buildingID(a)][level];
   var value = {};
   var factor = 1.00;
@@ -598,7 +599,7 @@ function annotateBuilding(node, level) {
   if (!a) return;
   $x('div[@class="pointsLevelBat"]', node).forEach(rmNode);
   var id = buildingID(a);
-  if ("number" == typeof id && node.id && "undefined" == typeof level) {
+  if (isNumber(id) && node.id && isUndefined(level)) {
     config.setCity("building"+ id, number(a.title));
     config.setCity("posbldg"+ id, number(node.id));
   }
@@ -642,7 +643,7 @@ function showResourceNeeds(needs, parent, div, top, left) {
     div.style.right = "auto";
     div.style.margin = "0 0 0 -50%";
   }
-  if ("undefined" != typeof left)
+  if (isUndefined(left))
     div.style.left = left;
   show(div);
   parent.appendChild(div);
@@ -784,7 +785,7 @@ function linkTo(url, node, styles, opts) {
   if (!url.match(/\?/))
     url = urlTo(url);
   if (!url) return;
-  if ("string" == typeof node)
+  if (isString(node))
     node = $X(node, opts && opts.context);
   if (!url)
     return;
@@ -841,8 +842,8 @@ function urlTo(what, id, opts) {
       return building();
 
     case "city":	return url('?view=city&id='+ c);
-    case "island":	return url('?view=island&id='+ ("object" != typeof id ?
-                                   i : id.island + "&selectCity="+ id.city));
+    case "island":	return url('?view=island&id='+ (!isObject(id) ? i :
+                                   id.island + "&selectCity="+ id.city));
     case "building":	return url("?view=buildingDetail&buildingId="+ id);
 
     case "library":
@@ -1105,23 +1106,39 @@ function drawQueue() {
   div.id = "qmiss";
 }
 
-function processQueue() {
+// Figure out what our current project and next action are. Returns 0 when idle,
+// "building" when building something (known or unknown), "unknown" when data is
+// unconclusive (we're in a view without the needed information) after a project
+// has been completed, and otherwise the time in milliseconds to build complete.
+function queueState() {
+  var v = urlParse("view");
   var u = config.getCity("buildurl");
   var t = config.getCity("build", Infinity);
-  if (t < Date.now()) { // item just completed; go go go!
-    upgrade();
-  } else if (t == Infinity) { // no project going!
-    if (u) { // Just completed one queue item
-      config.remCity("buildurl");
+  var busy = $X('id("buildCountDown") | id("upgradeCountDown")');
+  if (t < Date.now()) { // last known item is completed by now
+    if ("city" == v)
+      return busy ? "building" : 0;
+    return "unknown";
+  } else if (t == Infinity) { // no known project going
+    if ("city" == v) {
+      //if (!busy) {
+      //  config.remCity("buildurl");
+      //}
+      return busy ? "building" : 0;
     }
-    // added item to empty queue -- go go go!
+    return "unknown";
+  } // busy building something; return time until completion
+  return t - Date.now() + 1e3;
+}
+
+function processQueue() {
+  var state = queueState(), time = isNumber(state) && state;
+  if (time) {
+    setTimeout(processQueue, time);
+  } else if (0 === time) {
     upgrade();
-  } else if (t < Infinity) { // waiting for present project to end
-    t = t - Date.now() + 1e3;
-    /* console.log("Not ready to upgrade yet; retrying in %xs at %s",
-                Math.round(t/1e3) + 1, resolveTime(t/1e3 + 1, 1)); */
-    setTimeout(processQueue, t + 1e3);
-  }
+  } // else FIXME? This might be safe, if unrelated pages don't self-refresh:
+  //setTimeout(goto, 3e3, "city"); // May also not be needed at all there
 
   drawQueue();
   if (!processQueue.css)
@@ -1440,9 +1457,6 @@ function techinfo(what) {
   }
 
   function unwindDeps(of) {
-    function isDefined(t) {
-      return "undefined" != typeof t;
-    }
     function level(name) {
       return tech[name];
     }
@@ -2223,11 +2237,11 @@ function showHousingOccupancy(opts) {
   //console.log(pop.toSource());
   node.nodeValue = text.replace(new RegExp("[:)/].*$"), time +")");
   div.style.whiteSpace = "nowrap";
-/*
   var townSize = $X('id("information")//ul/li[@class="citylevel"]');
-  if (townSize)
-    townSize.appendChild(createNode("townhallfits", "ellipsis", pop.maximum));
-*/
+  if (townSize) {
+    var townhall = pop.current +"/"+ pop.maximum +"; "+ sign(pop.growth) +"/h";
+    townSize.appendChild(createNode("townhallfits", "ellipsis", townhall));
+  }
   return pop;
 }
 
@@ -2608,11 +2622,14 @@ function principal() {
       break;
   }
   title();
-  projectCompletion("upgradeCountDown", "time");
-  projectCompletion("buildCountDown");
+
+  var upgradeDiv = $("upgradeCountDown");
+  var buildDiv = $("buildCountDown");
+  projectCompletion(upgradeDiv, "time")
+  projectCompletion(buildDiv);
   projectHaveResourcesToUpgrade();
 
-  processQueue();
+  processQueue(upgradeDiv || buildDiv);
   document.addEventListener("click", changeQueue, true);
 
   var research = config.getServer("research", "");
@@ -2765,6 +2782,14 @@ function bind(fn, self) {
     fn.apply(self, args.concat([].slice.call(arguments)));
   };
 }
+
+function isNull(n) { return null === n; }
+function isArray(a) { return a && a.hasOwnProperty("length"); }
+function isString(s) { return "string" == typeof s; }
+function isNumber(n) { return "number" == typeof n; }
+function isObject(o) { return "object" == typeof o; }
+function isDefined(v) { return "undefined" != typeof v; }
+function isUndefined(u) { return "undefined" == typeof u; }
 
 function rmNode(node) {
   node && node.parentNode && node.parentNode.removeChild(node);
