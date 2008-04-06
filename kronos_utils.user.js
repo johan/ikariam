@@ -1144,6 +1144,11 @@ function processQueue() {
   if (!processQueue.css)
     processQueue.css = css(<><![CDATA[
 
+#WzTtShDwR, #WzTtShDwB {
+  background-color: #000 !important;
+  opacity: 0.25 !important;
+}
+
 #q .barracks .img { left:0px; top:-33px; width:100px; height:76px; background-image:url(skin/img/city/building_barracks.gif); }
 #q .port .img { left:-65px; top:-35px; width:104px; height:90px; background:url(skin/img/city/building_port.gif) -59px 0; }
 #q .shipyard .img { left:-22px; top:-20px; width:129px; height:100px; background-image:url(skin/img/city/building_shipyard.gif); }
