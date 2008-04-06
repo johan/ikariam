@@ -1162,6 +1162,15 @@ function processQueue() {
   position: static;
 }
 
+#container #cityResources li .tooltip {
+  padding: 4px 5px;
+  white-space: nowrap;
+  width: auto;
+}
+#container #cityResources li .tooltip .ellipsis {
+  margin-left: 3px;
+  position: relative;
+}
 
 #q .barracks .img { left:0px; top:-33px; width:100px; height:76px; background-image:url(skin/img/city/building_barracks.gif); }
 #q .port .img { left:-65px; top:-35px; width:104px; height:90px; background:url(skin/img/city/building_port.gif) -59px 0; }
@@ -2231,11 +2240,7 @@ function unhilightShip() {
 function showSafeWarehouseLevels() {
   function showSafeLevel(div) {
     var n = "wood" == div.parentNode.className ? wood : rest;
-    var safe = createNode("", "ellipsis", n);
-    safe.style.position = "absolute";
-    safe.style.bottom = "5px";
-    safe.style.right = "5px";
-    div.appendChild(safe);
+    div.appendChild(createNode("", "ellipsis", n, "span"));
   }
   var level = config.getCity("building7", 0);
   var wood = buildingCapacity("warehouse", "wood", level);
@@ -2265,7 +2270,7 @@ function showHousingOccupancy(opts) {
 }
 
 function getPopulation() {
-  return parseInt($("value_inhabitants").textContent.match(/\((\d+)/)[1], 10);
+  return number($("value_inhabitants").textContent.match(/\(([\d,]+)/)[1]);
 }
 
 function getMaxPopulation(townHallLevel) {
