@@ -2703,6 +2703,7 @@ function promptLanguage() {
     var newLanguage = prompt("Ikariam Kronos Tools: " +
                              "Which language do you prefer?\n(" +
                              help.join(", ") + ")", getLanguage());
+    if (!newLanguage) return;
     if (langs.hasOwnProperty(newLanguage))
       config.set("language", newLanguage);
   }
