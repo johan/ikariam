@@ -1345,9 +1345,16 @@ function dontSubmitZero(but, nodes) {
       if (inputs[i].type == "text")
         return inputs[i];
   }
-  function setToOne(e) {
+  function sumAll(form) {
+    var count = 0;
+    var inputs = $x('.//input[@type="text"]', form);
+    inputs.forEach(function(i) { count += parseInt(i.value||"0", 10); });
+    return count;
+  }
+  function setToTwo(e) {
     var count = getCount(e.target);
     if (count && count.value == 0) {
+      if (sumAll(count.form) != 0) return;
       count.setAttribute("was", "0");
       count.value = but;
       click(count);
@@ -1363,7 +1370,7 @@ function dontSubmitZero(but, nodes) {
     }
   }
   function improveForm(submit) {
-    submit.addEventListener("mouseover", setToOne, false);
+    submit.addEventListener("mouseover", setToTwo, false);
     submit.addEventListener("mouseout", resetZero, false);
     noArgs && scrollWheelable([submit, getCount(submit)]);
   }
