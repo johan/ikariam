@@ -898,6 +898,7 @@ function upgrade() {
   var l = buildingLevel(b, 0);
   var p = buildingPosition(b);
   var i = cityID();
+  //alert("building "+ b+ ", l"+ l +", id "+ i+ "? -- "+ (haveResources(buildingExpansionNeeds(b, l))));
   if (haveResources(buildingExpansionNeeds(b, l))) {
     return setTimeout(function() {
       config.remCity("build");
@@ -1128,11 +1129,12 @@ function queueState() {
     }
     return "unknown";
   } // busy building something; return time until completion
-  return t - Date.now() + 1e3;
+  return t - Date.now() + 3e3;
 }
 
 function processQueue() {
   var state = queueState(), time = isNumber(state) && state;
+  //console.log("q: "+ state);
   if (time) {
     setTimeout(processQueue, time);
   } else if (0 === time) {
@@ -1144,10 +1146,22 @@ function processQueue() {
   if (!processQueue.css)
     processQueue.css = css(<><![CDATA[
 
+/* Fixes the shadow on the ugly tooltips */
 #WzTtShDwR, #WzTtShDwB {
   background-color: #000 !important;
   opacity: 0.25 !important;
 }
+
+/* Fixes the chopped-off resource icons in military loot reports */
+#militaryAdvisorReportView #battleReportDetail li {
+  padding: 6px 0 2px 32px;
+}
+
+/* Fixes the broken warehouse tooltips in port view */
+#port #container ul.resources li .tooltip .textLabel {
+  position: static;
+}
+
 
 #q .barracks .img { left:0px; top:-33px; width:100px; height:76px; background-image:url(skin/img/city/building_barracks.gif); }
 #q .port .img { left:-65px; top:-35px; width:104px; height:90px; background:url(skin/img/city/building_port.gif) -59px 0; }
@@ -1966,7 +1980,7 @@ function number(n) {
   return parseFloat(n.replace(/[^\d.-]+/g, ""));
 }
 
-function colonize() {
+function colonizeView() {
   function annotate(what, time) {
     what.innerHTML += " ("+ time +")";
   }
@@ -2108,7 +2122,7 @@ function improveTopPanel() {
   span.parentNode.insertBefore(time, span.nextSibling);
   if (flow.W < 0)
     time.title = lang[empty] + resolveTime(number(span)/-flow.W * 3600, 1);
-  else {
+  else if (flow.W > 0) {
     var reap = secondsToHours(jsVariable("startTradegoodDelta"));
     time.title = "+"+ reap +"/-"+ (reap - flow.W);
     projectWarehouseFull(time, "wine", number(span), flow.W);
@@ -2282,17 +2296,21 @@ function projectPopulation(opts) {
   //console.log(wellDigging, holiday, tavern, wine, museum, culture, happy);
 
   var population = opts && opts.population || getPopulation();
+  var initialGrowth = getGrowth(population);
+  var growthSignSame = initialGrowth > 0 ? function plus(p) { return p > 0; } :
+                                          function minus(p) { return p < 0; };
   var currentPopulation = population;
   var asymptoticPopulation = population, asymAt;
-  while (getGrowth(asymptoticPopulation) > 0)
-    asymptoticPopulation++;
+  var change = initialGrowth > 0 ? 1 : -1;
+  while (growthSignSame(getGrowth(asymptoticPopulation)))
+    asymptoticPopulation += change;
 
   var time = 0;
-  var happiness = getGrowth(population);
+  var currentGrowth = initialGrowth;
   var maximumPopulation = getMaxPopulation();
-  while ((happiness > 0) && (population < maximumPopulation)) {
-    happiness = getGrowth(population);
-    population += happiness / 4; // add 15 minutes of growth
+  while (growthSignSame(currentGrowth) && (population < maximumPopulation)) {
+    currentGrowth = getGrowth(population);
+    population += currentGrowth / 4; // add 15 minutes of growth
     time += 60 * 15;
   }
 
@@ -2327,7 +2345,7 @@ function projectPopulation(opts) {
   var upgrade = !upgradingTownHall && asymptoticPopulation > maximumPopulation;
   return {
       happy: happy - currentPopulation,
-     growth: getGrowth(currentPopulation),
+     growth: initialGrowth,
     current: currentPopulation,
  asymptotic: asymptoticPopulation,
     maximum: maximumPopulation,
@@ -2607,7 +2625,7 @@ function principal() {
     case "buildingGround": buildingGroundView(); break;
     case "branchOffice": branchOfficeView(); break;
     case "researchOverview": techinfo(); break;
-    case "colonize": colonize(); break;
+    case "colonize": scrollWheelable(); colonizeView(); break;
     case "merchantNavy": merchantNavyView(); break;
     case "militaryAdvisorReportView":
       militaryAdvisorReportViewView(); break;
