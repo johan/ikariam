@@ -2290,6 +2290,11 @@ function improveTopPanel() {
 .ellipsis:before { content:"("; }
 .ellipsis:after { content:")"; }
 
+#cityNav .citySelect .optionList li {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 #island #container #mainview ul#islandfeatures li.marble { z-index: 400; }
 
 #loot-report {
