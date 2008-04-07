@@ -2892,7 +2892,7 @@ function principal() {
 
   improveTopPanel();
   if ({ city: 1, island: 1 }[view])
-    unsafeWindow.friends = eval(config.getServer("culturetreaties", "({})"));
+    unsafeWindow.friends = eval(config.getServer("culturetreaties", "([])"));
 
   var FIN = new Date();
   langChoice.title = lang[execTime] +": "+ (FIN - DEBUT) +"ms";
