@@ -1606,6 +1606,11 @@ function museumView() {
   for (var i = 0; i<cities.length; i++)
     if ((goods = $("textfield_city_"+ cities[i])))
       config.setCity("culture", parseInt(goods.value||"0", 10), cities[i]);
+
+  var friends = $x('id("mainview")/div[last()]//td[@class="actions"]/a[1]');
+  for (var i = 0; i < friends.length; i++)
+    friends[i] = urlParse("receiverName", friends[i].search);
+  config.setServer("culturetreaties", friends);
 }
 
 function academyView() {
@@ -2886,6 +2891,8 @@ function principal() {
   }
 
   improveTopPanel();
+  if ({ city: 1, island: 1 }[view])
+    unsafeWindow.friends = eval(config.getServer("culturetreaties", "({})"));
 
   var FIN = new Date();
   langChoice.title = lang[execTime] +": "+ (FIN - DEBUT) +"ms";
