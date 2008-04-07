@@ -285,8 +285,7 @@ function makeShowScoreCallback(name, type, ul, n, id) {
 
       ul = ul || cityinfoPanel();
       var city = $X('../preceding-sibling::div[@class="cityimg"]', n);
-      try {
-      if (unsafeWindow.friends && unsafeWindow.friends.indexof(name) != -1) {
+      if (unsafeWindow.friends && unsafeWindow.friends.indexOf(name) != -1) {
         n.style.fontStyle = "italic";
         n.title = "You have a culture treaty with this player";
         if (city) {
@@ -299,7 +298,6 @@ function makeShowScoreCallback(name, type, ul, n, id) {
           city.style.backgroundImage = getComputedStyle(city, "").
             backgroundImage.replace("red.gif", "yellow.gif");
       }
-      } catch(e) {}
 
       // You rob gold (size * (size - 1)) % of the treasury of the city:
       if ("gold" == type)
