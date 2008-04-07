@@ -173,7 +173,7 @@ function keyboard(e) {
 
   var keys = {
     "\t": tab, j: counterClockwise, k: clockwise,
-    d: invoke("diplomacy"), t: invoke("transport"),
+    d: invoke("diplomacy"), t: invoke("transport"), f: invoke("defend_port"),
     p: invoke("plunder"), b: invoke("blockade"), s: invoke("espionage")
   };
 
@@ -284,13 +284,22 @@ function makeShowScoreCallback(name, type, ul, n, id) {
       if ("yes" != cached) cacheValue(id, type, score);
 
       ul = ul || cityinfoPanel();
-      if (n && "0" == score && "military" == type) {
-        n.style.fontWeight = "bold"; // n.style.fontStyle = "italic";
-        n = $X('../preceding-sibling::div[@class="cityimg"]', n);
-        if (n)
-          n.style.backgroundImage = getComputedStyle(n,"").
+      var city = $X('../preceding-sibling::div[@class="cityimg"]', n);
+      try {
+      if (unsafeWindow.friends && unsafeWindow.friends.indexof(name) != -1) {
+        n.style.fontStyle = "italic";
+        n.title = "You have a culture treaty with this player";
+        if (city) {
+          city.className = "allyCityImg";
+          city.parentNode.title = n.title;
+        }
+      } else if (n && "0" == score && "military" == type) {
+        n.style.fontWeight = "bold";
+        if (city)
+          city.style.backgroundImage = getComputedStyle(city, "").
             backgroundImage.replace("red.gif", "yellow.gif");
       }
+      } catch(e) {}
 
       // You rob gold (size * (size - 1)) % of the treasury of the city:
       if ("gold" == type)
