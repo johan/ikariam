@@ -137,12 +137,15 @@ function urlParse(param, url) {
   return param ? keys[param] : keys;
 }
 
-function createNode(id, classN, html, tag, styles) { // On ajoute un div
-  var div = document.createElement(tag||"div"); // on crée le div
-  if (id) div.id = id; // on lui ajoute l'id
-  if (classN) div.className = classN; // le class
+function createNode(id, classN, html, tag, styles, htmlp) {
+  var div = document.createElement(tag||"div");
+  if (id) div.id = id;
+  if (classN) div.className = classN;
   if (isDefined(html))
-    div.appendChild(document.createTextNode(html)); // on lui ajoute du texte
+    if (htmlp)
+      div.innerHTML = html;
+    else
+      div.appendChild(document.createTextNode(html));
   if (styles)
     for (var prop in styles)
       div.style[prop] = styles[prop];
@@ -165,8 +168,14 @@ function createBr() { // fonction de création saut de ligne
   return document.createElement("br");
 }
 
-function css(rules) {
-  return GM_addStyle(isString(rules) ? rules : rules.toString()) || 1;
+function css(rules, disabled) {
+  var head = $X('/html/head');
+  var style = document.createElement("style");
+  style.type = "text/css";
+  style.textContent = isString(rules) ? rules : rules.toString();
+  if (isBoolean(disabled))
+    style.disabled = disabled;
+  return head.appendChild(style);
 }
 
 function addCSSBubbles() { css(<><![CDATA[
@@ -241,13 +250,145 @@ function militaryAdvisorMilitaryMovementsView() {
   $x('//li/div/div[contains(@id,"CountDown")]').forEach(project);
 }
 
+function makeLootTable(table, reports) {
+  function filterView() {
+    var visible = show.filter(function(x) { return x.checked; });
+    if ((hide.disabled = 0 == visible.length)) return;
+    hide.textContent = hideMost + "#loot-report tr.loot." +
+      pluck(visible, "id").join(".") + " { display: table-row; }";
+  }
+
+  function filter(check) {
+    return function() { click(check); };
+  }
+
+  function sort(col, key) {
+    function move(junk, i, all) {
+      var pos = keys[i] % all.length;
+      buffer.insertBefore(tr[pos], buffer.firstChild);
+    }
+
+    var td = $x('tr[starts-with(@class,"loot")]/td['+ (col+1) +']', body);
+    if (!td.length) return;
+    var keys = td.map(key);
+    keys.sort(function ascending(a, b) { return a > b ? 1 : -1; });
+    var tr = pluck(td, "parentNode");
+    var last = tr[tr.length-1].nextSibling;
+
+    var buffer = document.createDocumentFragment();
+    tr.forEach(move);
+    body.insertBefore(buffer, last);
+  }
+
+  function sortByTime() {
+    function key(td, i, all) {
+      var M, D, h, m;
+      [D, M, h, m] = trim(td.textContent).split(/\D+/g);
+      return integer([M, D, h, m].join("")) * all.length + i;
+    }
+    sort(2, key);
+  }
+
+  function sortByLoot(col) {
+    return function(e) {
+      function key(td, i, all) {
+        var value = number(td.firstChild || 0);
+        return value * all.length + i;
+      }
+      sort(col, key);
+    };
+  }
+
+  function showLoot(report) {
+    var tr = report.tr;
+    delete report.tr;
+    var loot = report.l;
+    var has = ["loot"];
+    for (var c = 3; c < cols.length; c++) {
+      var td = tr.insertCell(c);
+      var r = cols[c];
+      if (!loot || !loot[r]) continue;
+      td.className = "number";
+      var got = {}; got[r] = loot[r];
+      td.innerHTML = visualResources(got);
+      has.push(r);
+    }
+    tr.className = has.join(" ");
+  }
+
+  table.id = "loot-report";
+  var hideMost = "#loot-report tr.loot { display:none; }";
+  var hide = css("", true);
+  unsafeWindow.hide = hide;
+  var body = $X('tbody', table);
+  var head = body.insertRow(0);
+  var cols = [, , , "g", "w", "W", "M", "C", "S"];
+  var show = [];
+  var title = [,,
+    "Time", "$gold", "$wood", "$wine", "$marble", "$glass", "$sulfur", "City"];
+  for (var i = 0; i < 11; i++) {
+    var r = cols[i];
+    var t = title[i] || "";
+    var th = createNode("", r ? "number" : "", visualResources(t),
+                        i && i < 10 ? "th" : "td", null, "html");
+    head.appendChild(th);
+    if ("Time" == t)
+      clickTo(th, sortByTime);
+    if (!r) continue;
+
+    var check = document.createElement("input");
+    check.type = "checkbox";
+    check.id = r;
+    th.insertBefore(check, th.firstChild);
+    show.push(check);
+
+    //var img = $X('img', th);
+    clickTo(th, sortByLoot(i), 'not(self::input)');
+    //clickTo(check, filterView); -- (preventDefault:s)
+    check.addEventListener("click", filterView, false);
+    dblClickTo(th, filter(check), "", true);
+  }
+
+  reports.forEach(showLoot);
+  unsafeWindow.markAll = safeMarkAll;
+
+  // need to restow these a bit not to break the layout:
+  var selection = $X('tr[last()]/td[@class="selection"]', body);
+  var go = $X('tr[last()]/td[@class="go"]', body);
+  go.parentNode.removeChild(go);
+  selection.innerHTML += go.innerHTML;
+  selection.setAttribute("colspan", "7");
+  selection.className += " go";
+  go = $X('input[@type="submit"]', selection);
+  go.style.marginLeft = "6px";
+}
+
+function safeMarkAll(cmd) {
+  //console.log("safe %x!", cmd);
+  var boxes = $x('id("finishedReports")//input[@type="checkbox" and not(@id)]');
+  for (var i = 0; i < boxes.length; i++) {
+    var box = boxes[i], tr = $X('ancestor::tr[1]', box);
+    if ("none" != getComputedStyle(tr, "").display) {
+      if ("checked" == cmd) box.checked = true;
+      if ("reverse" == cmd) box.checked = !box.checked;
+    }
+  }
+}
+
+function copy(object) {
+  // Doug Crockford
+  var fn = function() {};
+  fn.prototype = object;
+  return new fn;
+}
+
 function militaryAdvisorCombatReportsView() {
   function parseDate(t) {
     var Y, M, D, h, m;
     if ((t = t && trim(t.textContent).split(/\D+/))) {
       [D, M, h, m] = t.map(function(n) { return parseInt(n, 10); });
       Y = (new Date).getFullYear();
-      return  (new Date(Y, M - 1, D, h, m)).getTime();
+      return (new Date(Y, M - 1, D, h, m)).getTime();
     }
   }
   function fileReport(tr, n) {
@@ -257,17 +398,13 @@ function militaryAdvisorCombatReportsView() {
     var d = $X('td[@class="date"]', tr);
     var t = parseDate(d);
     repId[n] = r;
-    if (allreps[r]) {
-      var loot = allreps[r].l;
-      if (loot) {
-        d.innerHTML += " \xA0 " + visualResources(loot);
-        d.style.whiteSpace = "nowrap";
-      }
-    } else {
+    if (!allreps[r]) {
       w ? history.won++ : history.lost++;
       newreps[r] = { t: t, w: 0 + w };
       allreps[r] = newreps[r];
     }
+    rows[n] = copy(allreps[r]);
+    rows[n].tr = tr;
   }
   var table = $X('id("finishedReports")/table[@class="operations"]');
   if (!table) return;
@@ -277,6 +414,7 @@ function militaryAdvisorCombatReportsView() {
   var newreps = {};
   var cities = {};
   var repId = [];
+  var rows = [];
   reports.forEach(fileReport);
 
   var city = eval(config.getServer("cities", "({})"));
@@ -308,6 +446,7 @@ function militaryAdvisorCombatReportsView() {
       a.parentNode.appendChild(island);
     }
   }
+  makeLootTable(table, rows);
 
   config.setServer("war", history);
   config.setServer("reports", allreps);
@@ -732,7 +871,7 @@ function levelResources() {
   function annotate(what) {
     var node = $X('id("islandfeatures")/li['+ what +']');
     var level = number(node.className);
-    config.setIsle(resourceIDs[node.className.split(" ")[0]], level);
+    config.Setisle(resourceIDs[node.className.split(" ")[0]], level);
     var div = createNode("", "pointsLevelBat", level);
     node.appendChild(div);
   }
@@ -1988,12 +2127,23 @@ function secsToDHMS(t, rough, join) {
 }
 
 function number(n) {
-  if ("object" == typeof n)
+  if (isNumber(n)) return n;
+  if (isObject(n))
     if (/input/i.test(n.nodeName||""))
       n = n.value;
     else if (n.textContent)
       n = n.textContent;
   return parseFloat(n.replace(/[^\d.-]+/g, ""));
+}
+
+function integer(n) {
+  if (isNumber(n)) return n;
+  if (isObject(n))
+    if (/input/i.test(n.nodeName||""))
+      n = n.value;
+    else if (n.textContent)
+      n = n.textContent;
+  return parseInt(n.replace(/[^\d-]+/g, ""), 10);
 }
 
 function colonizeView() {
@@ -2030,7 +2180,7 @@ function clickTo(node, action, condition, capture, event) {
       if (!condition || $X(condition, e.target)) {
         e.stopPropagation();
         e.preventDefault();
-        if ("function" == typeof action)
+        if (isFunction(action))
           action(e);
         else
           goto(action);
@@ -2127,6 +2277,32 @@ function improveTopPanel() {
 .ellipsis:after { content:")"; }
 
 #island #container #mainview ul#islandfeatures li.marble { z-index: 400; }
+
+#loot-report {
+  border-collapse: separate;
+  border-spacing: 1px;
+}
+
+#loot-report th {
+  background-color: #E0B16D;
+  border: 1px solid #BB9765;
+  padding: 1px 3px 3px;
+  font-size: large;
+}
+
+#loot-report td.date {
+  white-space: nowrap;
+}
+
+#loot-report .number {
+  text-align: right;
+  white-space: nowrap;
+}
+
+#loot-report .number input {
+  margin: 0 4px 2px;
+  opacity: 0.7;
+}
 
 ]]></>);
 
@@ -2551,7 +2727,8 @@ function panelInfo() { // Ajoute un element en plus dans le menu.
   return langChoice;
 }
 
-function islandID() {
+function islandID(city) {
+
   return urlParse("id", $X('//li[@class="viewIsland"]/a').search);
 }
 
@@ -2824,7 +3001,9 @@ function isArray(a) { return a && a.hasOwnProperty("length"); }
 function isString(s) { return "string" == typeof s; }
 function isNumber(n) { return "number" == typeof n; }
 function isObject(o) { return "object" == typeof o; }
+function isBoolean(b) { return "boolean" == typeof b; }
 function isDefined(v) { return "undefined" != typeof v; }
+function isFunction(f) { return "function" == typeof f; }
 function isUndefined(u) { return "undefined" == typeof u; }
 
 function rmNode(node) {
