@@ -871,7 +871,7 @@ function levelResources() {
   function annotate(what) {
     var node = $X('id("islandfeatures")/li['+ what +']');
     var level = number(node.className);
-    config.Setisle(resourceIDs[node.className.split(" ")[0]], level);
+    config.setIsle(resourceIDs[node.className.split(" ")[0]], level);
     var div = createNode("", "pointsLevelBat", level);
     node.appendChild(div);
   }
@@ -2323,10 +2323,12 @@ function improveTopPanel() {
 
   // other resource flow
   var income = { wood:flow.w };
-  var luxe = flow[luxuryType()];
+  var type = luxuryType();
+  var luxe = flow[type];
   var name = luxuryType("name");
   if (name != "wine") // already did that
     income[name] = luxe;
+  config.setCity("r", type); // city resource type, for the city selection pane
 
   for (name in income) {
     var amount = income[name];
@@ -2392,6 +2394,8 @@ function showCityBuildCompletions() {
   for (var i = 0; i < lis.length; i++) {
     var id = ids[i];
     var url = config.getCity("buildurl", 0, ids[i]);
+    var res = config.getCity("r", "", id);
+    var li = lis[i];
     var t = config.getCity("build", 0, ids[i]);
     if (t && t > Date.now() && url) {
       t = resolveTime((t - Date.now()) / 1e3, 1);
@@ -2404,9 +2408,22 @@ function showCityBuildCompletions() {
       };
       var a = createNode("", "ellipsis", t, "a", styles);
       a.href = url;
-      lis[i].appendChild(a);
+      li.appendChild(a);
     }
-    lis[i].title = " ";
+    li.title = " "; // to remove the town hall tooltip
+    if (res) {
+      var has = {}; has[res] = "";
+      li.innerHTML = visualResources(has) + li.innerHTML;
+      var img = $X('img', li);
+      img.height = Math.round(img.height / 2);
+      img.width = Math.round(img.width / 2);
+      img.style.margin = "0 3px";
+      img.style.background = "none";
+      if (id == cityID()) {
+        var current = $X('preceding::div[@class="dropbutton"]', li);
+        current.insertBefore(img.cloneNode(true), current.firstChild);
+      }
+    }
   }
 }
 
