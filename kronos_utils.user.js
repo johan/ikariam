@@ -280,6 +280,15 @@ function makeLootTable(table, reports) {
     body.insertBefore(buffer, last);
   }
 
+  function sortByCity() {
+    function key(td, i, all) {
+      var a = $X('a[2]', td);
+      var id = a ? urlParse("selectCity", a.search) : 0;
+      return id * all.length + i;
+    }
+    sort(9, key);
+  }
+
   function sortByTime() {
     function key(td, i, all) {
       var M, D, h, m;
@@ -332,8 +341,8 @@ function makeLootTable(table, reports) {
     var th = createNode("", r ? "number" : "", visualResources(t),
                         i && i < 10 ? "th" : "td", null, "html");
     head.appendChild(th);
-    if ("Time" == t)
-      clickTo(th, sortByTime);
+    if ("Time" == t) clickTo(th, sortByTime);
+    if ("City" == t) clickTo(th, sortByCity);
     if (!r) continue;
 
     var check = document.createElement("input");
