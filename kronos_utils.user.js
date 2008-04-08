@@ -2378,7 +2378,9 @@ function improveTopPanel() {
   var name = luxuryType("name");
   if (name != "wine") // already did that
     income[name] = luxe;
-  config.setCity("r", type); // city resource type, for the city selection pane
+
+  // city resource type, for the city selection pane:
+  config.setCity("r", type, focusedCityID());
 
   for (name in income) {
     var amount = income[name];
@@ -2439,6 +2441,7 @@ function improveTopPanel() {
 }
 
 function showCityBuildCompletions() {
+  var focused = focusedCityID();
   var lis = get("citynames");
   var ids = cityIDs();
   for (var i = 0; i < lis.length; i++) {
@@ -2461,6 +2464,7 @@ function showCityBuildCompletions() {
       li.appendChild(a);
     }
     li.title = " "; // to remove the town hall tooltip
+
     if (res) {
       var has = {}; has[res] = "";
       li.innerHTML = visualResources(has) + li.innerHTML;
@@ -2469,7 +2473,7 @@ function showCityBuildCompletions() {
       img.width = Math.round(img.width / 2);
       img.style.margin = "0 3px";
       img.style.background = "none";
-      if (id == cityID()) {
+      if (id == focused) {
         var current = $X('preceding::div[@class="dropbutton"]', li);
         current.insertBefore(img.cloneNode(true), current.firstChild);
       }
@@ -2797,6 +2801,13 @@ function panelInfo() { // Ajoute un element en plus dans le menu.
 function islandID(city) {
 
   return urlParse("id", $X('//li[@class="viewIsland"]/a').search);
+}
+
+function focusedCityID(index) {
+  var names = get("citynames"), name;
+  for (var i = 0; name = names[i]; i++)
+    if (/active/.test(name.className||""))
+      return index ? i : cityIDs()[i];
 }
 
 function cityID() {
