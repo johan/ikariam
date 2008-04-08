@@ -316,10 +316,16 @@ function makeLootTable(table, reports) {
     for (var c = 3; c < cols.length; c++) {
       var td = tr.insertCell(c);
       var r = cols[c];
+      if ("#" == r) {
+        var wonToday = hits[report.c] || ""
+        td.innerHTML = wonToday;
+        if (wonToday > 5)
+          td.className = "warn"; // bash alert!
+      }
       if (!loot || !loot[r]) continue;
       td.className = "number";
       var got = {}; got[r] = loot[r];
-      td.innerHTML = visualResources(got);
+      td.innerHTML = visualResources(got, { size: 0.5 });
       has.push(r);
     }
     tr.className = has.join(" ");
@@ -328,22 +334,23 @@ function makeLootTable(table, reports) {
   table.id = "loot-report";
   var hideMost = "#loot-report tr.loot { display:none; }";
   var hide = css("", true);
-  unsafeWindow.hide = hide;
   var body = $X('tbody', table);
   var head = body.insertRow(0);
-  var cols = [, , , "g", "w", "W", "M", "C", "S"];
+  var cols = [, , , "g", "w", "W", "M", "C", "S", "#"];
+  var hits = {}; // indexed on city id, values are attacks today
   var show = [];
-  var title = [,,
-    "Time", "$gold", "$wood", "$wine", "$marble", "$glass", "$sulfur", "City"];
-  for (var i = 0; i < 11; i++) {
+  var title = [, , "Time",
+               "$gold", "$wood", "$wine", "$marble", "$glass", "$sulfur",
+               "#", "City"];
+  for (var i = 0; i < 12; i++) {
     var r = cols[i];
     var t = title[i] || "";
     var th = createNode("", r ? "number" : "", visualResources(t),
-                        i && i < 10 ? "th" : "td", null, "html");
+                        i && i < 11 ? "th" : "td", null, "html");
     head.appendChild(th);
     if ("Time" == t) clickTo(th, sortByTime);
     if ("City" == t) clickTo(th, sortByCity);
-    if (!r) continue;
+    if ("#" == t || !r) continue;
 
     var check = document.createElement("input");
     check.type = "checkbox";
@@ -358,6 +365,12 @@ function makeLootTable(table, reports) {
     dblClickTo(th, filter(check), "", true);
   }
 
+  var yesterday = Date.now() - (25 * 36e5);
+  for (var i = 0; r = reports[i]; i++) {
+    var recent = r.t > yesterday;
+    if (recent && r.w && r.c)
+      hits[r.c] = 1 + (hits[r.c] || 0);
+  }
   reports.forEach(showLoot);
   unsafeWindow.markAll = safeMarkAll;
 
@@ -444,11 +457,6 @@ function militaryAdvisorCombatReportsView() {
       var name = city[r.c].n;
       var text = a.textContent;
       text = text.slice(0, text.lastIndexOf(name));
-      if (r.w && recent) {
-        text = nth(c) +" "+ text;
-        if (c > 5)
-          a.style.fontStyle = "italic"; // warn about bashing
-      }
       a.textContent = text;
       var island = linkTo(urlTo("island", { island: city[r.c].i, city: r.c }),
                           null, null, { text: name });
@@ -866,6 +874,16 @@ function islandView() {
     setTimeout(focusCity, 200, city);
   levelTown();
   levelResources();
+  var breadcrumbs = $X('id("breadcrumbs")/span[last()]'), x, y, junk;
+  if (breadcrumbs && 0) {
+    [junk, x, y] = breadcrumbs.textContent.match(/\[(\d+):(\d+)\]/);
+    breadcrumbs.textContent += " ("+ secsToDHMS(travelTime(x, y)) +")";
+  }
+}
+
+function travelTime(x1, y1, x2, y2) {
+  var dx = x2 - x1, dy = y2 - y1;
+  return 60 * 20 * (1 + Math.sqrt(dx*dx + dy*dy));
 }
 
 function click(node) {
@@ -2051,6 +2069,13 @@ function visualResources(what, opt) {
   function replace(m, icon) {
     var margin = { glass: -3 }[icon] || -5;
     icon = eval(icon);
+    if (opt && opt.size) {
+      var h0 = icon.@height, h1 = Math.ceil(opt.size * h0);
+      var w0 = icon.@width,  w1 = Math.ceil(opt.size * w0);
+      margin = margin + Math.floor((h0 - h1) / 2);
+      icon.@height = h1;
+      icon.@width = w1;
+    }
     icon.@style = "margin-bottom: "+ margin +"px";
     return icon.toXMLString();
   }
@@ -2311,6 +2336,12 @@ function improveTopPanel() {
 
 #loot-report td.date {
   white-space: nowrap;
+}
+
+#loot-report td.warn {
+  font-size: 14px;
+  font-weight: bolder;
+  color: red;
 }
 
 #loot-report .number {
