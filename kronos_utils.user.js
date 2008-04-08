@@ -270,9 +270,12 @@ function makeLootTable(table, reports) {
 
     var td = $x('tr[starts-with(@class,"loot")]/td['+ (col+1) +']', body);
     if (!td.length) return;
-    var keys = td.map(key);
-    keys.sort(function ascending(a, b) { return a > b ? 1 : -1; });
     var tr = pluck(td, "parentNode");
+    var keys = td.map(key);
+    var direction = col == 9 ?
+      function descending(a, b) { return a < b ? 1 : -1; } :
+      function ascending(a, b) { return a > b ? 1 : -1; };
+    keys.sort(direction);
     var last = tr[tr.length-1].nextSibling;
 
     var buffer = document.createDocumentFragment();
@@ -283,19 +286,27 @@ function makeLootTable(table, reports) {
   function sortByCity() {
     function key(td, i, all) {
       var a = $X('a[2]', td);
-      var id = a ? urlParse("selectCity", a.search) : 0;
+      var id = a ? integer(urlParse("selectCity", a.search)) : 0;
       return id * all.length + i;
     }
-    sort(9, key);
+    sort(11, key);
   }
 
-  function sortByTime() {
+  function sortByWhen() {
     function key(td, i, all) {
       var M, D, h, m;
       [D, M, h, m] = trim(td.textContent).split(/\D+/g);
       return integer([M, D, h, m].join("")) * all.length + i;
     }
     sort(2, key);
+  }
+
+  function sortByDistance() {
+    function key(td, i, all) {
+      var t = Math.round(td.getAttribute("time")) || 1000000;
+      return t * all.length + i;
+    }
+    sort(9, key);
   }
 
   function sortByLoot(col) {
@@ -316,6 +327,15 @@ function makeLootTable(table, reports) {
     for (var c = 3; c < cols.length; c++) {
       var td = tr.insertCell(c);
       var r = cols[c];
+      if ("T" == r && report.c) {
+        var t = travelTime(report.c);
+        if (t) {
+          td.setAttribute("time", t+"");
+          td.innerHTML = secsToDHMS(t, 1);
+          td.className = "time";
+        }
+        continue;
+      }
       if ("#" == r) {
         var wonToday = hits[report.c] || ""
         td.innerHTML = wonToday;
@@ -336,20 +356,22 @@ function makeLootTable(table, reports) {
   var hide = css("", true);
   var body = $X('tbody', table);
   var head = body.insertRow(0);
-  var cols = [, , , "g", "w", "W", "M", "C", "S", "#"];
+  var cols = [, , , "g", "w", "W", "M", "C", "S", "T", "#"];
   var hits = {}; // indexed on city id, values are attacks today
   var show = [];
-  var title = [, , "Time",
+  var title = [, , "When",
                "$gold", "$wood", "$wine", "$marble", "$glass", "$sulfur",
-               "#", "City"];
-  for (var i = 0; i < 12; i++) {
+               "Time", "#", "City"];
+  for (var i = 0; i < 13; i++) {
     var r = cols[i];
     var t = title[i] || "";
-    var th = createNode("", r ? "number" : "", visualResources(t),
-                        i && i < 11 ? "th" : "td", null, "html");
+    var th = createNode("", r ? "Time" == t ? "": "number" : "",
+                        visualResources(t),
+                        i && i < 12 ? "th" : "td", null, "html");
     head.appendChild(th);
-    if ("Time" == t) clickTo(th, sortByTime);
+    if ("When" == t) clickTo(th, sortByWhen);
     if ("City" == t) clickTo(th, sortByCity);
+    if ("Time" == t) { clickTo(th, sortByDistance); continue; }
     if ("#" == t || !r) continue;
 
     var check = document.createElement("input");
@@ -895,11 +917,18 @@ function islandView() {
 }
 
 function travelTime(x1, y1, x2, y2) {
-  if (arguments.length < 3) {
-    var r = referenceIslandID();
-    x2 = config.getIsle("x", 0, r);
-    y2 = config.getIsle("y", 0, r);
-    //console.log("to isle %x at %x:%y", r, x2, y2);
+  if (arguments.length == 1) { // a city id
+    var city = isleForCity(x1);
+    x1 = config.getIsle("x", 0, city);
+    y1 = config.getIsle("y", 0, city);
+    //console.log("isle %x at %x:%y", city, x1, y1);
+    if (!x1 || !y1) return 0;
+  }
+  if (arguments.length < 4) {
+    city = referenceIslandID();
+    x2 = config.getIsle("x", 0, city);
+    y2 = config.getIsle("y", 0, city);
+    //console.log("to isle %x at %x:%y", city, x2, y2);
     if (!x2 || !y2) return 0;
   }
   var dx = x2 - x1, dy = y2 - y1;
@@ -1609,6 +1638,11 @@ function highlightMeInTable() {
   var tr = $x('id("mainview")/div[@class="othercities"]' +
               '//tr[td[@class="actions"][count(*) = 0]]');
   if (tr.length == 1) tr[0].style.background = "pink";
+}
+
+function isleForCity(city) {
+  var cities = config.getServer("cities", {});
+  return (cities[city] || {}).i;
 }
 
 function cityView() {
@@ -2377,6 +2411,12 @@ function improveTopPanel() {
 
 #loot-report .number {
   text-align: right;
+  white-space: nowrap;
+}
+
+#loot-report .time {
+  font-size: 11px;
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -3210,6 +3250,7 @@ var config = (function(data) {
       delete data[name];
     else
       data[name] = value;
+    //console.count("set");
     GM_setValue("config", uneval(data));
     return value;
   }
