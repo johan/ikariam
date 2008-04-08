@@ -1600,9 +1600,6 @@ function townHallView() {
   var income = $X('//li[contains(@class,"incomegold")]/span[@class="value"]');
   config.setCity("gold", number(income));
 
-  var growth = $X('//li[contains(@class,"growth")]/span[@class="value"]');
-  config.setServer("growth", number(growth));
-
   var g = { context: $("PopulationGraph") };
   var growth = $("SatisfactionOverview");
   linkTo("wood", 'div[@class="woodworkers"]/span[@class="production"]', 0, g);
@@ -2193,11 +2190,14 @@ function colonizeView() {
 
   var have = currentResources();
 
+/* FIXME: hook up the population predictor with a "time until X pop" option
   var growth = config.getServer("growth", 0);
   var needPop = $X('//ul/li[@class="citizens"]');
   if (have.p < 40 && growth > 0)
     annotate(needPop, resolveTime((40 - have.p) / (growth / 3600.0), 1));
+*/
 
+  // FIXME: really ought to kill this code full of lies too
   var income = config.getServer("income", 0);
   var needGold = $X('//ul/li[@class="gold"]');
   if (have.g < 12e3 && income > 0)
@@ -3001,6 +3001,154 @@ function $X( xpath, root ) {
   return got instanceof Array ? got[0] : got;
 }
 
+
+function upgradeConfig0() {
+  function makeNWO() {
+    var obj = { v: 1 };
+    for (var name in nwo)
+      obj[name] = {};
+    return obj;
+  }
+  var ns = {};
+  var nwo = { capital:1, treaties:1, cities:1, islands:1, techs:1, battles:1 };
+  var old = config.keys(), key, server, isle, city, tech, r, b, save, junk;
+  for (var i = 0; key = old[i]; i++) {
+    var value = config.get(save = key);
+
+    // belongs to which server scope?
+    if ((server = key.match(/(.*):([^:]+\D[^.])$/))) {
+      [junk, key, server] = server;
+    } else { // data sanitization; probably drop
+      if ("language" == key) {
+        ns.config = ns.config || {};
+        ns.config[key] = value;
+      }
+      continue;
+    }
+    var scope = ns[server] || makeNWO();
+    ns[server] = scope;
+
+
+    // server global stuff first:
+    if ((tech = key.match(/^tech(\d+)$/))) {
+      [junk, tech] = tech;
+      scope.techs[tech] = 1;
+      continue;
+    }
+
+    if (/^research(|Done)$/.test(key)) {
+      scope = scope.techs;
+      scope.research = scope.research || {};
+    }
+
+    switch (key) {
+      case "war":
+        scope = scope.battles;
+        scope.won = value.won;
+        scope.lost = value.lost;
+        continue;
+
+      case "cities":
+        scope = scope.cities;
+        for (var id in value) {
+          city = scope[id] = scope[id] || {};
+          city.i = value[id].i;
+          city.n = value[id].n;
+        }
+        continue;
+
+      case "capital":		scope.capital = integer(value); continue;
+      case "reports":		scope.battles.reports = value; continue;
+      case "research":		scope.research.n = value; continue;
+      case "researchDone":	scope.research.t = value; continue;
+      case "culturetreaties":	scope.treaties.culture = value; continue;
+    }
+
+
+    // island global stuff; only resource levels at this time:
+    if ((isle = key.match(/^(.*)\/(\d+)$/))) {
+      [junk, r, isle] = isle;
+      scope.islands[isle] = scope.islands[isle] || {};
+      scope = scope.islands[isle];
+      scope[r] = value;
+      if ("w" != r)
+        scope.r = r;
+      continue;
+    }
+
+
+    // the rest; city local stuff:
+    if (!(city = key.match(/^(.*):(\d+)$/)))
+      continue;
+    [junk, key, city] = city;
+
+    city = scope.cities[city] = scope.cities[city] || {};
+
+    if ((b = key.match(/^(building|posbldg)(\d+)$/))) {
+      [junk, key, b] = b;
+      if (!city.l) city.l = [];
+      if (!city.p) city.p = [];
+      if ("building" == key)
+        city.l[b] = value;
+      else
+        city.p[b] = value;
+      continue;
+    }
+
+    switch (key) {
+      case "q":		city.q = eval(value); continue;
+      case "r":		city.r = value; continue; // temporary hack
+      case "gold":	city.g = value; continue;
+      case "build":	city.t = value; continue;
+      case "buildurl":	city.u = value; continue;
+
+      default:
+        continue;
+
+      case "wine":		b = buildingIDs.tavern; break;
+      case "culture":		b = buildingIDs.museum; break;
+      case "researchers":	b = buildingIDs.academy; break;
+    }
+    if (!city.x) city.x = {};
+    city.x[b] = integer(value);
+  }
+  return ns;
+}
+
+/*
+s10.org: {
+  techs: {all tech id:s we have},
+         .research: {
+           i: 2090,
+           n: "Helping hands",
+           t: 1207648486127
+         },
+  battles: {
+    won: 113,
+   lost: 8,
+reports: {
+      BID: {
+        t:1207175100000, w:1, l:{g:136, W:59}, c:38714, a:attackingCity?},
+      }
+  },
+  cities: {
+    4711: {
+      n: name,
+      i: iID,
+      g: gold net income,
+      t: completionTime,
+      u: buildURL,
+      l: [ lvl0, ...], // building level
+      p: [ pos0, ...], // building position
+      q: [ bID, ...], // buildings sceduled to be built
+      x: { bID:building-special - tavern: wine level; academy: scientists,
+           r: resourceWorkers, w: woodWorkers },
+      b: { bID:time busy to }
+    }, ...
+  }
+}
+*/
+
 // config.get() and config.set() store config data in (near-)json in prefs.js.
 var config = (function(data) {
   function get(name, value) {
@@ -3045,7 +3193,7 @@ var config = (function(data) {
     re = re || /./;
     var list = [];
     for (var id in data)
-      if (data.hasOwnProperty(id) && id.test(re))
+      if (data.hasOwnProperty(id) && re.test(id))
         list.push(id);
     return list;
   }
@@ -3109,4 +3257,5 @@ function hideshow(node, nodes) {
 
 lang = langs[getLanguage()];
 
+//prompt(1, upgradeConfig0().toSource());
 principal(); // Appel de la fonction principal.
