@@ -439,7 +439,7 @@ function militaryAdvisorCombatReportsView() {
   var rows = [];
   reports.forEach(fileReport);
 
-  var city = eval(config.getServer("cities", "({})"));
+  var city = config.getServer("cities", {});
   for (var i = reports.length; --i >= 0;) {
     var a = $X('.//a', reports[i]);
     var r = allreps[repId[i]];
@@ -475,10 +475,10 @@ function militaryAdvisorReportViewView() {
   var loot = parseResources('//td[@class="winner"]/ul[@class="resources"]/li');
   var a =  $X('//a[normalize-space(preceding-sibling::text()[1]) = ' +
               '"Battle for"]');
-  var cities = eval(config.getServer("cities", "({})"));
+  var cities = config.getServer("cities", {});
   var city = parseInt(urlParse("selectCity", a.search));
   var island = parseInt(urlParse("id", a.search));
-  var reports = eval(config.getServer("reports", "({})"));
+  var reports = config.getServer("reports", {});
   var r = urlParse("combatId");
   var report = reports[r];
   if (report) {
@@ -711,10 +711,10 @@ function buildingExtraInfo(div, id, name, level) {
   }
 
   if (-1 == cityIDs().indexOf(cityID()) && "wall" != name) return;
+  var originalLevel = buildingLevel(id, 0, "saved");
 
   switch (name) {
     case "townHall":
-      var originalLevel = buildingLevel(id, 0, "saved");
       if (originalLevel != level) {
         var delta = getMaxPopulation(level) - getMaxPopulation(originalLevel);
         if (delta > 0) delta = "+" + delta;
@@ -747,6 +747,14 @@ function buildingExtraInfo(div, id, name, level) {
       var working = config.getCity("researchers", 0);
       if (working != seats)
         annotate(working +"/"+ seats);
+      break;
+
+    case "warehouse":
+      var wood = buildingCapacity("warehouse", "wood", level);
+      var rest = buildingCapacity("warehouse", "rest", level);
+      if (originalLevel != level && wood && rest)
+        annotate(wood +"/"+ rest);
+      break;
   }
 }
 
@@ -874,14 +882,26 @@ function islandView() {
     setTimeout(focusCity, 200, city);
   levelTown();
   levelResources();
-  var breadcrumbs = $X('id("breadcrumbs")/span[last()]'), x, y, junk;
-  if (breadcrumbs && 0) {
+  var island = urlParse("id", $X('id("advCities")/a').search);
+  var breadcrumbs = $X('id("breadcrumbs")/span[last()]'), x, y, t, junk;
+  if (breadcrumbs && island) {
     [junk, x, y] = breadcrumbs.textContent.match(/\[(\d+):(\d+)\]/);
-    breadcrumbs.textContent += " ("+ secsToDHMS(travelTime(x, y)) +")";
+    config.setIsle("x", x = integer(x), island);
+    config.setIsle("y", y = integer(y), island);
+    //console.log("isle %x at %x:%y", island, x, y);
+    if ((t = travelTime(x, y)))
+      breadcrumbs.textContent += " ("+ secsToDHMS(t) +")";
   }
 }
 
 function travelTime(x1, y1, x2, y2) {
+  if (arguments.length < 3) {
+    var r = referenceIslandID();
+    x2 = config.getIsle("x", 0, r);
+    y2 = config.getIsle("y", 0, r);
+    //console.log("to isle %x at %x:%y", r, x2, y2);
+    if (!x2 || !y2) return 0;
+  }
   var dx = x2 - x1, dy = y2 - y1;
   return 60 * 20 * (1 + Math.sqrt(dx*dx + dy*dy));
 }
@@ -1592,6 +1612,17 @@ function highlightMeInTable() {
 }
 
 function cityView() {
+  var city = cityID(), isle;
+  if (referenceCityID() == city) {
+    if ((isle = $X('id("changeCityForm")//li[@class="viewIsland"]/a'))) {
+      var cities = config.getServer("cities", {});
+      cities[city] = cities[city] || {};
+      city = cities[city];
+      city.i = integer(urlParse("id", isle.search));
+      city.n = cityName();
+      config.setServer("cities", cities);
+    }
+  }
   projectCompletion("cityCountdown", null, '../preceding-sibling::a');
   levelBat();
 }
@@ -2380,7 +2411,7 @@ function improveTopPanel() {
     income[name] = luxe;
 
   // city resource type, for the city selection pane:
-  config.setCity("r", type, focusedCityID());
+  config.setCity("r", type, referenceCityID());
 
   for (name in income) {
     var amount = income[name];
@@ -2441,7 +2472,7 @@ function improveTopPanel() {
 }
 
 function showCityBuildCompletions() {
-  var focused = focusedCityID();
+  var focused = referenceCityID();
   var lis = get("citynames");
   var ids = cityIDs();
   for (var i = 0; i < lis.length; i++) {
@@ -2720,7 +2751,6 @@ function tavernView() {
     var pop = showHousingOccupancy({ wine: amount() });
     var rate = $("growthRate") || makeGrowthrate();
     rate.innerHTML = sign(pop.growth.toFixed(2));
-    console.log(pop.toSource(), rate);
   }
   var wine = $("wineAmount").form.elements.namedItem("amount");
   wine.parentNode.addEventListener("DOMNodeInserted", function() {
@@ -2803,7 +2833,13 @@ function islandID(city) {
   return urlParse("id", $X('//li[@class="viewIsland"]/a').search);
 }
 
-function focusedCityID(index) {
+function referenceIslandID(city) {
+  city = city || referenceCityID();
+  city = config.getServer("cities", {})[city];
+  return city && city.i;
+}
+
+function referenceCityID(index) {
   var names = get("citynames"), name;
   for (var i = 0; name = names[i]; i++)
     if (/active/.test(name.className||""))
@@ -2822,6 +2858,10 @@ function cityID() {
 
 function cityIDs() {
   return pluck($x('id("citySelect")/option'), "value");
+}
+
+function cityName() {
+  return cityNames()[referenceCityID("index")];
 }
 
 function cityNames() {
@@ -2867,6 +2907,8 @@ function principal() {
 
   switch (view || action) {
     case "tavern": tavernView(); break;
+    case "resource": // fall-through:
+    case "tradegood": // fall-through:
     case "transport": // fall-through:
     case "takeOffer": scrollWheelable(); break;
     case "resource": // fall-through:
@@ -3157,8 +3199,8 @@ var config = (function(data) {
   function getCity(name, value, id) {
     return getServer(name +":"+ (id || cityID()), value);
   }
-  function getIsle(name, value) {
-    return getServer(name +"/"+ islandID(), value);
+  function getIsle(name, value, id) {
+    return getServer(name +"/"+ (id || cityID()), value);
   }
   function getServer(name, value) {
     return get(name +":"+ location.hostname, value);
@@ -3174,8 +3216,8 @@ var config = (function(data) {
   function setCity(name, value, id) {
     return setServer(name +":"+ (id || cityID()), value);
   }
-  function setIsle(name, value) {
-    return setServer(name +"/"+ islandID(), value);
+  function setIsle(name, value, id) {
+    return setServer(name +"/"+ (id || islandID()), value);
   }
   function setServer(name, value) {
     return set(name +":"+ location.hostname, value);
