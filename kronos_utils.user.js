@@ -170,14 +170,14 @@ function gotoCity(url, id) {
   if (isDefined(id)) {
     city.selectedIndex = ids.indexOf(id);
   } else {
-    var index = referenceIslandID("index");
+    var index = referenceCityID("index");
     city.selectedIndex = index;
     id = ids[index];
   }
   var form = city.form;
   if (isDefined(url)) form.action = url;
-  form.elements.itemByName("oldView").value = "city";
-  form.elements.itemByName("id").value = id;
+  form.elements.namedItem("oldView").value = "city";
+  form.elements.namedItem("id").value = id;
   form.submit()
 }
 
@@ -1123,6 +1123,7 @@ function changeQueue(e) {
 }
 
 function reallyUpgrade(name) {
+  //console.log("upgrading %x", name);
   var i = cityID();
   var q = getQueue();
   var b = buildingID(name);
@@ -1150,7 +1151,9 @@ function reallyUpgrade(name) {
 }
 
 function upgrade() {
-  if (!getQueue().length) return;
+  console.log("upgrade: %x", !getQueue().length);
+  var q = getQueue();
+  if (!q.length) return;
   var b = q.shift();
   var l = buildingLevel(b, 0);
   if (haveResources(buildingExpansionNeeds(b, l))) // ascertain we're in a good
@@ -1375,7 +1378,7 @@ function queueState() {
 
 function processQueue(mayUpgrade) {
   var state = queueState(), time = isNumber(state) && state;
-  //console.log("q: "+ state);
+  //console.log("q: "+ state, mayUpgrade);
   if (time) {
     setTimeout(processQueue, time);
   } else if (0 === time) {
@@ -2928,10 +2931,11 @@ function referenceIslandID(city) {
 }
 
 function referenceCityID(index) {
+  if (index) return $("citySelect").selectedIndex;
   var names = get("citynames"), name;
   for (var i = 0; name = names[i]; i++)
     if (/active/.test(name.className||""))
-      return index ? i : cityIDs()[i];
+      return cityIDs()[i];
 }
 
 function cityID() {
@@ -3050,9 +3054,8 @@ function principal() {
 
   var queued;
   if ((queued = (location.hash||"").match("#q:(.*)")))
-    reallyUpgrade(queued);
-  else
-    processQueue(false);
+    reallyUpgrade(queued[1]);
+  processQueue(!queued);
   document.addEventListener("click", changeQueue, true);
 
   var research = config.getServer("research", "");
