@@ -1702,12 +1702,12 @@ function townHallView() {
 function museumView() {
   var goods = $X('id("val_culturalGoodsDeposit")/..');
   if (goods)
-    config.setCity("culture", goods.textContent.match(/\d+/)[0]);
+    config.setCity("culture", integer(goods.textContent.match(/\d+/)[0]));
 
   var cities = cityIDs();
-  for (var i = 0; i<cities.length; i++)
+  for (var i = 0; i < cities.length; i++)
     if ((goods = $("textfield_city_"+ cities[i])))
-      config.setCity("culture", parseInt(goods.value||"0", 10), cities[i]);
+      config.setCity("culture", integer(goods), cities[i]);
 
   var friends = $x('id("mainview")/div[last()]//td[@class="actions"]/a[1]');
   for (var i = 0; i < friends.length; i++)
@@ -2892,7 +2892,6 @@ function panelInfo() { // Ajoute un element en plus dans le menu.
 }
 
 function islandID(city) {
-
   return urlParse("id", $X('//li[@class="viewIsland"]/a').search);
 }
 
@@ -2916,11 +2915,11 @@ function cityID() {
     if (buildingIDs.hasOwnProperty(view) ||
         { city:1 }[view])
       return id;
-  return urlParse("id", $X('//li[@class="viewCity"]/a').search);
+  return integer(urlParse("id", $X('//li[@class="viewCity"]/a').search));
 }
 
 function cityIDs() {
-  return pluck($x('id("citySelect")/option'), "value");
+  return pluck($x('id("citySelect")/option'), "value").map(integer);
 }
 
 function cityName() {
