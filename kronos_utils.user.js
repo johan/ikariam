@@ -1511,6 +1511,28 @@ function portView() {
   setTimeout(projectCompletion, 4e3, "outgoingOwnCountDown");
 }
 
+function evenShips(nodes) {
+  function sum(a, b) {
+    return integer(a || 0) + integer(b || 0);
+  }
+  function fillNextEvenShip(e) {
+    var input = e.target;
+    var value = number(input);
+    var count = nodes.reduce(sum, 0);
+    var remainder = count % 300;
+    if (remainder) {
+      input.value = value + (300 - remainder);
+      e.stopPropagation();
+    }
+  }
+  function listen(input) {
+    input.addEventListener("dblclick", fillNextEvenShip, false);
+  }
+  if (stringOrUndefined(nodes))
+    nodes = $x(nodes || '//input[@type="text" and @name]');
+  nodes.forEach(listen);
+}
+
 function scrollWheelable(nodes) {
   function getCount(node) {
     return $X('preceding-sibling::input[@type="text"] |' +
@@ -2740,6 +2762,7 @@ function projectCompletion(id, className, loc) {
   var node = "string" == typeof id ? $(id) : id, set = false;
   if ("number" == typeof className) className = loc = undefined; // forEach/map
   if (node) {
+    id = node.id;
     // console.log("T: %x", $("servertime").textContent);
     // console.log("L: %x", node.textContent);
     // console.log("D: %x", parseTime(node.textContent));
@@ -2947,12 +2970,11 @@ function principal() {
 
   switch (view || action) {
     case "tavern": tavernView(); break;
-    case "resource": // fall-through:
-    case "tradegood": // fall-through:
-    case "transport": // fall-through:
+    case "resource":  // fall-through:
+    case "tradegood": highlightMeInTable(); // fall-through:
+    case "deployment": // fall-through:
     case "takeOffer": scrollWheelable(); break;
-    case "resource": // fall-through:
-    case "tradegood": highlightMeInTable(); break;
+    case "transport": scrollWheelable(); evenShips(); break;
     case "loginAvatar":// &function=login
     case "CityScreen": // &function=build&id=...&position=4&building=13
     case "city": cityView(); break;
