@@ -164,6 +164,23 @@ function goto(href) {
   location.href = href.match(/\?/) ? href : urlTo(href);
 }
 
+function gotoCity(url, id) {
+  var city = $("citySelect");
+  var ids = cityIDs();
+  if (isDefined(id)) {
+    city.selectedIndex = ids.indexOf(id);
+  } else {
+    var index = referenceIslandID("index");
+    city.selectedIndex = index;
+    id = ids[index];
+  }
+  var form = city.form;
+  if (isDefined(url)) form.action = url;
+  form.elements.itemByName("oldView").value = "city";
+  form.elements.itemByName("id").value = id;
+  form.submit()
+}
+
 function createBr() { // fonction de création saut de ligne
   return document.createElement("br");
 }
@@ -312,7 +329,7 @@ function makeLootTable(table, reports) {
   function sortByLoot(col) {
     return function(e) {
       function key(td, i, all) {
-        var value = number(td.firstChild || 0);
+        var value = integer(td.firstChild || 0);
         return value * all.length + i;
       }
       sort(col, key);
@@ -495,8 +512,7 @@ function militaryAdvisorCombatReportsView() {
 
 function militaryAdvisorReportViewView() {
   var loot = parseResources('//td[@class="winner"]/ul[@class="resources"]/li');
-  var a =  $X('//a[normalize-space(preceding-sibling::text()[1]) = ' +
-              '"Battle for"]');
+  var a = $X('id("battleReportDetail")//a');
   var cities = config.getServer("cities", {});
   var city = parseInt(urlParse("selectCity", a.search));
   var island = parseInt(urlParse("id", a.search));
@@ -535,7 +551,7 @@ var xpath = {
   ship: 'id("globalResources")/ul/li[@class="transporters"]/a',
   citynames: 'id("changeCityForm")//ul[contains(@class,"optionList")]/li'
 };
-add('id("value_%s")', "wood", "wine", "marble", "crystal");
+add('id("value_%s")', "wood", "wine", "marble", "crystal", "sulfur");
 
 function get(what, context) {
   var many = { citynames: 1 };
@@ -584,7 +600,7 @@ function parseResources(res) {
     for (var i = 0; i < res.length; i++) {
       r = res[i];
       id = resourceIDs[r.className.split(" ")[0]];
-      o[id] = number(r);
+      o[id] = integer(r);
     }
   else
     return null;
@@ -1106,14 +1122,16 @@ function changeQueue(e) {
   }
 }
 
-function upgrade() {
+function reallyUpgrade(name) {
+  var i = cityID();
   var q = getQueue();
-  if (!q.length) return;
-  var b = q.shift();
+  var b = buildingID(name);
   var l = buildingLevel(b, 0);
   var p = buildingPosition(b);
-  var i = cityID();
-  //alert("building "+ b+ ", l"+ l +", id "+ i+ "? -- "+ (haveResources(buildingExpansionNeeds(b, l))));
+  if (q.shift() != b) { // some other window got there before us; abort
+    location.hash = "#q:in-progress";
+    return;
+  }
   if (haveResources(buildingExpansionNeeds(b, l))) {
     return setTimeout(function() {
       config.remCity("build");
@@ -1124,11 +1142,19 @@ function upgrade() {
       post("/index.php", {
         action: "CityScreen",
       function: "upgradeBuilding",
-            id: cityID(),
+            id: i,
       position: p,
          level: l });
     }, 3e3);
   }
+}
+
+function upgrade() {
+  if (!getQueue().length) return;
+  var b = q.shift();
+  var l = buildingLevel(b, 0);
+  if (haveResources(buildingExpansionNeeds(b, l))) // ascertain we're in a good
+    return gotoCity("/#q:"+ buildingClass(b)); // view -- and in the right city
 
   // FIXME: figure out when to re-test, if at all, and setTimeout(upgrade)
 }
@@ -1347,13 +1373,13 @@ function queueState() {
   return t - Date.now() + 3e3;
 }
 
-function processQueue() {
+function processQueue(mayUpgrade) {
   var state = queueState(), time = isNumber(state) && state;
   //console.log("q: "+ state);
   if (time) {
     setTimeout(processQueue, time);
   } else if (0 === time) {
-    upgrade();
+    if (mayUpgrade) upgrade();
   } // else FIXME? This might be safe, if unrelated pages don't self-refresh:
   //setTimeout(goto, 3e3, "city"); // May also not be needed at all there
 
@@ -3022,7 +3048,11 @@ function principal() {
   projectCompletion(buildDiv);
   projectHaveResourcesToUpgrade();
 
-  processQueue(upgradeDiv || buildDiv);
+  var queued;
+  if ((queued = (location.hash||"").match("#q:(.*)")))
+    reallyUpgrade(queued);
+  else
+    processQueue(false);
   document.addEventListener("click", changeQueue, true);
 
   var research = config.getServer("research", "");
