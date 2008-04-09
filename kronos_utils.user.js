@@ -1418,6 +1418,14 @@ function processQueue(mayUpgrade) {
   position: static;
 }
 
+/* Fixes the layout of resource costs in shipyard/barracks */
+#shipyard #container #mainview .unit .resources li,
+#barracks #container #mainview .unit .resources li {
+  float: none;
+  padding-bottom: 5px;
+}
+
+
 #container #cityResources li .tooltip {
   padding: 4px 5px;
   white-space: nowrap;
@@ -2624,6 +2632,64 @@ function unhilightShip() {
   if (ship) ship.style.backgroundPosition = "";
 }
 
+var troops = { // land units:
+  301: {n:"Slinger",p:1,w:40,b:"12m",u:8,m:1,o:4,a:7,d:7,A:2,D:2,s:10,c:"Human",v:20},
+  302: {n:"Swordsman",p:2,w:47,S:16,b:"17m",u:16,m:3,o:5,a:18,d:14,A:4,D:3,s:12,c:"Human",v:20,x:"Assault"},
+  303: {n:"Phalanx",p:4,w:104,S:64,b:"40m",u:24,m:4,o:7,a:24,d:40,A:6,D:10,s:14,c:"Human",v:20,x:"Resistance"},
+  307: {n:"Ram",p:8,w:198,S:128,b:"42m",u:52,m:5,o:8,a:14,d:18,A:3,D:4,s:16,c:"Machina",v:20,x:"Ram"},
+  313: {n:"Archer",p:4,w:172,S:86,b:"49m",u:32,m:7,o:10,a:40,d:40,A:10,D:10,s:12,c:"Human",v:20},
+  306: {n:"Catapult",p:10,w:342,S:232,b:"49m",u:72,m:10,o:14,a:36,d:28,A:9,D:7,s:16,c:"Machina",v:20,x:"Ram"},
+  304: {n:"Gunsman",p:7,w:355,S:154,b:"1h 23m",u:58,m:14,o:18,a:80,d:64,A:18,D:14,s:10,c:"Human",v:20},
+  305: {n:"Mortar",p:12,w:1325,S:938,b:"1h 53m",u:128,m:19,o:21,a:64,d:64,A:15,D:15,s:16,c:"Machina",v:20,x:"Ram"},
+  308: {n:"Steam Giant",p:6,w:1150,S:716,b:"1h 45m",u:68,m:16,o:20,a:100,d:140,A:20,D:30,s:14,c:"Machina",v:20,x:"Resistance"},
+  312: {n:"Gyrocopter",p:8,w:1250,S:670,b:"1h 2m",u:97,m:12,o:16,a:112,d:112,A:25,D:25,s:12,c:"Machina",v:20},
+  309: {n:"Bombardier",p:24,w:2270,S:878,b:"2h 10m",u:228,m:22,o:24,a:200,d:165,A:45,D:35,s:14,c:"Machina",v:20,x:"Assault"},
+  311: {n:"Doctor",p:6,w:640,C:361,b:"1h 2m",u:244,m:11,o:12,a:4,d:28,A:0,D:0,s:14,c:"Human",v:20,x:"Healer"},
+  310: {n:"Cook",p:4,w:520,W:103,b:"38m",u:138,m:8,o:8,a:6,d:26,A:0,D:0,s:16,c:"Human",v:20,x:"Regeneration"}
+};
+
+var ships = { // sea units:
+  201: {n:"Cargo Ship",a:0,d:0,s:4,c:"Steamship",v:20,A:0,D:0},
+  210: {n:"Ram-Ship",p:6,w:56,S:21,b:"34m",u:20,m:1,o:3,a:16,d:16,A:4,D:4,s:10,c:"Sailer",v:10},
+  213: {n:"Ballista Ship",p:5,w:72,S:29,b:"47m",u:24,m:3,o:5,a:20,d:28,A:5,D:7,s:11,c:"Sailer",v:8,x:"Resistance"},
+  211: {n:"Flamethrower",p:5,w:105,S:77,b:"1h 55m",u:45,m:5,o:7,a:40,d:40,A:10,D:10,s:12,c:"Steamship",v:8,x:"Assault"},
+  214: {n:"Catapult Ship",p:10,w:173,S:76,b:"3h 11m",u:57,m:7,o:10,a:60,d:60,A:12,D:12,s:16,c:"Sailer",v:6},
+  215: {n:"Mortar Ship",p:22,w:456,S:282,b:"3h 38m",u:130,m:12,o:15,a:160,d:160,A:35,D:35,s:14,c:"Steamship",v:4},
+  216: {n:"Paddle Wheel Ram",p:12,w:513,S:167,b:"4h 8m",u:114,m:10,o:13,a:100,d:90,A:20,D:18,s:13,c:"Steamship",v:8,x:"Assault"},
+  212: {n:"Diving Boat",p:16,w:493,C:378,b:"5h 5m",u:126,m:15,o:16,a:110,d:155,A:20,D:30,s:10,c:"Steamship",v:2,x:"Resistance"}
+};
+
+function showUnitLevels(specs) {
+  function level(what, id, li, pre, post) {
+    var l = 0;
+    var is = what.charAt(), up = is.toUpperCase();
+    var img = $X('img[@class="'+ what +'-icon"]', li);
+    if (img)
+      l = 4 - img.src.match(/(\d)\.gif$/)[1];
+    var unit = specs[id];
+    $X('div/h4', li).innerHTML += pre + (unit[is] + unit[up]*l) + post;
+  }
+  function augmentUnit(li) {
+    var id = $X('div[@class="unitinfo"]/a', li).search.match(/id=(\d+)$/i);
+    if (id) {
+      id = id[1];
+      level("att", id, li, " (", "");
+      level("def", id, li, "/", ")");
+    }
+  }
+  $x('id("units")/li[div[@class="unitinfo"]]').forEach(augmentUnit);
+}
+
+function shipyardView() {
+  dontSubmitZero();
+  showUnitLevels(ships);
+}
+
+function barracksView() {
+  dontSubmitZero();
+  showUnitLevels(troops);
+}
+
 function showSafeWarehouseLevels() {
   function showSafeLevel(div) {
     var n = "wood" == div.parentNode.className ? wood : rest;
@@ -3027,12 +3093,8 @@ function principal() {
     case "museum": museumView(); break;
     case "fleetGarrisonEdit": // fall-through:
     case "armyGarrisonEdit": dontSubmitZero(); break;
-    case "shipyard": // fall-through:
-    case "barracks":
-      dontSubmitZero();
-      css(<><![CDATA[
-#container #mainview .unit .resources li { float: none; padding-bottom: 5px; }
-      ]]></>); break; // (can't fall-through yet:)
+    case "shipyard": shipyardView(); break;
+    case "barracks": barracksView(); break;
     case "buildingGround": buildingGroundView(); break;
     case "branchOffice": branchOfficeView(); break;
     case "researchOverview": techinfo(); break;
