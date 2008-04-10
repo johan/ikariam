@@ -731,6 +731,9 @@ function addResources(a, b, onlyIterateA) {
 function subResources(a, b, onlyIterateA) {
   return opResources(a, b, function(a, b) { return a - b; }, onlyIterateA);
 }
+function mulResources(a, factor) {
+  return opResources(a, 0, function(n) { return Math.round(factor * n); }, 1);
+}
 
 function opResources(a, b, op, onlyIterateA) {
   var o = {}, r;
@@ -1377,6 +1380,8 @@ function drawQueue() {
   if (buildEnd > Date.now() && building) {
     building = buildingID(urlParse("view", building));
     level[building] = 1 + (level[building] || 0);
+    var replenished = mulResources(pace, (buildEnd - Date.now()) / 3600e3);
+    have = addResources(have, replenished);
   }
 
   for (var i = 0; i < q.length; i++) {
@@ -1434,6 +1439,7 @@ function drawQueue() {
 
     // Upgrade and move clock forwards upgradeTime seconds
     annotateBuilding(li, level[b]++);
+    have = subResources(have, need); // FIXME - improve (zero out negative)
     dt = parseTime(need.t);
     t += (dt + 1) * 1000;
 
