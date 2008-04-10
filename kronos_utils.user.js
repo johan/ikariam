@@ -859,9 +859,9 @@ function buildingCapacity(b, l, warehouse) {
   return isDefined(warehouse) ? c && c[warehouse] : c;
 }
 
-function buildingExpansionNeeds(a, level) {
-  level = isDefined(level) ? level : a && number(a.title);
-  var needs = costs[b = buildingID(a)][level];
+function buildingExpansionNeeds(b, level) {
+  level = isDefined(level) ? level : buildingLevel(b);
+  var needs = costs[b = buildingID(b)][level];
   var value = {};
   var factor = 1.00;
   if (config.getServer("tech2020")) factor -= 0.02; // Pulley
@@ -878,11 +878,10 @@ function buildingExpansionNeeds(a, level) {
 function haveEnoughToUpgrade(a) {
   var upgrade = buildingExpansionNeeds(a);
   var resources = currentResources();
-  var enough = true;
   for (var resource in upgrade)
     if (resource != "t" && resources[resource] < upgrade[resource])
-      enough = false;
-  return enough;
+      return false;
+  return true;
 }
 
 function buildingExtraInfo(div, id, name, level) {
@@ -1402,19 +1401,32 @@ function drawQueue() {
 
     // Will we have everything needed by then?
     var need = buildingExpansionNeeds(b, level[b]++);
-    //console.log(b, level[b]-1, need ? need.toSource() : need);
     annotateBuilding(li, level[b]);
-    var stall = {};
-    var stalled = false;
-    for (var r in pace)
-      have[r] += pace[r];
-    for (var r in need) {
-      if (r == "t") continue;
-      if (need[r] > have[r]) {
-        stalled = true;
-        stall[r] = need[r] - have[r];
+
+    // No? Annotate with what is missing, and its replenish time, if > 0
+    if (!haveEnoughToUpgrade(b)) {
+      var stall = {};
+      for (var r in need) {
+        if (r == "t") continue;
+        if (need[r] > have[r])
+          stall[r] = need[r] - have[r];
+        have[r] -= need[r];
       }
-      have[r] -= need[r];
+
+      stall = replenishTime(stall, have, miss);
+      var time = stall.t;
+      if (time == Infinity) {
+        stall.t = "∞"; // FIXME: this merits a more clear error message
+      } else {
+        dt += time;
+        t += time * 1e3;
+        stall.t = secsToDHMS(time, 1, " ");
+      }
+      var div = showResourceNeeds(stall, li, null, "112px", "");
+      div.style.backgroundColor = "#FCC";
+      div.style.borderColor = "#E88";
+      div.title = lang[unreplenished];
+      console.log(stall.toSource());
     }
 
     // FIXME? error condition when storage[level[warehouse]] < need[resource]
@@ -1422,23 +1434,6 @@ function drawQueue() {
     // Move clock forwards upgradeTime seconds
     dt = parseTime(need.t);
     t += (dt + 1) * 1000;
-
-    // When we did not: annotate with what is missing, and its replenish time
-    if (stalled) {
-      stall = replenishTime(stall, have, miss);
-      stalled = stall.t;
-      if (stalled == Infinity) {
-        stall.t = "∞"; // FIXME: this merits a more clear error message
-      } else {
-        dt += stalled;
-        t += stalled * 1e3;
-        stall.t = secsToDHMS(stalled, 1, " ");
-      }
-      var div = showResourceNeeds(stall, li, null, "112px", "");
-      div.style.backgroundColor = "#FCC";
-      div.style.borderColor = "#E88";
-      div.title = lang[unreplenished];
-    }
 
     var done = trim(resolveTime((t - Date.now()) / 1000));
     done = createNode("", "timetofinish", done);
@@ -1950,8 +1945,10 @@ function townHallView() {
   linkTo("wood", 'div[@class="woodworkers"]/span[@class="production"]', 0, g);
   linkTo("luxe", 'div[@class="specialworkers"]/span[@class="production"]', 0,g);
   linkTo("academy", 'div[@class="scientists"]/span[@class="production"]', 0, g);
-  clickTo($X('.//div[@class="cat wine"]', growth), "tavern");
-  clickTo($X('.//div[@class="cat culture"]', growth), "museum");
+  if (buildingLevel("tavern"))
+    clickTo($X('.//div[@class="cat wine"]', growth), "tavern");
+  if (buildingLevel("museum"))
+    clickTo($X('.//div[@class="cat culture"]', growth), "museum");
 
   if ($X('.//div[@class="capital"]', growth))
     config.setServer("capital", cityID());
@@ -2667,7 +2664,10 @@ function improveTopPanel() {
 
 #island #container #mainview ul#islandfeatures li.marble { z-index: 400; }
 
-#mainview #loot-report table.operations td.subject {
+#container #cityResources .resources .disabled a { color:#999; }
+#container #cityResources .resources a { color:#542C0F; }
+
+#mainview #loot-report td.subject {
   white-space: nowrap;
 }
 
@@ -2789,9 +2789,8 @@ function improveTopPanel() {
     });
 
   clickTo(cityNav, urlTo("townHall"), 'self::*[@id="cityNav" or @id="income"]');
-  var normalColor = { color: "#542C0F" };
-  linkTo("luxe", $X('id("value_'+ luxuryType("name") +'")'), normalColor);
-  linkTo("wood", $X('id("value_wood")'), normalColor);
+  linkTo("luxe", $X('id("value_'+ luxuryType("name") +'")'));
+  linkTo("wood", $X('id("value_wood")'));
   $x('id("cityResources")/ul/li[contains("wood wine marble glass sulfur",'+
      '@class)]').forEach(tradeOnClick);
 
