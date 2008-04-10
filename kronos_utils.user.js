@@ -2767,9 +2767,9 @@ function improveTopPanel() {
     linkTo("port", node, { color: "#542C0F" });
   }
 
+  var cityNav = $("cityNav");
   var gold = config.getCity("gold", 0);
   if (gold) {
-    var cityNav = $("cityNav");
     gold = createNode("income", gold < 0 ? "negative" : "",
                       (gold > 0 ? "+" : "") + gold);
     cityNav.appendChild(gold);
