@@ -95,7 +95,7 @@ var langs = {
          "potvrdit", "Použitý jazyk", "Čas dokončení",
          "Žádné budovy ve výstavbě.", "Dřevo", "Luxusní",
          "Zkoumání", "Ukázat", "Skrytý", "Plno: ",
-         "LedÚnoBřeDubKvěČerČecSrpZařŘíjLisPro"
+         "LedÚnoBřeDubKvěČerČecSrpZařŘíjLisPro",
          "; začít expandovat dříve ", "Do fronty",
          "Shift+kliknuti pro přidání na začátek fronty",
          "Nákupní seznam", "Zbylé suroviny ",
