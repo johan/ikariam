@@ -651,7 +651,10 @@ function militaryAdvisorCombatReportsView() {
       a.parentNode.appendChild(island);
     }
   }
-  makeLootTable(table, rows);
+  var header = $X('id("troopsOverview")/div/h3');
+  var loot = createNode("", "", "Show loot table", "a", { marginLeft: "8px" });
+  header.appendChild(loot);
+  clickTo(loot, function() { makeLootTable(table, rows); });
 
   config.setServer("war", history);
   config.setServer("reports", allreps);
@@ -1426,7 +1429,6 @@ function drawQueue() {
       div.style.backgroundColor = "#FCC";
       div.style.borderColor = "#E88";
       div.title = lang[unreplenished];
-      console.log(stall.toSource());
     }
 
     // FIXME? error condition when storage[level[warehouse]] < need[resource]
