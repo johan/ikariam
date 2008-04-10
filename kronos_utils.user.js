@@ -878,11 +878,11 @@ function buildingExpansionNeeds(b, level) {
   return value;
 }
 
-function haveEnoughToUpgrade(a) {
-  var upgrade = buildingExpansionNeeds(a);
-  var resources = currentResources();
+function haveEnoughToUpgrade(b, level, have) {
+  var upgrade = buildingExpansionNeeds(b, level);
+  have = have || currentResources();
   for (var resource in upgrade)
-    if (resource != "t" && resources[resource] < upgrade[resource])
+    if (resource != "t" && have[resource] < upgrade[resource])
       return false;
   return true;
 }
@@ -1403,11 +1403,10 @@ function drawQueue() {
     }
 
     // Will we have everything needed by then?
-    var need = buildingExpansionNeeds(b, level[b]++);
-    annotateBuilding(li, level[b]);
+    var need = buildingExpansionNeeds(b, level[b]);
 
     // No? Annotate with what is missing, and its replenish time, if > 0
-    if (!haveEnoughToUpgrade(b)) {
+    if (!haveEnoughToUpgrade(b, level[b], have)) {
       var stall = {};
       for (var r in need) {
         if (r == "t") continue;
@@ -1433,7 +1432,8 @@ function drawQueue() {
 
     // FIXME? error condition when storage[level[warehouse]] < need[resource]
 
-    // Move clock forwards upgradeTime seconds
+    // Upgrade and move clock forwards upgradeTime seconds
+    annotateBuilding(li, level[b]++);
     dt = parseTime(need.t);
     t += (dt + 1) * 1000;
 
