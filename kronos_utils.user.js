@@ -1481,6 +1481,16 @@ function processQueue(mayUpgrade) {
   background-image:url(skin/layout/scroll_rightend.gif);
 }
 
+#demo table.inside td div.stats {
+  left: 50%;
+  margin-left: -100%;
+  padding-left: 3px;
+  position: relative;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 12px;
+}
+
 ]]></>);
 }
 
@@ -2704,22 +2714,18 @@ var ships = { // sea units:
 };
 
 function showUnitLevels(specs) {
-  function level(what, id, li, pre, post) {
+  function level(what, unit, li, pre, post) {
     var l = 0;
     var is = what.charAt(), up = is.toUpperCase();
     var img = $X('img[@class="'+ what +'-icon"]', li);
     if (img)
       l = 4 - img.src.match(/(\d)\.gif$/)[1];
-    var unit = specs[id];
     $X('div/h4', li).innerHTML += pre + (unit[is] + unit[up]*l) + post;
   }
   function augmentUnit(li) {
-    var id = $X('div[@class="unitinfo"]/a', li).search.match(/id=(\d+)$/i);
-    if (id) {
-      id = id[1];
-      level("att", id, li, " (", "");
-      level("def", id, li, "/", ")");
-    }
+    var stats = unitStatsFromImage($X('div[@class="unitinfo"]//img', li));
+    level("att", stats, li, " (", "");
+    level("def", stats, li, "/", ")");
   }
   $x('id("units")/li[div[@class="unitinfo"]]').forEach(augmentUnit);
 }
@@ -2732,6 +2738,45 @@ function shipyardView() {
 function barracksView() {
   dontSubmitZero();
   showUnitLevels(troops);
+}
+
+function unitStatsFromImage(img) {
+  function normalize(name) {
+    return name.replace(/[ -].*/, "").toLowerCase();
+  }
+  var name = img.src.split("/").pop();
+  if (name) {
+    var junk = /^(ship|y\d+)_|_(r|\d+x\d+)(?=[_.])|_faceright|\....$/g;
+    name = name.replace(junk, "");
+    for (var id in troops)
+      if (normalize(troops[id].n) == name)
+        return troops[id];
+    for (var id in ships)
+      if (normalize(ships[id].n) == name)
+        return ships[id];
+  }
+}
+
+function workshopView() {
+  function show(td, base, delta) {
+    var img = $X('img', td);
+    var type = img && img.src.match(/_([^.]+).gif$/)[1];
+    var level = { bronze: 0, silber: 1, gold: 2 }[type];
+    var was = base + delta * level; // \uFFEB \u27A0
+    var div = createNode("", "stats", was + " \u27A1 "+ (was + delta), "div");
+    td.appendChild(div);
+  }
+
+  function augment(tr) {
+    var stats = unitStatsFromImage($X('td[@class="object"]/img', tr))
+    if (stats) {
+      var cells = $x('td/table[@class="inside"]/tbody/tr[1]/td[1]', tr);
+      show(cells[0], stats.a, stats.A);
+      show(cells[1], stats.d, stats.D);
+    }
+  }
+
+  $x('id("demo")//tr[td[@class="object"]]').forEach(augment);
 }
 
 function showSafeWarehouseLevels() {
@@ -3139,6 +3184,8 @@ function principal() {
     case "armyGarrisonEdit": dontSubmitZero(); break;
     case "shipyard": shipyardView(); break;
     case "barracks": barracksView(); break;
+    case "workshop-army": workshopView("troops"); break;
+    case "workshop-fleet": workshopView("ships"); break;
     case "buildingGround": buildingGroundView(); break;
     case "branchOffice": branchOfficeView(); break;
     case "researchOverview": techinfo(); break;
