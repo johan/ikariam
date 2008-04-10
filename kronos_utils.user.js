@@ -104,8 +104,7 @@ Création de div, br, link etc...
 -------------------------------------*/
 
 function url(query) {
-  var u = location.href.replace(/#.*/, "");
-  return u.replace(/(\?.*)?$/, query||"");
+  return (location.search || "").replace(/(\?.*)?$/, query||"");
 }
 
 function jsVariable(nameValue) {
@@ -283,10 +282,106 @@ function militaryAdvisorMilitaryMovementsView() {
   $x('//li/div/div[contains(@id,"CountDown")]').forEach(project);
 }
 
+// returns a function that only runs expensive function fn after no call to it
+// has been made for n ms, or 100, if not given, or the time fn took last time,
+// if it has been run at least once and no n was given.
+function expensive(fn, n) {
+  function run() {
+    fn.timeout = null;
+    var time = n || new Date;
+    fn();
+    if (!n) duration = (new Date) - time;
+  }
+  var duration;
+  return function() {
+    if (fn.timeout)
+      clearTimeout(fn.timeout);
+    fn.timeout = setTimeout(run, n || duration || 100);
+  };
+}
+
 function makeLootTable(table, reports) {
-  function filterView() {
+  function changedFilters(e) {
+    function filterRow(tr) {
+      var values = $x('td[position() > 3 and position() < 12]', tr).map(value);
+      var show = visiblep.apply(this, values);
+      if (0 && !zzz++) {
+        console.log(unsafeWindow.names = names);
+        console.log(unsafeWindow.values = values);
+        console.log(show);
+      }
+      tr.className = tr.className.replace(/( not-filtered)?$/, show ?
+                                           " not-filtered" : "");
+    }
+    function value(td, n) {
+      var value, time = 6 == n;
+      if (time)
+        value = td.getAttribute("time");
+      else
+        value = td.firstChild;
+      return integer(value || "0");
+      return !value && n > 5 ? -Infinity : value;
+    }
+    var tests = [], names = [];
+    for (var i = 0; i < filters.length; i++) {
+      var f = filters[i];
+      var time = "vT" == f.id;
+      var bash = "vbash" == f.id;
+      var v = time ? parseTime(f.value) : integer(f.value || "0");
+      if (!v && (time || bash)) v = "Infinity";
+      var n = f.id.replace(/^v/, "");
+      var op = $("op"+ n).textContent == "≤" ? "<=" : ">=";
+      var check = $(f.id.slice(1));
+      if (check) {
+        if (v) {
+          if (!check.checked)
+            check.setAttribute("auto", "yep");
+          check.checked = true;
+        } else if (check.getAttribute("auto")) {
+          check.checked = false;
+          check.removeAttribute("auto");
+        }
+      }
+      if (!v) f.value = "";
+      var expr = "("+ n + op + v +")";
+      tests.push(expr);
+      names.push(n);
+    }
+    //console.log("return "+ tests.join(" && ") +";");
+
+    var visiblep = new Function(names, "return "+ tests.join(" && ") +";");
+    $x('tr[starts-with(@class,"loot")]', body).forEach(filterRow);
+  }
+
+  function listen(input) {
+    input.addEventListener("click", expensive(changedFilters), false);
+    input.addEventListener("keyup", function(e) { click(e.target); }, false);
+  }
+
+  function filterView(e) {
+    if (e) {
+      var node = e.target;
+      var text = $("v"+ node.id);
+      if (text) {
+        if (node.checked) {
+          if (!text.value) {
+            text.value = "1";
+            text.setAttribute("auto", "yep");
+            var changed = true;
+          }
+        } else {
+          if (text.getAttribute("auto")) {
+            text.removeAttribute("auto");
+            text.value = "";
+            changed = true;
+          }
+        }
+        if (changed)
+          changedFilters();
+      }
+    }
     var visible = show.filter(function(x) { return x.checked; });
-    if ((hide.disabled = 0 == visible.length)) return;
+    //if ((hide.disabled = 0 == visible.length)) return;
     hide.textContent = hideMost + "#loot-report tr.loot." +
       pluck(visible, "id").join(".") + " { display: table-row; }";
   }
@@ -336,7 +431,7 @@ function makeLootTable(table, reports) {
 
   function sortByDistance() {
     function key(td, i, all) {
-      var t = Math.round(td.getAttribute("time")) || 1000000;
+      var t = td.getAttribute("time") || 1000000;
       return t * all.length + i;
     }
     sort(9, key);
@@ -363,7 +458,7 @@ function makeLootTable(table, reports) {
       if ("T" == r && report.c) {
         var t = travelTime(report.c);
         if (t) {
-          td.setAttribute("time", t+"");
+          td.setAttribute("time", Math.round(t)+"");
           td.innerHTML = secsToDHMS(t, 1);
           td.className = "time";
         }
@@ -381,14 +476,18 @@ function makeLootTable(table, reports) {
       td.innerHTML = visualResources(got, { size: 0.5 });
       has.push(r);
     }
-    tr.className = has.join(" ");
+    tr.className = (tr.className||"").replace(/^.*( non-filtered)?$/,
+                                              has.join(" ") + "$1");
   }
 
   table.id = "loot-report";
-  var hideMost = "#loot-report tr.loot { display:none; }";
+  var override = "#container #mainview #troopsOverview #finishedReports ";
+  var hideMost = "#loot-report tr.loot { display:none; } " + override +
+    "#loot-report tr.loot.not-filtered { display: table-row }";
   var hide = css("", true);
   var body = $X('tbody', table);
   var head = body.insertRow(0);
+  var only = body.insertRow(0);
   var cols = [, , , "g", "w", "W", "M", "C", "S", "T", "#"];
   var hits = {}; // indexed on city id, values are attacks today
   var show = [];
@@ -402,6 +501,21 @@ function makeLootTable(table, reports) {
                         visualResources(t),
                         i && i < 12 ? "th" : "td", null, "html");
     head.appendChild(th);
+    if (1 == i) th.style.minWidth = "25px";
+    if (2 == i) th.style.minWidth = "68px";
+    if (11 == i) th.style.width = "400px";
+    if (r) { // only show filter for cols with relevant data
+      var id = "#" == r ? "bash" : r;
+      var op = config.getCity("report.op."+ r, /[T#]/.test(r) ? "≤" : "≥");
+      var val = config.getCity("report.val."+ r, "");
+      var html = <><span id={"op"+ id}>{op}</span><input
+                         id={"v"+ id} value={val} type="text"/></>;
+      var filter = createNode("", "filter", html, "th", null, "html");
+      only.appendChild(filter);
+      only[r] = $X('input', filter);
+    } else {
+      only.insertCell(i);
+    }
     if ("When" == t) clickTo(th, sortByWhen);
     if ("City" == t) clickTo(th, sortByCity);
     if ("Time" == t) { clickTo(th, sortByDistance); continue; }
@@ -419,6 +533,9 @@ function makeLootTable(table, reports) {
     check.addEventListener("click", filterView, false);
     dblClickTo(th, filter(check), "", true);
   }
+  var filters = cols.filter(I).map(function(r) { return only[r]; });
+  scrollWheelable(filters);
+  filters.forEach(listen);
 
   var yesterday = Date.now() - (25 * 36e5);
   for (var i = 0; r = reports[i]; i++) {
@@ -428,6 +545,9 @@ function makeLootTable(table, reports) {
   }
   reports.forEach(showLoot);
   unsafeWindow.markAll = safeMarkAll;
+
+  changedFilters();
+  filterView();
 
   // need to restow these a bit not to break the layout:
   var selection = $X('tr[last()]/td[@class="selection"]', body);
@@ -1164,7 +1284,7 @@ function reallyUpgrade(name) {
 }
 
 function upgrade() {
-  console.log("upgrade: %x", !getQueue().length);
+  //console.log("upgrade: %x", getQueue().length);
   var q = getQueue();
   if (!q.length) return;
   var b = q.shift();
@@ -1598,17 +1718,40 @@ function scrollWheelable(nodes) {
     return $X('preceding-sibling::input[@type="text"] |' +
               'self::input[@type="text"]', node);
   }
-  function add(count, sign, event) {
-    if (count && sign) {
-      event.preventDefault();
-      var alt = event.altKey ? 100 : 1;
-      var ctrl = event.altKey ? 300 : 1;
-      var meta = event.metaKey ? 1000 : 1;
-      var shift = event.shiftKey ? 10 : 1;
-      count.value = Math.max(0, parseInt(count.value || "0") +
-                                (meta * alt * shift * sign));
-      click(count);
+  function add(node, sign, event) {
+    if (!node || !sign) return;
+    event.preventDefault();
+    var alt = event.altKey ? 100 : 1;
+    var ctrl = event.ctrlKey ? 3 : 1;
+    var meta = event.metaKey ? 1000 : 1;
+    var shift = event.shiftKey ? 10 : 1;
+    var factor = meta * alt * ctrl * shift;
+    var value = node.value || "0";
+    var time = "vT" == node.id;
+    if (time) {
+      value = parseTime(value + "");
+      if (1 == factor)
+        factor = 5;
+      factor *= 60;
+    } else {
+      value = integer(value);
     }
+    value = Math.max(0, value + sign * factor);
+    if (time && value < 40 * 60) { // special case for < 40 minute clustering
+      if (sign == 1) { // adding
+        if (value < 20 * 60)
+          value = 20 * 60;
+        else if (value < 40 * 60)
+          value = 40 * 60;
+      } else { // subtracting
+        if (value < 20 * 60)
+          value = 0;
+        else if (value < 40 * 60)
+          value = 20 * 60;
+      }
+    }
+    node.value = time ? secsToDHMS(value) : value;
+    click(node);
   }
   function groksArrows(event) {
     var sign = {};
@@ -2511,6 +2654,10 @@ function improveTopPanel() {
 
 #island #container #mainview ul#islandfeatures li.marble { z-index: 400; }
 
+#mainview #loot-report table.operations td.subject {
+  white-space: nowrap;
+}
+
 #loot-report {
   border-collapse: separate;
   border-spacing: 1px;
@@ -2520,8 +2667,26 @@ function improveTopPanel() {
   background-color: #E0B16D;
   border: 1px solid #BB9765;
   padding: 1px 3px 3px;
+  white-space: nowrap;
   font-size: large;
 }
+
+#loot-report th.filter {
+  font-size: 11px;
+  text-align: center;
+}
+#loot-report th.filter span {
+  padding-right: 1px;
+  background: white;
+}
+#loot-report th.filter input {
+  border: none;
+  width: 34px;
+}
+#loot-report th.filter #vT    { width: 38px; }
+#loot-report th.filter #vbash { width: 12px; } /* background-color: #E0B16D;*/
+#loot-report th.filter #vbash { text-align: center; }
+#loot-report th.filter #opbash { display: none; }
 
 #loot-report td.date {
   white-space: nowrap;
@@ -2610,7 +2775,7 @@ function improveTopPanel() {
         hideshow(a, [a, a.parentNode]);
     });
 
-  clickTo(cityNav, urlTo("townHall"), 'self::*[@id="cityNav" or @id="income"]');
+  clickTo(cityNav, "townHall", 'self::*[@id="cityNav" or @id="income"]');
   var normalColor = { color: "#542C0F" };
   linkTo("luxe", $X('id("value_'+ luxuryType("name") +'")'), normalColor);
   linkTo("wood", $X('id("value_wood")'), normalColor);
@@ -2762,9 +2927,13 @@ function workshopView() {
     var img = $X('img', td);
     var type = img && img.src.match(/_([^.]+).gif$/)[1];
     var level = { bronze: 0, silber: 1, gold: 2 }[type];
-    var was = base + delta * level; // \uFFEB \u27A0
-    var div = createNode("", "stats", was + " \u27A1 "+ (was + delta), "div");
-    td.appendChild(div);
+    for (var l = 0; l < 3; l++) {
+      var was = base + delta * l; // \uFFEB \u27A0
+      var col = { opacity:l == level ? "1.0" : "0.5" }; // #906646
+      var div = createNode("", "stats", was + " \u27A1 "+ (was + delta), "div",
+                           col);
+      td.appendChild(div);
+    }
   }
 
   function augment(tr) {
@@ -3557,6 +3726,12 @@ function hideshow(node, nodes) {
 }
 
 lang = langs[getLanguage()];
+XML.setSettings({
+  ignoreProcessingInstructions:false,
+  ignoreWhitespace:false,
+  ignoreComments:false,
+  prettyPrinting:false, prettyIndent:2
+});
 
 //prompt(1, upgradeConfig0().toSource());
 principal(); // Appel de la fonction principal.
