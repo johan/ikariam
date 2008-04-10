@@ -52,7 +52,7 @@ var langs = {
          "Kein Gebäude in der Warteschleife.", "Holz", "Luxusgut",
          "aktuelle Forschung", "Sichtbar", "Versteckt", "voll: ",
          "JanFebMärAprMaiJunJulAugSepOktNovDez", "leer: ",
-         "; start expanding before ", "Einreihen",
+         "; beginne den Ausbau vor ", "Einreihen",
          "Shift Klick um es an den Anfang der Warteschleife zu platzieren",
          "Einkaufsliste", "verbliebene Ressourcen ",
          "Ressourcen nicht erreichbar während der Bauzeit "+
@@ -71,7 +71,7 @@ var langs = {
          "bekræft", "Sprog brugt", "Udførelsestid",
          "Ingen bygning venter.", "Træ", "Luxe"],
   // By A.Rosemary:
-  "sp": ["Espagnol", " termina a las ", "Cerrar", "Actualizar más tarde.",
+  "es": ["Espagnol", " termina a las ", "Cerrar", "Actualizar más tarde.",
          "Lista de construcción", "Añadir edificio.", "Construir en",
          "horas", "minutos y", "segundos",
          "confirmar", "Idioma usado", "Tiempo de ejecución",
@@ -88,7 +88,20 @@ var langs = {
          "Shift-klicka för att lägga först i kön",
          "Inköpslista", "Resurser kvar efter ",
          "Resurser som kommer saknas vid byggstart, och inskaffningstid",
-         "Klicka för byggnadsinfo, använd scrollhjulet för andra nivåer"]
+         "Klicka för byggnadsinfo, använd scrollhjulet för andra nivåer"],
+  "cs": ["Czech", " Dokončeno ", "Zavřít", "Rozšířit později.",
+         "Stavební seznam", "Přidat budovu.", "Postavit na",
+         "hodiny", "minuty a", "sekundy",
+         "potvrdit", "Použitý jazyk", "Čas dokončení",
+         "Žádné budovy ve výstavbě.", "Dřevo", "Luxusní",
+         "Zkoumání", "Ukázat", "Skrytý", "Plno: ",
+         "LedÚnoBřeDubKvěČerČecSrpZařŘíjLisPro"
+         "; začít expandovat dříve ", "Do fronty",
+         "Shift+kliknuti pro přidání na začátek fronty",
+         "Nákupní seznam", "Zbylé suroviny ",
+         "Nedostatek surovin ve stavebním čase (i obnovovacím čase)",
+         "Klikni pro info o budově, použij scrolovací kolečko pro " +
+         "prohlížení levelů"]
 };
 var lang;
 
@@ -3441,6 +3454,7 @@ function getLanguage() {
     var guess = navigator.language.replace(/-.*/,"");
     return langs.hasOwnProperty(guess) ? guess : "en";
   }
+  if (config.get("language") == "sp") config.set("language", "es");
   return config.get("language", guess());
 }
 
