@@ -189,7 +189,7 @@ function createLink(nom, href) {
 }
 
 function goto(href) {
-  location.href = location.href.match(/\?/) ? href : urlTo(href);
+  location.href = href.match(/\?/) ? href : urlTo(href);
 }
 
 function gotoCity(url, id) {
@@ -2788,7 +2788,7 @@ function improveTopPanel() {
         hideshow(a, [a, a.parentNode]);
     });
 
-  clickTo(cityNav, "townHall", 'self::*[@id="cityNav" or @id="income"]');
+  clickTo(cityNav, urlTo("townHall"), 'self::*[@id="cityNav" or @id="income"]');
   var normalColor = { color: "#542C0F" };
   linkTo("luxe", $X('id("value_'+ luxuryType("name") +'")'), normalColor);
   linkTo("wood", $X('id("value_wood")'), normalColor);
