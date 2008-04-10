@@ -177,7 +177,7 @@ function createLink(nom, href) {
 }
 
 function goto(href) {
-  location.href = url.match(/\?/) ? href : urlTo(href);
+  location.href = location.href.match(/\?/) ? href : urlTo(href);
 }
 
 function gotoCity(url, id) {
@@ -1238,7 +1238,7 @@ function drawQueue() {
 
   // add a level for what is being built now, if anything
   var building = config.getCity("buildurl");
-  var buildEnd = config.getCity("build");
+  var buildEnd = config.getCity("build", 0);
   if (buildEnd > Date.now() && building) {
     building = buildingID(urlParse("view", building));
     level[building] = 1 + (level[building] || 0);
@@ -2611,7 +2611,7 @@ function improveTopPanel() {
 
   var build = config.getCity("build", 0), now = Date.now();
   if (build > now) {
-    time = $X('//li[@class="serverTime"]');
+    time = $X('id("servertime")/ancestor::li[1]');
     var a = document.createElement("a");
     a.href = config.getCity("buildurl");
     a.appendChild(createNode("done", "textLabel",
@@ -2828,6 +2828,7 @@ function projectPopulation(opts) {
   var nextHQUpgradeTime = parseTime(costs[0][hqLevel].t);
   var upgradingTownHall = $X('id("done")/../@href = "'+ urlTo("townHall") +'"');
 
+  hint.title = lang[full] + resolveTime(time, 1);
   // < 15 min left for expanding Town Hall ahead of time to meet growth?
   if (warn) {
     if (time < 15 * 60 + nextHQUpgradeTime && !upgradingTownHall)
@@ -2837,7 +2838,6 @@ function projectPopulation(opts) {
     else
       people.className = "";
 
-    hint.title = lang[full] + resolveTime(time, 1);
     if (!upgradingTownHall)
       hint.title += lang[startExpand] +
         resolveTime(time - nextHQUpgradeTime, 1);
@@ -3065,7 +3065,7 @@ function cityID() {
   if (id)
     if (buildingIDs.hasOwnProperty(view) ||
         { city:1 }[view])
-      return id;
+      return integer(id);
   return integer(urlParse("id", $X('//li[@class="viewCity"]/a').search));
 }
 
