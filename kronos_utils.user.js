@@ -1350,12 +1350,11 @@ function replenishTime(lack, have, accumulate) {
     if (p > 0) {
       var time = Math.ceil(3600 * n / p);
       takesMin = Math.max(takesMin, time);
-    } else {
+    } else if (n) {
       takesMax = Infinity;
     }
   }
-  takesMax = accumulate.t = Math.max(takesMin, takesMax);
-  lack.t = takesMin;
+  takesMax = lack.t = accumulate.t = Math.max(takesMin, takesMax);
   var replenish = mulResources(pace, takesMin / 3600, Math.floor);
   for (r in replenish)
     have[r] = Math.max(0, have[r] + replenish[r]);
