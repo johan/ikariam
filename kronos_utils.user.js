@@ -3460,10 +3460,11 @@ function principal() {
 
   var research = config.getServer("research", "");
   if (research) {
-    var tech = techinfo(research);
     var a = node({ tag: "a", href: urlTo("academy"), append: chemin,
-                   text: lang[researching] +": "+ research,
-                   title: tech.does +" ("+ tech.points + " points)" }); // I18N
+                   text: lang[researching] +": "+ research });
+    var tech = techinfo(research);
+    if (tech)
+      a.title = tech.does +" ("+ tech.points + " points)"; // I18N
 
     var done = config.getServer("researchDone");
     if (done) a.title += resolveTime((done-Date.now()) / 1e3);
