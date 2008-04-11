@@ -89,6 +89,7 @@ var langs = {
          "Inköpslista", "Resurser kvar efter ",
          "Resurser som kommer saknas vid byggstart, och inskaffningstid",
          "Klicka för byggnadsinfo, använd scrollhjulet för andra nivåer"],
+  // By Sisel:
   "cs": ["Czech", " Dokončeno ", "Zavřít", "Rozšířit později.",
          "Stavební seznam", "Přidat budovu.", "Postavit na",
          "hodiny", "minuty a", "sekundy",
@@ -101,7 +102,21 @@ var langs = {
          "Nákupní seznam", "Zbylé suroviny ",
          "Nedostatek surovin ve stavebním čase (i obnovovacím čase)",
          "Klikni pro info o budově, použij scrolovací kolečko pro " +
-         "prohlížení levelů"]
+         "prohlížení levelů"],
+  // By drivex:
+  "pl": ["Polski", "Koniec o: ", "Zamknij", "Unowocześnij później.",
+         "Lista budynków", "Dodaj budynek.", "Wybuduj o",
+         "godzin", "minut i", "sekund",
+         "zatwierdź", "Wybrany język", "Czas wykonania",
+         "Brak dalszych budynków.", "Drewno", "Luxusowy",
+         "Aktualne badanie", "Pokaż", "Ukryty", "pełny: ",
+         "JanFebMarAprMayJunJulAugSepOctNovDec", "pusty: ",
+         "; zacznij kolonizować przed ", "Dodaj do kolejki",
+         "Shift+Klik na budynku aby dodać go na samym początku",
+         "Surowce, które należy kupić by natychmiast rozpocząć budowe",
+         "Pozostanie surowców: ", "Surowce niedostępne",
+         "Kliknij aby dowiedzieć się więcej lub zacznij kręcić rolką aby " +
+         "dowiedzieć się o kosztach następnych poziomów"],
 };
 var lang;
 
@@ -731,19 +746,26 @@ function addResources(a, b, onlyIterateA) {
 function subResources(a, b, onlyIterateA) {
   return opResources(a, b, function(a, b) { return a - b; }, onlyIterateA);
 }
-function mulResources(a, factor) {
-  return opResources(a, 0, function(n) { return Math.round(factor * n); }, 1);
+function mulResources(a, n, op) {
+  return opResources(a, n, function(a) { return (op||Math.round)(a * n); }, 1);
 }
 
 function opResources(a, b, op, onlyIterateA) {
-  var o = {}, r;
-  for (r in a)
-    o[r] = op(a[r], (b[r] || 0));
+  console.log("a: %x, b: %x", a?a.toSource():a, isObject(b)?b.toSource():b);
+  console.log(op.toSource());
+  var o = {}, r, A, B;
+  for (r in a) {
+    if (isNumber(A = a[r]) && (!isObject(b) || isNumber(B = b[r] || 0)))
+      o[r] = op(A, B);
+  }
+  if (onlyIterateA) console.log("o: %x", o?o.toSource():o);
   if (onlyIterateA) return o;
   for (r in b) {
     if (o.hasOwnProperty(r)) continue;
-    o[r] = op((a[r] || 0), b[r]);
+    if (isNumber(A = a[r] || 0) && isNumber(B = b[r] || 0))
+      o[r] = op(A, B);
   }
+  console.log("o: %x", o?o.toSource():o);
   return o;
 }
 
@@ -1316,24 +1338,30 @@ function upgrade() {
 // iterates through lack, updating accumulate with goods used, zeroing have for
 // all missing resources, and adds lack.t with the time it took to replenish it
 function replenishTime(lack, have, accumulate) {
-  var t = 0, takes;
+  have = have || {};
+  accumulate = accumulate || {};
+  var t = 0, takesMin = 0, takesMax = 0;
   var pace = reapingPace();
-  for (var r in lack) {
-    var n = lack[r];
+  var all = addResources(lack, pace); // used as a union operator only here
+  for (var r in all) {
+    var n = lack[r] || 0;
     var p = pace[r] || 0;
-    if (have)
-      have[r] = 0;
-    if (accumulate)
-      accumulate[r] = (accumulate[r] || 0) + n;
-    if (p > 0)
-      takes = Math.ceil(3600 * n / p);
-    else
-      takes = Infinity;
-    t = Math.max(t, takes);
+    accumulate[r] = (accumulate[r] || 0) + n;
+    if (p > 0) {
+      var time = Math.ceil(3600 * n / p);
+      takesMin = Math.max(takesMin, time);
+    } else {
+      takesMax = Infinity;
+    }
   }
-  if (accumulate)
-    accumulate.t = (accumulate.t || 0) + t;
-  lack.t = t;
+  takesMax = accumulate.t = Math.max(takesMin, takesMax);
+  lack.t = takesMin;
+  var replenish = mulResources(pace, takesMin / 3600, Math.floor);
+  for (r in replenish)
+    have[r] = Math.max(0, have[r] + replenish[r]);
+  for (r in accumulate)
+    if (!accumulate[r])
+      delete accumulate[r];
   return lack;
 }
 
@@ -1411,16 +1439,18 @@ function drawQueue() {
     var need = buildingExpansionNeeds(b, level[b]);
 
     // No? Annotate with what is missing, and its replenish time, if > 0
+    var stall = {};
     if (!haveEnoughToUpgrade(b, level[b], have)) {
-      var stall = {};
       for (var r in need) {
         if (r == "t") continue;
         if (need[r] > have[r])
           stall[r] = need[r] - have[r];
-        have[r] -= need[r];
       }
+    }
 
-      stall = replenishTime(stall, have, miss);
+    stall = replenishTime(stall, have, miss);
+    //console.log("Stalled %x seconds on %s", stall.t, buildingClass(b));
+    if (stall.t) {
       var time = stall.t;
       if (time == Infinity) {
         stall.t = "∞"; // FIXME: this merits a more clear error message
@@ -1438,10 +1468,11 @@ function drawQueue() {
     // FIXME? error condition when storage[level[warehouse]] < need[resource]
 
     // Upgrade and move clock forwards upgradeTime seconds
-    annotateBuilding(li, level[b]++);
+    annotateBuilding(li, ++level[b]);
     have = subResources(have, need); // FIXME - improve (zero out negative)
-    dt = parseTime(need.t);
-    t += (dt + 1) * 1000;
+    dt = parseTime(need.t) + 1;
+    li.title = "Start time: "+ resolveTime((t - Date.now())/1000+1, 1); // I18N
+    t += dt * 1000;
 
     var done = trim(resolveTime((t - Date.now()) / 1000));
     done = createNode("", "timetofinish", done);
@@ -1625,6 +1656,11 @@ function processQueue(mayUpgrade) {
   white-space: nowrap;
   text-align: center;
   font-size: 12px;
+}
+
+#workshop-army #demo .upgrade .info .done,
+#workshop-fleet #demo .upgrade .info .done {
+  font-weight: normal;
 }
 
 ]]></>);
@@ -1993,6 +2029,10 @@ function pluck(a, prop) {
 }
 
 function I(i) { return i; }
+
+function researchOverviewView() {
+  techinfo();
+}
 
 function techinfo(what) {
   function makeTech(spec) {
@@ -2382,6 +2422,14 @@ a.independent { padding-left: 9px; }
       hr.style.height = (div.offsetHeight - 22) + "px";
     });
   }
+
+  function addTimeSpan(a) {
+    var li = a.parentNode;return
+    var span = createNode("t"+ urlParse("researchId", a), "",
+                          resolveTime());
+  }
+
+  $x('ul/li/a', div).forEach(addTimeSpan);
 
   div.addEventListener("mousemove", hover, false);
   return tree;
@@ -2966,6 +3014,7 @@ function workshopView() {
   }
 
   $x('id("demo")//tr[td[@class="object"]]').forEach(augment);
+  projectCompletion("upgradeCountdown", "done");
 }
 
 function showSafeWarehouseLevels() {
@@ -3377,7 +3426,7 @@ function principal() {
     case "workshop-fleet": workshopView("ships"); break;
     case "buildingGround": buildingGroundView(); break;
     case "branchOffice": branchOfficeView(); break;
-    case "researchOverview": techinfo(); break;
+    case "researchOverview": researchOverviewView(); break;
     case "colonize": scrollWheelable(); colonizeView(); break;
     case "merchantNavy": merchantNavyView(); break;
     case "militaryAdvisorReportView":
