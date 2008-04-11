@@ -180,6 +180,8 @@ function urlParse(param, url) {
   return param ? keys[param] : keys;
 }
 
+var expandos = { id: 1, className: 1, title: 1, type: 1, checked: 1 };
+
 function node(opt) {
   function attr(name) {
     var value = opt[name];
@@ -194,13 +196,15 @@ function node(opt) {
     var before = opt.prepend ? opt.prepend.firstChild : attr("before");
     var parent = attr("prepend") || attr("append") ||
                    (before || after || {}).parentNode;
-    if (parent)
+    if (parent) {
+      console.log(parent, before, after);
       if (before)
         parent.insertBefore(n, before);
       else if (after)
         parent.insertBefore(n, after.nextSibling);
       else
         parent.appendChild(n);
+    }
     if (id) n.id = id;
   }
   var html = attr("html");
@@ -212,7 +216,10 @@ function node(opt) {
     for (var prop in style)
       n.style[prop] = style[prop];
   for (prop in opt)
-    n[prop] = opt[prop];
+    if (expandos[prop])
+      n[prop] = opt[prop];
+    else
+      n.setAttribute(prop, opt[prop]+"");
   return n;
 }
 
@@ -1432,7 +1439,8 @@ function drawQueue() {
     have = addResources(have, replenished);
   }
 
-  var ul = node({ tag: "ul", id: "q", append: document.body, html: "" });
+  var ul = node({ tag: "ul", id: "q", append: document.body });
+  ul.innerHTML = "";
   for (var i = 0; i < q.length; i++) {
     var b = q[i];
     var what = buildingClass(b);
