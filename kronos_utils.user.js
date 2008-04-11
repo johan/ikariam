@@ -180,6 +180,42 @@ function urlParse(param, url) {
   return param ? keys[param] : keys;
 }
 
+function node(opt) {
+  function attr(name) {
+    var value = opt[name];
+    delete opt[name];
+    return value;
+  }
+  var id = opt.id;
+  var n = $(id);
+  if (!n) {
+    n = document.createElement(attr("tag") || "div");
+    var after = attr("after");
+    var before = opt.prepend ? opt.prepend.firstChild : attr("before");
+    var parent = attr("prepend") || attr("append") ||
+                   (before || after || {}).parentNode;
+    if (parent)
+      if (before)
+        parent.insertBefore(n, before);
+      else if (after)
+        parent.insertBefore(n, after.nextSibling);
+      else
+        parent.appendChild(n);
+    if (id) n.id = id;
+  }
+  var html = attr("html");
+  if (html) n.innerHTML = html;
+  var text = attr("text");
+  if (text) n.textContent = text;
+  var style = attr("style");
+  if (style)
+    for (var prop in style)
+      n.style[prop] = style[prop];
+  for (prop in opt)
+    n[prop] = opt[prop];
+  return n;
+}
+
 function createNode(id, classN, html, tag, styles, htmlp) {
   var div = document.createElement(tag||"div");
   if (id) div.id = id;
@@ -525,10 +561,10 @@ function makeLootTable(table, reports) {
   for (var i = 0; i < 13; i++) {
     var r = cols[i];
     var t = title[i] || "";
-    var th = createNode("", r ? "Time" == t ? "": "number" : "",
-                        visualResources(t),
-                        i && i < 12 ? "th" : "td", null, "html");
-    head.appendChild(th);
+    var th = node({ className: r ? "Time" == t ? "": "number" : "",
+                    tag: i && i < 12 ? "th" : "td",
+                    html: visualResources(t),
+                    append: head });
     if (1 == i) th.style.minWidth = "25px";
     if (2 == i) th.style.minWidth = "68px";
     if (11 == i) th.style.width = "400px";
@@ -538,8 +574,8 @@ function makeLootTable(table, reports) {
       var val = config.getCity("report.val."+ r, "");
       var html = <><span id={"op"+ id}>{op}</span><input
                          id={"v"+ id} value={val} type="text"/></>;
-      var filter = createNode("", "filter", html, "th", null, "html");
-      only.appendChild(filter);
+      var filter = node({ tag: "th", className: "filter", html: html,
+                          append: only });
       only[r] = $X('input', filter);
     } else {
       only.insertCell(i);
@@ -549,10 +585,7 @@ function makeLootTable(table, reports) {
     if ("Time" == t) { clickTo(th, sortByDistance); continue; }
     if ("#" == t || !r) continue;
 
-    var check = document.createElement("input");
-    check.type = "checkbox";
-    check.id = r;
-    th.insertBefore(check, th.firstChild);
+    var check = node({ tag: "input", type: "checkbox", id: r, prepend: th });
     show.push(check);
 
     //var img = $X('img', th);
@@ -667,9 +700,9 @@ function militaryAdvisorCombatReportsView() {
     }
   }
   var header = $X('id("troopsOverview")/div/h3');
-  var loot = createNode("", "", "Show loot table", "a", { marginLeft: "8px" });
-  header.appendChild(loot);
-  clickTo(loot, function() { makeLootTable(table, rows); });
+  var loot = node({ tag: "a", text: "Show loot table", // I18N
+                    style: { marginLeft: "8px" }, append: header });
+  clickTo(loot, function() { rm(loot); makeLootTable(table, rows); });
 
   config.setServer("war", history);
   config.setServer("reports", allreps);
@@ -751,21 +784,21 @@ function mulResources(a, n, op) {
 }
 
 function opResources(a, b, op, onlyIterateA) {
-  console.log("a: %x, b: %x", a?a.toSource():a, isObject(b)?b.toSource():b);
-  console.log(op.toSource());
+  //console.log("a: %x, b: %x", a?a.toSource():a, isObject(b)?b.toSource():b);
+  //console.log(op.toSource());
   var o = {}, r, A, B;
   for (r in a) {
     if (isNumber(A = a[r]) && (!isObject(b) || isNumber(B = b[r] || 0)))
       o[r] = op(A, B);
   }
-  if (onlyIterateA) console.log("o: %x", o?o.toSource():o);
+  //if (onlyIterateA) console.log("o: %x", o?o.toSource():o);
   if (onlyIterateA) return o;
   for (r in b) {
     if (o.hasOwnProperty(r)) continue;
     if (isNumber(A = a[r] || 0) && isNumber(B = b[r] || 0))
       o[r] = op(A, B);
   }
-  console.log("o: %x", o?o.toSource():o);
+  //console.log("o: %x", o?o.toSource():o);
   return o;
 }
 
@@ -914,9 +947,8 @@ function haveEnoughToUpgrade(b, level, have) {
 
 function buildingExtraInfo(div, id, name, level) {
   function annotate(msg) {
-    msg = createNode("", "ellipsis", msg, "span");
-    msg.style.position = "relative";
-    div.appendChild(msg);
+    node({ tag: "span", className: "ellipsis", text: msg, append: div,
+          style: { position: "relative" }});
     div.style.padding = "0 3px 0 5px";
     div.style.width = "auto";
   }
@@ -969,14 +1001,14 @@ function buildingExtraInfo(div, id, name, level) {
   }
 }
 
-function annotateBuilding(node, level) {
-  var a = $X('a', node);
+function annotateBuilding(li, level) {
+  var a = $X('a', li);
   if (!a) return;
-  $x('div[@class="pointsLevelBat"]', node).forEach(rmNode);
+  $x('div[@class="pointsLevelBat"]', li).forEach(rm);
   var id = buildingID(a);
-  if (isNumber(id) && node.id && isUndefined(level)) {
+  if (isNumber(id) && li.id && isUndefined(level)) {
     config.setCity("building"+ id, number(a.title));
-    config.setCity("posbldg"+ id, number(node.id));
+    config.setCity("posbldg"+ id, number(li.id));
   }
   if ("original" == level) {
     level = buildingLevel(id, 0, "saved");
@@ -984,12 +1016,11 @@ function annotateBuilding(node, level) {
   } else {
     level = level || number(a.title);
   }
-  var div = createNode("", "pointsLevelBat", level);
+  var div = node({ className: "pointsLevelBat", text: level, append: li });
   if (haveEnoughToUpgrade(a, level)) {
     div.style.backgroundColor = "#FEFCE8";
     div.style.borderColor = "#B1AB89";
   }
-  node.appendChild(div);
   clickTo(div, a.href);
   div.style.visibility = "visible";
   buildingExtraInfo(div, id, buildingClass(id), level);
@@ -998,9 +1029,9 @@ function annotateBuilding(node, level) {
 
 function showResourceNeeds(needs, parent, div, top, left) {
   if (div)
-    rmNode(div);
+    rm(div);
   else
-    div = createNode("", "pointsLevelBat toBuild");
+    div = node({ className: "pointsLevelBat toBuild" });
   div.innerHTML = visualResources(needs, { nonegative: true });
   if (parent.id == "position3") { // far right
     div.style.top = top || "";
@@ -1045,13 +1076,12 @@ function levelBat() { // Ajout d'un du level sur les batiments.
     }
   }
 
-  var node = $("locations");
-  if (node) {
-    var hovering = createNode("hovering", "pointsLevelBat toBuild");
-    hovering.title = lang[popupInfo];
+  var places = $("locations");
+  if (places) {
+    var hovering = node({ id: "hovering", className: "pointsLevelBat toBuild",
+                          title: lang[popupInfo], append: $('position0') });
     hide(hovering);
-    $('position0').appendChild(hovering);
-    node.addEventListener("mouseover", hoverHouse, false);
+    places.addEventListener("mouseover", hoverHouse, false);
     hovering.addEventListener("DOMMouseScroll", function(e) {
       var li = hovering.parentNode;
       var a = $X('a', li), b = buildingID(a);
@@ -1134,11 +1164,10 @@ function click(node) {
 
 function levelResources() {
   function annotate(what) {
-    var node = $X('id("islandfeatures")/li['+ what +']');
-    var level = number(node.className);
-    config.setIsle(resourceIDs[node.className.split(" ")[0]], level);
-    var div = createNode("", "pointsLevelBat", level);
-    node.appendChild(div);
+    what = $X('id("islandfeatures")/li['+ what +']');
+    var level = number(what.className);
+    config.setIsle(resourceIDs[what.className.split(" ")[0]], level);
+    node({ className: "pointsLevelBat", text: level, append: what });
   }
   annotate('contains(@class,"wood")');
   annotate('not(contains(@class,"wood")) and not(@id)');
@@ -1385,16 +1414,8 @@ function hoverQueue(have, e) {
 }
 
 function drawQueue() {
-  var ul = $("q");
-  if (ul)
-    ul.innerHTML = "";
-  else {
-    ul = createNode("q", "", "", "ul");
-    document.body.appendChild(ul);
-  }
-
   var q = getQueue();
-  var t = config.getCity("build"); // in ms
+  var t = Math.max(Date.now(), config.getCity("build")); // in ms
   var dt = (t - Date.now()) / 1e3; // in s
   var have = currentResources();
   var pace = reapingPace();
@@ -1411,12 +1432,13 @@ function drawQueue() {
     have = addResources(have, replenished);
   }
 
+  var ul = node({ tag: "ul", id: "q", append: document.body, html: "" });
   for (var i = 0; i < q.length; i++) {
     var b = q[i];
     var what = buildingClass(b);
-    var li = createNode("", what, "", "li");
-    li.innerHTML = '<div class="img"></div><a href="'+ urlTo(what) +'"></a>';
-    li.setAttribute("rel", i + "");
+    var li = node({ tag: "li", className: what, rel: i + "", append: ul,
+                    html: '<div class="img"></div><a href="'+ urlTo(what) +
+                    '"></a>' });
     li.have = copyObject(have);
 
     // erecting a new building, not upgrading an old
@@ -1474,16 +1496,13 @@ function drawQueue() {
     t += dt * 1000;
 
     var done = trim(resolveTime((t - Date.now()) / 1000));
-    done = createNode("", "timetofinish", done);
-    done.insertBefore(createNode("", "before", "", "span"), done.firstChild);
-    done.appendChild(createNode("", "after", "", "span"));
-    li.appendChild(done);
+    done = node({ className: "timetofinish", text: done, append: li });
+    node({ tag: "span", class: "before", prepend: done });
+    node({ tag: "span", class: "after",  append: done });
     setTimeout(bind(function(done, li) {
       done.style.left = 4 + Math.round( (li.offsetWidth -
                                          done.offsetWidth) / 2) + "px";
     }, this, done, li), 10);
-
-    ul.appendChild(li);
   }
 
   var div = $("qhave") || undefined;
@@ -1647,6 +1666,8 @@ function processQueue(mayUpgrade) {
   background-image:url(skin/layout/scroll_rightend.gif);
 }
 
+#value_inhabitants { white-space: nowrap }
+
 #demo table.inside td div.stats {
   left: 50%;
   margin-left: -100%;
@@ -1678,7 +1699,7 @@ function alreadyAllocated(pos, building) {
 
 function buildingGroundView() {
   function build(id, pos, e) {
-    buts.forEach(rmNode);
+    buts.forEach(rm);
     config.setCity("posbldg"+ id, pos);
     var prepend = e.shiftKey;
     addToQueue(id, prepend);
@@ -1688,12 +1709,10 @@ function buildingGroundView() {
     var img = $X('preceding-sibling::div[@class="buildinginfo"]/img', p);
     var id = img && buildingID(img.src.match(/([^\/.]+).gif$/)[1]);
     if (id && pos && !alreadyAllocated(pos, id)) {
-      var but = createNode("", "button", null, "input");
-      but.value = lang[enqueue];
-      but.title = lang[shiftClick];
-      but.style.width = "100px";
+      var but = node({ tag: "input", className: "button", append: p,
+                       value: lang[enqueue], title: lang[shiftClick],
+                       style: { width: "100px" }});
       clickTo(but, bind(build, this, id, pos));
-      p.appendChild(but/*, p.firstChild*/);
       return but;
     }
   }
@@ -1720,11 +1739,9 @@ function sumPrices(table, c1, c2) {
         n += e;
         break;
       }
-    n = createNode("", "ellipsis", n+"", "span");
-    n.style.verticalAlign = "top";
-    n.style.position = "static";
-    n.style.marginLeft = "3px";
-    td[c1].appendChild(n);
+    node({ tag: "span", className: "ellipsis", text: n+"", append: td[c1],
+         style: { position: "static", verticalAlign: "top", marginLeft: "3px" }
+        });
   }
   $x('tbody/tr[td]', table).forEach(price);
 }
@@ -1880,11 +1897,10 @@ function merchantNavyView() {
   }
   function monkeypatch(html) {
     var args = [].slice.call(arguments);
-    var node = createNode();
-    node.innerHTML = html;
-    sumPrices(node.firstChild, 1, 3);
-    $X('table/tbody/tr/th', node).setAttribute("colspan", "4");
-    args[0] = node.innerHTML;
+    var scan = node({ html: html });
+    sumPrices(scan.firstChild, 1, 3);
+    $X('table/tbody/tr/th', scan).setAttribute("colspan", "4");
+    args[0] = scan.innerHTML;
     ugh.apply(this, args);
   }
   var ugh = unsafeWindow.Tip;
@@ -2401,7 +2417,7 @@ a.independent { padding-left: 9px; }
   tree.forEach(indent);
 
   var div = $X('id("mainview")/div/div[@class="content"]');
-  $x('br', div).forEach(rmNode);
+  $x('br', div).forEach(rm);
   var maxLevel = Math.max.apply(Math, pluck(tree.filter(isKnown), "level"));
   vr(maxLevel);
 
@@ -2413,8 +2429,8 @@ a.independent { padding-left: 9px; }
     hide.disabled = true;
     var header = $X('preceding-sibling::h3/span', div);
     header.innerHTML += ": ";
-    var toggle = createNode("hideshow", "", lang[shown], "span");
-    header.appendChild(toggle);
+    var toggle = node({ tag: "span", id: "hideshow", append: header,
+                        text: lang[shown] });
     clickTo(header, function() {
       hide.disabled = !hide.disabled;
       toggle.textContent = lang[shown + (hide.disabled ? 0 : 1)];
@@ -2422,10 +2438,16 @@ a.independent { padding-left: 9px; }
     });
   }
 
-  function addTimeSpan(a) {
-    var li = a.parentNode;return
-    var span = createNode("t"+ urlParse("researchId", a), "",
-                          resolveTime());
+  if (isDefined(html))
+    if (htmlp)
+      div.innerHTML = html;
+    else
+      div.appendChild(document.createTextNode(html));
+
+  function addTimeSpan(a, t) {
+    var li = a.parentNode;
+    var id = "t"+ urlParse("researchId", a.search);
+    var span = node({ id: id, tag: "span", before: a });
   }
 
   $x('ul/li/a', div).forEach(addTimeSpan);
@@ -2788,8 +2810,7 @@ function improveTopPanel() {
   var flow = reapingPace();
   var span = $("value_wine");
   var time = flow.W < 0 ? Math.floor(number(span)/-flow.W) +"h" : sign(flow.W);
-  time = createNode("", "ellipsis", time, "span");
-  span.parentNode.insertBefore(time, span.nextSibling);
+  time = node({ tag: "span", className: "ellipsis", text: time, after: span });
   if (flow.W < 0)
     time.title = lang[empty] + resolveTime(number(span)/-flow.W * 3600, 1);
   else if (flow.W > 0) {
@@ -2813,19 +2834,18 @@ function improveTopPanel() {
   for (name in income) {
     var amount = income[name];
     span = get(name);
-    var node = createNode("", "ellipsis", sign(amount), "span");
-    span.parentNode.insertBefore(node, span.nextSibling);
+    var div = node({ tag: "span", className: "ellipsis", after: span,
+                     text: sign(amount) });
     if (amount > 0)
-      projectWarehouseFull(node, name, number(span), income[name]);
-    linkTo("port", node, { color: "#542C0F" });
+      projectWarehouseFull(div, name, number(span), income[name]);
+    linkTo("port", div, { color: "#542C0F" });
   }
 
   var cityNav = $("cityNav");
   var gold = config.getCity("gold", 0);
   if (gold) {
-    gold = createNode("income", gold < 0 ? "negative" : "",
-                      (gold > 0 ? "+" : "") + gold);
-    cityNav.appendChild(gold);
+    gold = node({ id: "income", className: gold < 0 ? "negative" : "",
+                  text: sign(gold), append: cityNav, title: " " });
 
     var ap = $("value_maxActionPoints").parentNode;
     ap.style.top = "-49px";
@@ -2833,7 +2853,6 @@ function improveTopPanel() {
     ap.addEventListener("mouseover", hilightShip, false);
     ap.addEventListener("mouseout", unhilightShip, false);
     clickTo(ap, urlTo("merchantNavy"));
-    gold.title = " "; // trim(ap.textContent.replace(/\s+/g, " "));
   }
 
   $x('id("cityResources")/ul[@class="resources"]/li/div[@class="tooltip"]').
@@ -2854,12 +2873,9 @@ function improveTopPanel() {
   var build = config.getCity("build", 0), now = Date.now();
   if (build > now) {
     time = $X('id("servertime")/ancestor::li[1]');
-    var a = document.createElement("a");
-    a.href = config.getCity("buildurl");
-    a.appendChild(createNode("done", "textLabel",
-                             trim(resolveTime(Math.ceil((build-now)/1e3))),
-                             "span"));
-    time.appendChild(a);
+    var a = node({ tag: "a", href: config.getCity("buildurl"), append: time });
+    node({ tag: "span", id: "done", className: "textLabel", append: a,
+          text: trim(resolveTime(Math.ceil((build-now)/1e3))) });
   }
 
   showHousingOccupancy();
@@ -2879,16 +2895,9 @@ function showCityBuildCompletions() {
     var t = config.getCity("build", 0, ids[i]);
     if (t && t > Date.now() && url) {
       t = resolveTime((t - Date.now()) / 1e3, 1);
-      var styles = {
-        marginLeft: "3px",
-        background: "none",
-        position: "static",
-        display: "inline",
-        color: "#542C0F",
-      };
-      var a = createNode("", "ellipsis", t, "a", styles);
-      a.href = url;
-      li.appendChild(a);
+      node({ tag: "a", className: "ellipsis", href: url, append: li, text: t,
+           style: { marginLeft: "3px", background: "none", position: "static",
+                    display: "inline", color: "#542C0F" }});
     }
     li.title = " "; // to remove the town hall tooltip
 
@@ -2995,11 +3004,10 @@ function workshopView() {
     var type = img && img.src.match(/_([^.]+).gif$/)[1];
     var level = { bronze: 0, silber: 1, gold: 2 }[type];
     for (var l = 0; l < 3; l++) {
-      var was = base + delta * l; // \uFFEB \u27A0
-      var col = { opacity:l == level ? "1.0" : "0.5" }; // #906646
-      var div = createNode("", "stats", was + " \u27A1 "+ (was + delta), "div",
-                           col);
-      td.appendChild(div);
+      var l1 = base + delta * l; // \uFFEB \u27A0 #906646
+      var l2 = l1 + delta;
+      node({ className: "stats", append: td, text: l1 +" \u27A1 "+ l2,
+             style: { opacity: l == level ? "1.0" : "0.5" }});
     }
   }
 
@@ -3019,7 +3027,7 @@ function workshopView() {
 function showSafeWarehouseLevels() {
   function showSafeLevel(div) {
     var n = "wood" == div.parentNode.className ? wood : rest;
-    div.appendChild(createNode("", "ellipsis", n, "span"));
+    node({ tag: "span", className: "ellipsis", text: n, append: div });
   }
   var level = config.getCity("building7", 0);
   var wood = buildingCapacity("warehouse", "wood", level);
@@ -3028,9 +3036,8 @@ function showSafeWarehouseLevels() {
 }
 
 function showHousingOccupancy(opts) {
-  var div = $("value_inhabitants");
-  var node = div.firstChild;
-  var text = node.nodeValue.replace(/\s/g, "\xA0");
+  var txt = $("value_inhabitants").firstChild;
+  var text = txt.nodeValue.replace(/\s/g, "\xA0");
   var pop = projectPopulation(opts);
   var time = ":∞";
   if (pop.upgradeIn)
@@ -3038,13 +3045,12 @@ function showHousingOccupancy(opts) {
   else //if (pop.asymptotic > pop.maximum)
     time = "/" + sign(pop.maximum - pop.current);
   //console.log(pop.toSource());
-  node.nodeValue = text.replace(new RegExp("[:)/].*$"), time +")");
-  div.style.whiteSpace = "nowrap";
+  txt.nodeValue = text.replace(new RegExp("[:)/].*$"), time +")");
+
   var townSize = $X('id("information")//ul/li[@class="citylevel"]');
-  if (townSize) {
-    var townhall = pop.current +"/"+ pop.maximum +"; "+ sign(pop.growth) +"/h";
-    townSize.appendChild(createNode("townhallfits", "ellipsis", townhall));
-  }
+  if (townSize)
+    node({ id: "townhallfits", className: "ellipsis", append: townSize,
+           text: pop.current +"/"+ pop.maximum +"; "+ sign(pop.growth) +"/h" });
   return pop;
 }
 
@@ -3191,30 +3197,30 @@ function projectHaveResourcesToUpgrade() {
 }
 
 function projectCompletion(id, className, loc) {
-  var node = "string" == typeof id ? $(id) : id, set = false;
-  if ("number" == typeof className) className = loc = undefined; // forEach/map
-  if (node) {
-    id = node.id;
+  var tag = "string" == typeof id ? $(id) : id, set = false;
+  if (isNumber(className)) className = loc = undefined; // called by forEach/map
+  if (tag) {
+    id = tag.id;
     // console.log("T: %x", $("servertime").textContent);
-    // console.log("L: %x", node.textContent);
-    // console.log("D: %x", parseTime(node.textContent));
-    // console.log("F: %x", resolveTime(parseTime(node.textContent)));
-    var time = parseTime(node.textContent);
+    // console.log("L: %x", tag.textContent);
+    // console.log("D: %x", parseTime(tag.textContent));
+    // console.log("F: %x", resolveTime(parseTime(tag.textContent)));
+    var time = parseTime(tag.textContent);
     var done = resolveTime(time);
-    var div = createNode("", className, done, node.nodeName.toLowerCase());
-    node.parentNode.insertBefore(div, node.nextSibling);
+    var div = node({ tag: tag.nodeName.toLowerCase(), className: className,
+                     after: tag, text: done });
     time = time * 1e3 + Date.now();
     if ("upgradeCountDown" == id)
       set = config.setCity("build", time);
     if ("cityCountdown" == id) {
       set = config.setCity("build", time);
-      var move = $X('ancestor::*[contains(@class,"timetofinish")]', node);
+      var move = $X('ancestor::*[contains(@class,"timetofinish")]', tag);
       if (move)
         move.style.marginLeft = "-40%";
     }
     if (set) {
       if ("string" == typeof loc)
-        loc = $X(loc, node);
+        loc = $X(loc, tag);
       else if ("undefined" == typeof loc)
         if (location.search.match(/\?/))
           loc = location;
@@ -3238,9 +3244,8 @@ function tavernView() {
         margin: "0 auto",
          width: "100%"
     };
-    var node = createNode("growthRate", "value", "", "span", style);
-    var next = $("citySatisfaction");
-    return next.parentNode.insertBefore(node, next);
+    return node({ tag: "span", id: "growthRate", className: "value",
+                style: style, before: $("citySatisfaction") });
   }
   function recalcTownHall() {
     var pop = showHousingOccupancy({ wine: amount() });
@@ -3296,30 +3301,18 @@ function clickResourceToSell() {
 Ajout du panel dans le menu
 ---------------------*/
 function panelInfo() { // Ajoute un element en plus dans le menu.
-  var panel = createNode("", "dynamic");
+  var panel = node({ className: "dynamic", before: $("mainview") });
 
-  var titre = document.createElement("h3");
-  titre.setAttribute("class", "header");
-  titre.appendChild(document.createTextNode(name + version +": "));
-
-  var langPref = document.createTextNode(lang[language]);
-  var langChoice = document.createElement("a");
-  langChoice.href = "#";
-  langChoice.appendChild(langPref);
+  var titre = node({ tag: "h3", className: "header", append: panel,
+                     text: name + version +": " });
+  var langChoice = node({ tag: "a", text: lang[language], append: titre,
+                          href: "#" });
   langChoice.addEventListener("click", promptLanguage, false);
-  titre.appendChild(langChoice);
 
-  var corps = createNode("Kronos", "content");
-  corps.style.margin = "3px 10px";
-  var footer = createNode("", "footer");
+  var corps = node({ id:"Kronos", className: "content", append: panel,
+                     style: { margin: "3px 10px" }});
 
-  panel.appendChild(titre);
-  panel.appendChild(corps);
-  panel.appendChild(footer);
-
-  var mainview = $("mainview");
-  if (mainview)
-    mainview.parentNode.insertBefore(panel, mainview);
+  node({ className: "footer", append: panel });
   return langChoice;
 }
 
@@ -3386,7 +3379,6 @@ function principal() {
   var langChoice = panelInfo();
   var chemin = $("Kronos");
   addCSSBubbles();
-
   var view = urlParse("view");
   var action = urlParse("action");
   var building = view && buildingID(view);
@@ -3461,17 +3453,14 @@ function principal() {
 
   var research = config.getServer("research", "");
   if (research) {
-    var a = document.createElement("a");
-    a.href = urlTo("academy");
-
     var tech = techinfo(research);
-    a.textContent = lang[researching] +": "+ research;
-    a.title = tech.does +" ("+ tech.points + " points)";
+    var a = node({ tag: "a", href: urlTo("academy"), append: chemin,
+                   text: lang[researching] +": "+ research,
+                   title: tech.does +" ("+ tech.points + " points)" }); // I18N
+
     var done = config.getServer("researchDone");
-    if (done)
-      a.title += resolveTime((done-Date.now()) / 1e3);
-    chemin.appendChild(a);
-    chemin.appendChild(createBr());
+    if (done) a.title += resolveTime((done-Date.now()) / 1e3);
+    node({ tag: "br", append: chemin });
   }
 
   improveTopPanel();
@@ -3773,7 +3762,7 @@ function isDefined(v) { return "undefined" != typeof v; }
 function isFunction(f) { return "function" == typeof f; }
 function isUndefined(u) { return "undefined" == typeof u; }
 
-function rmNode(node) {
+function rm(node) {
   node && node.parentNode && node.parentNode.removeChild(node);
 }
 
