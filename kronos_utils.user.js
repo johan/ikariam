@@ -197,7 +197,6 @@ function node(opt) {
     var parent = attr("prepend") || attr("append") ||
                    (before || after || {}).parentNode;
     if (parent) {
-      console.log(parent, before, after);
       if (before)
         parent.insertBefore(n, before);
       else if (after)
