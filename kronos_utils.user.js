@@ -1106,7 +1106,43 @@ function levelBat() { // Ajout d'un du level sur les batiments.
   all.forEach(function(li) { annotateBuilding(li); });
 }
 
-function worldmap_isoView() { // FIXME: implement! :-)
+function worldmap_isoView() {
+  function showResources() {
+    drawMap();
+    var w = unsafeWindow;
+    var cx = w.center_x, dim = w.MAXSIZE;
+    var cy = w.center_y, mid = w.halfMaxSize;
+    for (var i = 0; i < dim; i++)
+      for (var j = 0; j < dim; j++) {
+        var x = cx + mid - i;
+        var y = cy + mid - j;
+        var r = resources[x+":"+y] || [];
+        var R = r[tradegood];
+        var t = $("tradegood_"+ i +"_"+ j);
+        t.innerHTML = !R ? "" : <>
+          <div class="cities">{R}</div>
+          <div class="tradegood wood">
+            <div class="cities">{r[wood]}</div>
+          </div>
+        </>.toXMLString();
+      }
+    return islands;
+  }
+  function dropTooltip(x) { x.removeAttribute("title"); }
+  $x('//area[@title]').forEach(dropTooltip);
+  $x('id("worldmap")/text()').forEach(rm);
+  var resources = {}, tradegood = 0, wood = 1;
+  var islands = upgradeConfig0()["s11.ikariam.org"].islands;
+  for (var id in islands) {
+    var i = islands[id];
+    if (i.R)
+      resources[i.x+":"+i.y] = [i.R, i.w];
+  }
+  //var islands = config.get("islands", {});
+
+  var drawMap = unsafeWindow.center_map;
+  unsafeWindow.center_map = showResources;
+
   ; // show the (old) getIsle("w") and getIsle(/WMCS/) levels for known islands
 }
 
@@ -1171,9 +1207,22 @@ function click(node) {
 function levelResources() {
   function annotate(what) {
     what = $X('id("islandfeatures")/li['+ what +']');
+    if (!what) return;
+
     var level = number(what.className);
-    config.setIsle(resourceIDs[what.className.split(" ")[0]], level);
     node({ className: "pointsLevelBat", text: level, append: what });
+
+    var id = urlParse("id");
+    if (id) {
+      var res = what.className.split(" ")[0];
+      var rid = resourceIDs[res];
+      if ("w" == rid) {
+        config.setIsle("w", level, id);
+      } else {
+        config.setIsle("R", level, id);
+        config.setIsle("r", rid, id);
+      }
+    }
   }
   annotate('contains(@class,"wood")');
   annotate('not(contains(@class,"wood")) and not(@id)');
@@ -1689,6 +1738,30 @@ function processQueue(mayUpgrade) {
 #workshop-fleet #demo .upgrade .info .done {
   font-weight: normal;
 }
+
+/* reusing the citycount box css for our resource level indicator */
+#worldmap_iso #worldmap .tradegood .cities { top: 22px; left: 1px; }
+#worldmap_iso #worldmap .tradegood4 .cities { top: 19px; }
+#worldmap_iso #worldmap .tradegood .tradegood.wood .cities { top: 22px; }
+
+#worldmap_iso #worldmap .tradegood .tradegood.wood {
+  background-image: url(/skin/resources/icon_wood.gif);
+  width: 25px;
+  height: 20px;
+}
+
+#worldmap_iso #worldmap .island1 .tradegood.wood { left: 75px; top: 10px; }
+#worldmap_iso #worldmap .island2 .tradegood.wood { left: 99px; top: 24px; }
+#worldmap_iso #worldmap .island3 .tradegood.wood { left: 70px; top: 14px; }
+#worldmap_iso #worldmap .island4 .tradegood.wood { left: 79px; top: -12px; }
+#worldmap_iso #worldmap .island5 .tradegood.wood { left: 88px; top: -1px; }
+#worldmap_iso #worldmap .island6 .tradegood.wood { left: -26px; top: -24px; }
+#worldmap_iso #worldmap .island7 .tradegood.wood { left: 86px; top: 5px; }
+#worldmap_iso #worldmap .island8 .tradegood.wood { left: -72px; top: 4px; }
+#worldmap_iso #worldmap .island9 .tradegood.wood { left: -88px; top: 8px; }
+#worldmap_iso #worldmap .island10 .tradegood.wood { left: 78px; top: 6px; }
+
+
 
 ]]></>);
 }
@@ -2444,12 +2517,6 @@ a.independent { padding-left: 9px; }
       hr.style.height = (div.offsetHeight - 22) + "px";
     });
   }
-
-  if (isDefined(html))
-    if (htmlp)
-      div.innerHTML = html;
-    else
-      div.appendChild(document.createTextNode(html));
 
   function addTimeSpan(a, t) {
     var li = a.parentNode;
@@ -3605,9 +3672,12 @@ function upgradeConfig0() {
       [junk, r, isle] = isle;
       scope.islands[isle] = scope.islands[isle] || {};
       scope = scope.islands[isle];
-      scope[r] = value;
-      if ("w" != r)
+      if (/^[WMCS]$/.test(r)) {
         scope.r = r;
+        scope.R = value;
+      } else {
+        scope[r] = value;
+      }
       continue;
     }
 
@@ -3769,6 +3839,7 @@ function isBoolean(b) { return "boolean" == typeof b; }
 function isDefined(v) { return "undefined" != typeof v; }
 function isFunction(f) { return "function" == typeof f; }
 function isUndefined(u) { return "undefined" == typeof u; }
+function isTextNode(n) { return isObject(n) && n.nodeType == 3; }
 
 function rm(node) {
   node && node.parentNode && node.parentNode.removeChild(node);
@@ -3799,5 +3870,5 @@ XML.setSettings({
   prettyPrinting:false, prettyIndent:2
 });
 
-//prompt(1, upgradeConfig0().toSource());
 principal(); // Appel de la fonction principal.
+//prompt(1, upgradeConfig0()["s11.ikariam.org"].islands[5].toSource());
