@@ -687,11 +687,13 @@ function diplomacyAdvisorView() {
   function span(td) { td.setAttribute("colspan", "8"); }
   function showIslandInfo(a) {
     var td = a.parentNode, x, y, t, id = urlParse("id", a.search);
-    [t, x, y] = /\[(\d+):(\d+)\]$/.exec(trim(a.textContent));
-    //console.log(a, x, y);
-    t = travelTime(x, y);
-    if (t)
-      node({ tag: "td", className: "tt", text: secsToDHMS(t), before: td });
+    var t = /\[(\d+):(\d+)\]$/.exec(trim(a.textContent || "")) || "";
+    if (t) {
+      [t, x, y] = t;
+      t = travelTime(x, y);
+      t = t && secsToDHMS(t);
+    }
+    node({ tag: "td", className: "tt", text: t, before: td });
     var r = config.getIsle("r", "x", id||0);
     node({ tag: "td", className: "tradegood " + r, after: td });
   }
