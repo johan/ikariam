@@ -117,6 +117,20 @@ var langs = {
          "Pozostanie surowców: ", "Surowce niedostępne",
          "Kliknij aby dowiedzieć się więcej lub zacznij kręcić rolką aby " +
          "dowiedzieć się o kosztach następnych poziomów"],
+  // By n00bster:
+  "ro" : ["Romana", " > ", "Inchide", "Construieste mai tarziu.",
+          "Lista cladiri", "Adauga cladirea.", "Construit la",
+          "ore", "minute si", "secunde",
+          "confirma", "Limba", "Timp",
+          "Nicio cladire asteptand.", "Lemn", "Lux",
+          "Cercetand", "Arada", "Ascuns", "Plin: ",
+          "IanFebMarAprMaiJunJulAugSepOctNovDec", "gol: ",
+          "; Incepe expansiunea inainte ", "Pune la rand",
+          "Shift click pentru a pune in fata sirului",
+          "Lista de cumparaturi", "Resurse ramase ",
+          "Resurse indisponibile la timpul construictiei",
+          "Click pentru informatiile cladiri, foloseste scroolul sa cauti " +
+          "levelele"],
 };
 var lang;
 
@@ -1440,8 +1454,10 @@ function upgrade() {
     return gotoCity("/#q:"+ buildingClass(b)); // view -- and in the right city
 
   var t = replenishTime(b, l);
-  setTimeout(upgrade, ++t * 1e3);
-  console.log("Wait %d seconds...", t);
+  if (t && isFinite(t)) {
+    setTimeout(upgrade, Math.max(++t * 1e3, 60e3));
+    console.log("Waiting %d seconds...", t);
+  }
 }
 
 // iterates through lack, updating accumulate with goods used, zeroing have for
