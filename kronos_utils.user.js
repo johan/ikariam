@@ -2905,8 +2905,10 @@ function improveTopPanel() {
 
 #island #container #mainview ul#islandfeatures li.marble { z-index: 400; }
 
-#container #cityResources .resources .disabled a { color:#999; }
-#container #cityResources .resources a { color:#542C0F; }
+#container #cityResources .resources a			{ color: #542C0F; }
+#container #cityResources .resources .disabled a	{ color: #999999; }
+#container #cityResources .resources .storage_full	{ color: #CC0000; }
+#container #cityResources .resources .storage_danger	{ color: #CC3300; }
 
 #mainview #loot-report td.subject {
   white-space: nowrap;
