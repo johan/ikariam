@@ -811,7 +811,7 @@ function plunderView() {
 
 
 function add(fmt) {
-  for (var i = 1; i<arguments.length; i++) {
+  for (var i = 1; i < arguments.length; i++) {
     var id = arguments[i];
     xpath[id] = fmt.replace("%s", id);
   }
@@ -1194,7 +1194,15 @@ function worldmap_isoView() {
       }
     return islands;
   }
+
   function dropTooltip(x) { x.removeAttribute("title"); }
+
+  function mark(x, y) {
+    var v = setMark(x, y);
+    travelDistanceBreadcrumbs();
+    return v;
+  }
+
   $x('//area[@title]').forEach(dropTooltip);
   $x('id("worldmap")/text()').forEach(rm);
   var resources = {}, tradegood = 0, wood = 1;
@@ -1209,7 +1217,8 @@ function worldmap_isoView() {
   var drawMap = unsafeWindow.center_map;
   unsafeWindow.center_map = showResources;
 
-  ; // show the (old) getIsle("w") and getIsle(/WMCS/) levels for known islands
+  var setMark = unsafeWindow.mark;
+  unsafeWindow.mark = mark;
 }
 
 function focusCity(city) {
@@ -1225,22 +1234,77 @@ function focusCity(city) {
   setTimeout(function() { a.parentNode.className += " selected"; }, 1e3);
 }
 
+function travelDistanceBreadcrumbs(island) {
+  var breadcrumbs = $X('id("breadcrumbs")/span[.//text()[contains(translate' +
+                       '(.,"0123456789:",""),"[]")]]'), x, y, t, junk;
+  if (breadcrumbs) {
+    [junk, x, y] = breadcrumbs.textContent.match(/\[(\d+):(\d+)\]/);
+    if (island) {
+      config.setIsle("x", x = integer(x), island);
+      config.setIsle("y", y = integer(y), island);
+    }
+    //console.log("isle %x at %x:%y", island, x, y);
+    //while (isTextNode(breadcrumbs.lastChild)) rm(breadcrumbs.lastChild);
+    if ((t = travelTime(x, y)))
+      breadcrumbs.innerHTML += " ("+ secsToDHMS(t) +")";
+  }
+}
+
+var nonIslands = { 3:1,    8:1,   10:1,   12:1,   14:1,   21:3,  138:1,  191:12,
+ 236:7,  245:1,  251:1,  255:7,  284:1,  317:1,  402:10, 541:3,  599:1,  611:3,
+ 644:3,  651:1,  662:1,  689:2,  707:1,  709:1,  748:4,  797:2,  805:2,  914:5,
+ 923:8,  988:2, 1053:1, 1244:2, 1267:1, 1299:1, 1339:60,1519:2, 1756:1, 1830:2,
+1848:1, 1850:1, 2011:1, 2024:4, 2062:6, 2268:1, 2357:1, 2449:9, 2459:1, 2463:1,
+2471:10,2513:2, 2700:5, 2735:2, 2806:6, 2834:4, 2970:1, 3014:20,3040:1, 3104:6,
+3163:4, 3187:1, 3240:6, 3331:1, 3408:2, 3472:1, 3529:7, 3778:2, 3781:2, 3791:2,
+3808:2, 3870:1, 3994:1, 4102:4, 4146:1, 4188:2, 4205:19,4234:1, 4242:2, 4268:20,
+4307:1, 4388:1, 4424:1, 4426:1, 4428:1, 4430:1, 4432:1, 4434:1, 4436:1, 4462:1,
+4464:1, 4474:1, 4537:2, 4543:2, 4546:1, 4557:2, 4564:1, 4566:1, 4568:1, 4570:1,
+4572:3, 4605:1, 4677:1, 4697:2, 4718:1, 4720:3, 4734:2, 4737:1, 4747:4, 4753:2,
+4801:2, 4956:2, 4959:1, 4961:2, 4965:2, 5012:4, 5018:4, 5061:1, 5066:2, 5069:1,
+5071:1, 5185:2, 5189:1, 5255:2, 5296:2, 5322:1, 5530:1, 5548:1, 5550:1, 5552:1,
+5554:1, 5578:1, 5580:2, 5654:8, 5669:4, 5697:2, 5701:2, 5709:2, 5722:-5721 };
+
+function nextIsland(id) {
+  var skip = nonIslands[++id];
+  return skip ? id + skip : id;
+}
+
+function prevIsland(id) {
+  id = integer(id);
+  var i = 0;
+  while (--i >= -60) {
+    var skip = nonIslands[i + id];
+    if (skip)
+      if (skip == -i)
+        return id - skip - 1;
+      else
+        break;
+  }
+  return --id > 0 ? id : 5721;
+}
+
 function islandView() {
+  function nextprev(event) {
+    var n = event.charCode || event.keyCode;
+    var next = { 37: prevIsland, 39: nextIsland }[n];
+    if (next) {
+      event.stopPropagation();
+      event.preventDefault();
+      goto(urlTo("island", next(island)));
+    }
+  }
+
   var city = urlParse("selectCity");
   if (city)
     setTimeout(focusCity, 200, city);
   levelTown();
   levelResources();
   var island = urlParse("id", $X('id("advCities")/a').search);
-  var breadcrumbs = $X('id("breadcrumbs")/span[last()]'), x, y, t, junk;
-  if (breadcrumbs && island) {
-    [junk, x, y] = breadcrumbs.textContent.match(/\[(\d+):(\d+)\]/);
-    config.setIsle("x", x = integer(x), island);
-    config.setIsle("y", y = integer(y), island);
-    //console.log("isle %x at %x:%y", island, x, y);
-    if ((t = travelTime(x, y)))
-      breadcrumbs.textContent += " ("+ secsToDHMS(t) +")";
-  }
+  travelDistanceBreadcrumbs(island);
+
+  if (island)
+    addEventListener("keypress", nextprev, false);
 }
 
 function travelTime(x1, y1, x2, y2) {
@@ -1396,7 +1460,7 @@ function urlTo(what, id, opts) {
       return building();
 
     case "city":	return url('?view=city&id='+ c);
-    case "island":	return url('?view=island&id='+ (!isObject(id) ? i :
+    case "island":	return url('?view=island&id='+ (!isObject(id) ? id :
                                    id.island + "&selectCity="+ id.city));
     case "building":	return url("?view=buildingDetail&buildingId="+ id);
     case "research":	return url("?view=researchDetail&researchId="+ id);
@@ -1703,7 +1767,7 @@ function queueState() {
       return 0;
     var b = q.shift();
     var l = buildingLevel(b, 0);
-    console.log("Building %x [%d]: %xs", b, l, replenishTime(b, l));
+    //console.log("Building %x [%d]: %xs", b, l, replenishTime(b, l));
     return replenishTime(b, l);
   } // busy building something; return time until completion
   return t - Date.now() + 3e3;
@@ -1713,7 +1777,7 @@ function processQueue(mayUpgrade) {
   var state = queueState(), time = isNumber(state) && state;
   //console.log("q: "+ state, mayUpgrade);
   if (time) {
-    setTimeout(processQueue, time);
+    setTimeout(processQueue, time * 1e3);
   } else if (0 === time) {
     if (mayUpgrade) upgrade();
   } // else FIXME? This might be safe, if unrelated pages don't self-refresh:
