@@ -646,6 +646,29 @@ function copy(object) {
   return new fn;
 }
 
+function diplomacyAdvisorView() {
+  function span(td) { td.setAttribute("colspan", "8"); }
+  function showIslandInfo(a) {
+    var td = a.parentNode, x, y, t, id = urlParse("id", a.search);
+    [t, x, y] = /\[(\d+):(\d+)\]$/.exec(trim(a.textContent));
+    //console.log(a, x, y);
+    t = travelTime(x, y);
+    if (t)
+      node({ tag: "td", className: "tt", text: secsToDHMS(t), before: td });
+    var r = config.getIsle("r", "x", id||0);
+    node({ tag: "td", className: "tradegood " + r, after: td });
+  }
+
+  //[contains(translate(.,"0123456789:",""),"[]")]').
+  var body = $X('id("messages")//tbody[tr[count(th) = 6]]');
+  var date = $X('tr[1]/th[6]', body);
+  var town = $X('tr[1]/th[5]', body);
+  node({ tag: "th", className: "tradegood", before: date });
+  node({ tag: "th", className: "tt", text: "Travel Time", before: town }); // I18N
+  $x('tr/td[5]/a', body).forEach(showIslandInfo);
+  $x('tr/td[@colspan="6"]', body).forEach(span);
+}
+
 function militaryAdvisorCombatReportsView() {
   function parseDate(t) {
     var Y, M, D, h, m;
@@ -1416,14 +1439,30 @@ function upgrade() {
   if (haveResources(buildingExpansionNeeds(b, l))) // ascertain we're in a good
     return gotoCity("/#q:"+ buildingClass(b)); // view -- and in the right city
 
-  // FIXME: figure out when to re-test, if at all, and setTimeout(upgrade)
+  var t = replenishTime(b, l);
+  setTimeout(upgrade, ++t * 1e3);
+  console.log("Wait %d seconds...", t);
 }
 
 // iterates through lack, updating accumulate with goods used, zeroing have for
 // all missing resources, and adds lack.t with the time it took to replenish it
-function replenishTime(lack, have, accumulate) {
-  have = have || {};
+function replenishTime(b, level, lack, have, accumulate) {
+  if (haveEnoughToUpgrade(b, level, have))
+    return 0;
+
+  lack = lack || {};
+  have = have || currentResources();
   accumulate = accumulate || {};
+
+  // what is missing?
+  var need = buildingExpansionNeeds(b, level);
+  for (var r in need) {
+    if (r == "t") continue;
+    if (need[r] > have[r])
+      lack[r] = need[r] - have[r];
+  }
+
+  // how far do we have to move the clock forward to get everything needed?
   var t = 0, takesMin = 0, takesMax = 0;
   var pace = reapingPace();
   var all = addResources(lack, pace); // used as a union operator only here
@@ -1438,14 +1477,17 @@ function replenishTime(lack, have, accumulate) {
       takesMax = Infinity;
     }
   }
-  takesMax = lack.t = accumulate.t = Math.max(takesMin, takesMax);
+  takesMax = accumulate.t = Math.max(takesMin, takesMax);
+
+  // replenish all resources (that can be replenished in finite time)
   var replenish = mulResources(pace, takesMin / 3600, Math.floor);
   for (r in replenish)
     have[r] = Math.max(0, have[r] + replenish[r]);
   for (r in accumulate)
     if (!accumulate[r])
       delete accumulate[r];
-  return lack;
+
+  return takesMax;
 }
 
 function copyObject(o) {
@@ -1512,31 +1554,19 @@ function drawQueue() {
       }
     }
 
-    // Will we have everything needed by then?
-    var need = buildingExpansionNeeds(b, level[b]);
-
-    // No? Annotate with what is missing, and its replenish time, if > 0
-    var stall = {};
-    if (!haveEnoughToUpgrade(b, level[b], have)) {
-      for (var r in need) {
-        if (r == "t") continue;
-        if (need[r] > have[r])
-          stall[r] = need[r] - have[r];
-      }
-    }
-
-    stall = replenishTime(stall, have, miss);
+    // calculate leading stall time, if any, moving clock/resources forwards:
+    var stalledOn = {};
+    var time = replenishTime(b, level[b], stalledOn, have, miss);
     //console.log("Stalled %x seconds on %s", stall.t, buildingClass(b));
-    if (stall.t) {
-      var time = stall.t;
+    if (time) {
       if (time == Infinity) {
-        stall.t = "∞"; // FIXME: this merits a more clear error message
+        time = "∞"; // FIXME: this merits a more clear error message
       } else {
         dt += time;
         t += time * 1e3;
-        stall.t = secsToDHMS(time, 1, " ");
+        stalledOn.t = secsToDHMS(time, 1, " ");
       }
-      var div = showResourceNeeds(stall, li, null, "112px", "");
+      var div = showResourceNeeds(stalledOn, li, null, "112px", "");
       div.style.backgroundColor = "#FCC";
       div.style.borderColor = "#E88";
       div.title = lang[unreplenished];
@@ -1546,6 +1576,7 @@ function drawQueue() {
 
     // Upgrade and move clock forwards upgradeTime seconds
     annotateBuilding(li, ++level[b]);
+    var need = buildingExpansionNeeds(b, level[b]);
     have = subResources(have, need); // FIXME - improve (zero out negative)
     dt = parseTime(need.t) + 1;
     li.title = "Start time: "+ resolveTime((t - Date.now())/1000+1, 1); // I18N
@@ -1608,7 +1639,8 @@ function drawQueue() {
 // Figure out what our current project and next action are. Returns 0 when idle,
 // "building" when building something (known or unknown), "unknown" when data is
 // unconclusive (we're in a view without the needed information) after a project
-// has been completed, and otherwise the time in milliseconds to build complete.
+// has been completed, and otherwise the time in milliseconds to build complete
+// or resources expected to be available to start building something now queued.
 function queueState() {
   var v = urlParse("view");
   var u = config.getCity("buildurl");
@@ -1619,13 +1651,13 @@ function queueState() {
       return busy ? "building" : 0;
     return "unknown";
   } else if (t == Infinity) { // no known project going
-    if ("city" == v) {
-      //if (!busy) {
-      //  config.remCity("buildurl");
-      //}
-      return busy ? "building" : 0;
-    }
-    return "unknown";
+    var q = getQueue();
+    if (!q.length)
+      return 0;
+    var b = q.shift();
+    var l = buildingLevel(b);
+    console.log("Building %x [%d]: %xs", b, l, replenishTime(b, level));
+    return replenishTime(b, level);
   } // busy building something; return time until completion
   return t - Date.now() + 3e3;
 }
@@ -1667,6 +1699,48 @@ function processQueue(mayUpgrade) {
   padding-bottom: 5px;
 }
 
+#diplomacyAdvisor #container #container2 #mainview table#messages td {
+  /*max-width: 100px;*/
+  padding: 2px 0;
+  margin: 0 10px;
+}
+
+#diplomacyAdvisor #container #container2 #mainview table#messages td.reply {
+  padding: 10px 0;
+}
+#diplomacyAdvisor #container #container2 #mainview table#messages td.msgText {
+  padding: 2px 10px;
+}
+
+#diplomacyAdvisor #mainview #messages .tradegood {
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 23px;
+  width: 20px;
+}
+
+#diplomacyAdvisor #mainview #messages th.tradegood {
+  background-image: url(/skin/layout/icon-island.gif);
+  background-position: 0 2px;
+}
+
+#diplomacyAdvisor #mainview #messages .tradegood.W {
+  background-image: url(/skin/resources/icon_worldmap_wine.gif);
+}
+#diplomacyAdvisor #mainview #messages .tradegood.M {
+  background-image: url(/skin/resources/icon_marble.gif);
+}
+#diplomacyAdvisor #mainview #messages .tradegood.C {
+  background-image: url(/skin/resources/icon_glass.gif);
+}
+#diplomacyAdvisor #mainview #messages .tradegood.S {
+  background-image: url(/skin/resources/icon_worldmap_sulfur.gif);
+}
+
+#diplomacyAdvisor #mainview #messages .tt {
+  white-space: nowrap;
+  font-size: 11px;
+}
 
 #container #cityResources li .tooltip {
   padding: 4px 5px;
@@ -2916,7 +2990,11 @@ function improveTopPanel() {
   }
 
   var cityNav = $("cityNav");
-  var gold = config.getCity("gold", 0);
+  var preciseCityIncome = $("valueWorkCosts") ||
+    $X('//li[contains(@class,"incomegold")]/span[@class="value"]');
+  var gold = preciseCityIncome ? integer(preciseCityIncome) :
+    getFreeWorkers() * 4 - 8 * config.getCity("researchers", 0);
+  //var gold = config.getCity("gold", 0);
   if (gold) {
     gold = node({ id: "income", className: gold < 0 ? "negative" : "",
                   text: sign(gold), append: cityNav, title: " " });
@@ -3128,8 +3206,12 @@ function showHousingOccupancy(opts) {
   return pop;
 }
 
+function getFreeWorkers() {
+  return integer($("value_inhabitants").textContent.match(/^[\d,.]+/)[0]);
+}
+
 function getPopulation() {
-  return number($("value_inhabitants").textContent.match(/\(([\d,]+)/)[1]);
+  return integer($("value_inhabitants").textContent.match(/\(([\d,.]+)/)[1]);
 }
 
 function getMaxPopulation(townHallLevel) {
@@ -3500,6 +3582,7 @@ function principal() {
       militaryAdvisorCombatReportsView(); break;
     case "militaryAdvisorMilitaryMovements":
       militaryAdvisorMilitaryMovementsView(); break;
+    case "diplomacyAdvisor": diplomacyAdvisorView(); break;
     case "plunder": plunderView(); break;
     case "Espionage":
     case "safehouse": safehouseView(); break;
