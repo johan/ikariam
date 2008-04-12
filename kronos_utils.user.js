@@ -660,6 +660,29 @@ function copy(object) {
   return new fn;
 }
 
+function researchAdvisorView() {
+  function learnTech(a) {
+    var name = a.textContent.match(/['"]([^'"]+)['"]/);
+    if (!name) return;
+    name = name[1];
+
+    var tech = techs.filter(function(t) { return t.name == name; });
+    if (!tech.length) return;
+    tech = tech[0];
+
+    config.setServer("tech"+ tech.id, 1);
+
+    a.title = a.textContent;
+    a.href = urlTo("research", tech.id);
+    a.innerHTML = name.bold() +" "+
+      tech.does[0].toLowerCase() + tech.does.slice(1);
+  }
+
+  updateCurrentResearch();
+  var techs = techinfo();
+  $x('id("inboxResearch")/tbody/tr/td[@class="text"]/a').forEach(learnTech);
+}
+
 function diplomacyAdvisorView() {
   function span(td) { td.setAttribute("colspan", "8"); }
   function showIslandInfo(a) {
@@ -1370,6 +1393,7 @@ function urlTo(what, id, opts) {
     case "island":	return url('?view=island&id='+ (!isObject(id) ? i :
                                    id.island + "&selectCity="+ id.city));
     case "building":	return url("?view=buildingDetail&buildingId="+ id);
+    case "research":	return url("?view=researchDetail&researchId="+ id);
 
     case "library":
       return urlTo("academy").replace("academy", "researchOverview");
@@ -2199,7 +2223,15 @@ function museumView() {
   config.setServer("culturetreaties", friends);
 }
 
+function updateCurrentResearch() {
+  var research = $X('//div[@class="researchName"]/a');
+  if (research)
+    config.setServer("research", research.title);
+  config.setServer("researchDone", projectCompletion("researchCountDown"));
+}
+
 function academyView() {
+  updateCurrentResearch();
   var research = $("inputScientists");
   if (research)
     config.setCity("researchers", number(research));
@@ -2221,12 +2253,13 @@ function researchOverviewView() {
 
 function techinfo(what) {
   function makeTech(spec) {
-    var name, does, time, deps, points, junk;
+    var id, name, does, time, deps, points, junk;
     [name, does, time, deps] = trim(spec).split("\n");
+    [id, name] = name.split(": ");
     [junk, time, points] = /^(.*) \(([0-9,]+).*\)/.exec(time);
     deps = deps ? deps.split(/,\s*/) : [];
-    //points = points.replace(/,/g, "");
-    spec = { name: name, does: does, time: time, points: points, deps: deps };
+    spec = { name: name, id: integer(id), does: does, time: time,
+             deps: deps, points: integer(points) };
     if ((spec.a = $X('//a[.="'+ name +'"]'))) {
       if ((spec.known = $x('ancestor::ul/@class = "explored"', spec.a)))
         config.setServer("tech"+ urlParse("researchId", spec.a.search), 1);
@@ -2313,260 +2346,260 @@ function techinfo(what) {
     div.appendChild(hr);
   }
 
-  var tree = <>
-Deck Weapons
+  var tree = techinfo.tree = techinfo.tree || <>
+1010: Deck Weapons
 Allows: Building ballista ships in the shipyard
 1h 5m 27s (24)
 Dry-Dock
 
-Ship Maintenance
+1020: Ship Maintenance
 Effect: 2% less upkeep for ships
 1h 5m 27s (24)
 Deck Weapons
 
-Expansion
+1030: Expansion
 Allows: Building palaces, founding colonies
 20h (440)
 Ship Maintenance, Wealth
 
-Foreign Cultures
+1040: Foreign Cultures
 Allows: Construction of Embassies
 1D 10h 54m 32s (768)
 Expansion, Espionage
 
-Pitch
+1050: Pitch
 Effect: 4% less upkeep for ships
 2D 4h (1,144)
 Foreign Cultures
 
-Greek Fire
+1060: Greek Fire
 Allows: Building Flame Ships
 4D 12h (2,376)
 Pitch, Culinary Specialities
 
-Counterweight
+1070: Counterweight
 Allows: Building catapult-ships at the shipyard
 10D 4h 21m 49s (5,376)
 Greek Fire, Invention
 
-Diplomacy
+1080: Diplomacy
 Allows: Military Treaties
 19D 2h 10m 54s (10,080)
 Counterweight
 
-Sea Charts
+1090: Sea Charts
 Effect: 8% less upkeep for ships
 39D 18h 32m 43s (21,000)
 Diplomacy
 
-Paddle Wheel Engine
+1100: Paddle Wheel Engine
 Allows: Building steam rams in the shipyard
 136D 19h 38m 10s (72,240)
 Sea Charts, Helping Hands
 
-Mortar Attachment
+1110: Mortar Attachment
 Allows: Building mortar ships in the shipyard
 231D 19h 38m 10s (122,400)
 Paddle Wheel Engine, Glass
 
-Seafaring Future
+1999: Seafaring Future
 Seafaring Future
 831D 19h 38m 10s (439,200)
 The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
 
-Conservation
+2010: Conservation
 Allows: Building of Warehouses
 54m 32s (20)
 
-Pulley
+2020: Pulley
 Effect: 2% less building costs
 1h 5m 27s (24)
 Conservation
 
-Wealth
+2030: Wealth
 Effect: Allows the mining of trade goods and the building of trading posts
 6h 32m 43s (144)
 Pulley
 
-Wine Press
+2040: Wine Press
 Allows: Building of taverns
 16h (352)
 Wealth, Well Digging
 
-Culinary Specialities
+2050: Culinary Specialities
 Allows: Training of chefs in the barracks
 1D 10h 54m 32s (768)
 Wine Press, Expansion, Professional Army
 
-Geometry
+2060: Geometry
 Effect: 4% less building costs
 2D 4h (1,144)
 Culinary Specialities
 
-Market
+2070: Market
 Allows: Trade Agreements
 4D 12h (2,376)
 Geometry, Foreign Cultures
 
-Holiday
+2080: Holiday
 Effect: Increases the satisfaction in all towns
 11D 10h 54m 32s (6,048)
 Market
 
-Helping Hands
+2090: Helping Hands
 Allows: Overloading of resources and academy
 25D 10h 54m 32s (13,440)
 Holiday
 
-Spirit Level
+2100: Spirit Level
 Effect: 8% less costs for the construction of buildings
 39D 18h 32m 43s (21,000)
 Helping Hands
 
-Bureaucracy
+2110: Bureaucracy
 Allows: An additional building space in the towns
 117D 6h 32m 43s (61,920)
 Spirit Level
 
-Utopia
+2120: Utopia
 Utopia
 606D 19h 38m 10s (320,400)
 Bureaucracy, Diplomacy, Letter Chute, Gunpowder
 
-Economy Future
+2999: Economy Future
 Economy Future
 831D 19h 38m 10s (439,200)
 The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
 
-Well Digging
+3010: Well Digging
 Effect: +50 housing space, +50 happiness in the capital
 1h 27m 16s (32)
 
-Paper
+3020: Paper
 Effect: 2% more research points
 1h 21m 49s (30)
 Well Digging
 
-Espionage
+3030: Espionage
 Allows: Building hideouts
 16h (352)
 Paper, Wealth
 
-Invention
+3040: Invention
 Allows: Building of workshops
 1D 16h 43m 38s (896)
 Espionage, Wine Press, Professional Army
 
-Ink
+3050: Ink
 Effect: 4% more research points
 2D 4h (1,144)
 Invention
 
-Cultural Exchange
+3060: Cultural Exchange
 Allows: building museums
 5D 12h (2,904)
 Ink, Culinary Specialities
 
-Anatomy
+3070: Anatomy
 Allows: Recruiting Doctors in the Barracks
 11D 10h 54m 32s (6,048)
 Cultural Exchange
 
-Glass
+3080: Glass
 Allows: Usage of crystal glass in order to accelerate research in the academy
 25D 10h 54m 32s (13,440)
 Anatomy, Market
 
-Mechanical Pen
+3090: Mechanical Pen
 Effect: 8% more research points
 39D 18h 32m 43s (21,000)
 Glass
 
-Bird´s Flight
+3100: Bird´s Flight
 Allows: Gyrocopter
 127D 1h 5m 27s (67,080)
 Mechanical Pen, Governor
 
-Letter Chute
+3110: Letter Chute
 Effect: 1 Gold upkeep less per scientist
 313D 15h 16m 21s (165,600)
 Bird´s Flight, Helping Hands
 
-Pressure Chamber
+3120: Pressure Chamber
 Allows: Building diving boats in the shipyard
 404D 13h 5m 27s (213,600)
 Letter Chute, Utopia, Robotics
 
-The Archimedic Principle
+3130: The Archimedic Principle
 Allows: Building Bombardiers in the Barracks
 272D 17h 27m 16s (144,000)
 Pressure Chamber
 
-Knowledge Future
+3999: Knowledge Future
 Knowledge Future
 831D 19h 38m 10s (439,200)
 The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
 
-Dry-Dock
+4010: Dry-Dock
 Allows: Building Shipyards
 1h 5m 27s (24)
 
-Maps
+4020: Maps
 Effect: 2% less upkeep for soldiers
 1h 5m 27s (24)
 Dry-Dock
 
-Professional Army
+4030: Professional Army
 Allows: Training swordsmen and phalanxes in the barracks
 20h (440)
 Maps, Wealth
 
-Siege
+4040: Siege
 Allows: Building battering rams in the barracks
 1D 10h 54m 32s (768)
 Professional Army, Espionage
 
-Code of Honour
+4050: Code of Honour
 Effect: 4% less upkeep
 2D 4h (1,144)
 Siege
 
-Ballistics
+4060: Ballistics
 Allows: Archers
 4D 12h (2,376)
 Code of Honour, Culinary Specialities
 
-Law of the Lever
+4070: Law of the Lever
 Allows: Building catapults in the barracks
 10D 4h 21m 49s (5,376)
 Ballistics, Invention
 
-Governor
+4080: Governor
 Allows: Occupation
 19D 2h 10m 54s (10,080)
 Law of the Lever, Market
 
-Logistics
+4090: Logistics
 Effect: 8% less upkeep for soldiers
 39D 18h 32m 43s (21,000)
 Governor
 
-Gunpowder
+4100: Gunpowder
 Allows: Building marksmen in the barracks
 127D 1h 5m 27s (67,080)
 Logistics, Glass
 
-Robotics
+4110: Robotics
 Allows: Building steam giants in the barracks
 272D 17h 27m 16s (144,000)
 Gunpowder
 
-Canon Casting
+4120: Canon Casting
 Allows: Building mortars in the barracks
 404D 13h 5m 27s (213,600)
 Robotics, Greek Fire
 
-Military Future
+4999: Military Future
 Military Future
 831D 19h 38m 10s (439,200)
 The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
@@ -2574,6 +2607,9 @@ The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
 
   if (what)
     return tree.filter(function(t) { return t.name == what; })[0];
+  if ("researchDetail" != urlParse("view"))
+    return tree;
+
   if (!techinfo.cssed)
     techinfo.cssed = css(<><![CDATA[
 #researchOverview #container #mainview ul { padding:0 !important; }
@@ -3600,17 +3636,12 @@ function principal() {
       militaryAdvisorCombatReportsView(); break;
     case "militaryAdvisorMilitaryMovements":
       militaryAdvisorMilitaryMovementsView(); break;
+    case "researchAdvisor": researchAdvisorView(); break;
     case "diplomacyAdvisor": diplomacyAdvisorView(); break;
     case "plunder": plunderView(); break;
     case "Espionage":
     case "safehouse": safehouseView(); break;
-    case "academy": academyView(); // fall-through:
-    case "researchAdvisor":
-      var research = $X('//div[@class="researchName"]/a');
-      if (research)
-        config.setServer("research", research.title);
-      config.setServer("researchDone", projectCompletion("researchCountDown"));
-      break;
+    case "academy": academyView(); break;
   }
   title();
 
