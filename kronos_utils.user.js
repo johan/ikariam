@@ -207,9 +207,9 @@ function node(opt) {
     if (id) n.id = id;
   }
   var html = attr("html");
-  if (html) n.innerHTML = html;
+  if (isDefined(html)) n.innerHTML = html;
   var text = attr("text");
-  if (text) n.textContent = text;
+  if (isDefined(text)) n.textContent = text;
   var style = attr("style");
   if (style)
     for (var prop in style)
@@ -1022,6 +1022,7 @@ function annotateBuilding(li, level) {
   } else {
     level = level || number(a.title);
   }
+  console.log(li, id, level);
   var div = node({ className: "pointsLevelBat", text: level, append: li });
   if (haveEnoughToUpgrade(a, level)) {
     div.style.backgroundColor = "#FEFCE8";
