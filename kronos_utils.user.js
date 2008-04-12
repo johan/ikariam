@@ -1022,7 +1022,6 @@ function annotateBuilding(li, level) {
   } else {
     level = level || number(a.title);
   }
-  console.log(li, id, level);
   var div = node({ className: "pointsLevelBat", text: level, append: li });
   if (haveEnoughToUpgrade(a, level)) {
     div.style.backgroundColor = "#FEFCE8";
