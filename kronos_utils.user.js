@@ -2609,7 +2609,7 @@ The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
 
   if (what)
     return tree.filter(function(t) { return t.name == what; })[0];
-  if ("researchDetail" != urlParse("view"))
+  if ("researchOverview" != urlParse("view"))
     return tree;
 
   if (!techinfo.cssed)
