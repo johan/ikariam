@@ -260,10 +260,12 @@ function createLink(nom, href) {
 }
 
 function goto(href) {
+  //console.log("aborted goto %x", href); return;
   location.href = href.match(/\?/) ? href : urlTo(href);
 }
 
 function gotoCity(url, id) {
+  // console.log("aborted gotoCity(%x, %x)", url, id); return;
   var city = $("citySelect");
   var ids = cityIDs();
   if (isDefined(id)) {
@@ -940,6 +942,8 @@ function buildingLevel(b, otherwise, saved) {
   if (!saved && "city" == urlParse("view")) {
     var div = $("position" + buildingPosition(b));
     var a = $X('a[@title]', div);
+    if (a && !integer(a.title))
+      a = null; // a ghost house we set up to visualize the queue
   }
   if (saved || !a)
     b = config.getCity("building"+ b, "?");
@@ -1688,6 +1692,7 @@ function queueState() {
   var u = config.getCity("buildurl");
   var t = config.getCity("build", Infinity);
   var busy = $X('id("buildCountDown") | id("upgradeCountDown")');
+  //console.log("u: %x, t: %x, b: %x, ql: %x", u, t, busy, getQueue().length);
   if (t < Date.now()) { // last known item is completed by now
     if ("city" == v)
       return busy ? "building" : 0;
@@ -1697,9 +1702,9 @@ function queueState() {
     if (!q.length)
       return 0;
     var b = q.shift();
-    var l = buildingLevel(b);
-    console.log("Building %x [%d]: %xs", b, l, replenishTime(b, level));
-    return replenishTime(b, level);
+    var l = buildingLevel(b, 0);
+    console.log("Building %x [%d]: %xs", b, l, replenishTime(b, l));
+    return replenishTime(b, l);
   } // busy building something; return time until completion
   return t - Date.now() + 3e3;
 }
@@ -2449,7 +2454,7 @@ Effect: Increases the satisfaction in all towns
 Market
 
 2090: Helping Hands
-Allows: Overloading of resources and academy
+Allows: Overloading of resources
 25D 10h 54m 32s (13,440)
 Holiday
 
