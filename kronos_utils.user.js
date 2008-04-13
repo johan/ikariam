@@ -236,21 +236,6 @@ function node(opt) {
   return n;
 }
 
-function createNode(id, classN, html, tag, styles, htmlp) {
-  var div = document.createElement(tag||"div");
-  if (id) div.id = id;
-  if (classN) div.className = classN;
-  if (isDefined(html))
-    if (htmlp)
-      div.innerHTML = html;
-    else
-      div.appendChild(document.createTextNode(html));
-  if (styles)
-    for (var prop in styles)
-      div.style[prop] = styles[prop];
-  return div;
-}
-
 function createLink(nom, href) {
   var lien = document.createElement('a');//création d'un lien
   lien.setAttribute('href', href);//On ajoute le href
@@ -280,10 +265,6 @@ function gotoCity(url, id) {
   form.elements.namedItem("oldView").value = "city";
   form.elements.namedItem("id").value = id;
   form.submit()
-}
-
-function createBr() { // fonction de création saut de ligne
-  return document.createElement("br");
 }
 
 function css(rules, disabled) {
@@ -1718,7 +1699,7 @@ function drawQueue() {
     if (div) hide(div);
     return;
   }
-  delete have.p; delete have.g;
+  delete have.p; delete have.g; delete have.P;
   div = showResourceNeeds(have, $("container2"), div);
   div.title = lang[left] + resolveTime((t-Date.now())/1e3, 1);
   div.style.left = div.style.top = "auto";
