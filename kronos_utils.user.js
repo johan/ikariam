@@ -695,7 +695,7 @@ function militaryAdvisorCombatReportsView() {
   function parseDate(t) {
     var Y, M, D, h, m;
     if ((t = t && trim(t.textContent).split(/\D+/))) {
-      [D, M, h, m] = t.map(function(n) { return parseInt(n, 10); });
+      [D, M, h, m] = t.map(integer);
       Y = (new Date).getFullYear();
       return (new Date(Y, M - 1, D, h, m)).getTime();
     }
@@ -2114,7 +2114,7 @@ function dontSubmitZero(but, nodes) {
   function sumAll(form) {
     var count = 0;
     var inputs = $x('.//input[@type="text"]', form);
-    inputs.forEach(function(i) { count += parseInt(i.value||"0", 10); });
+    inputs.forEach(function(i) { count += integer(i.value || 0); });
     return count;
   }
   function setToTwo(e) {
@@ -2354,7 +2354,7 @@ function techinfo(what) {
       if (done[name]) return 0;
       var tech = byName[name];
       done[name] = tech.depends = true;
-      var points = tech.known ? 0 : parseInt(tech.points.replace(/,/g, ""), 10);
+      var points = tech.known ? 0 : integer(tech.points);
       return points + tech.deps.map(mark).reduce(sum, 0);
     }
 
@@ -3553,14 +3553,14 @@ function clickResourceToSell() {
   function sell100(e) {
     var have = haveHowMuch(e);
     var sell = $x('following::input[@type="text"]', e.target);
-    sell[0].value = Math.min(have, 100 + parseInt(sell[0].value||"0", 10));
-    sell[1].value = Math.max(25, parseInt(sell[1].value, 10));
+    sell[0].value = Math.min(have, 100 + integer(sell[0].value || 0));
+    sell[1].value = Math.max(25, integer(sell[1].value));
   }
   function sellAll(e) {
     var have = haveHowMuch(e);
     var sell = $x('following::input[@type="text"]', e.target);
     sell[0].value = have;
-    sell[1].value = Math.max(25, parseInt(sell[1].value||"0", 10));
+    sell[1].value = Math.max(25, integer(sell[1].value || 0));
   }
   function clickToSell(img) {
     img.addEventListener("click", sell100, false);
