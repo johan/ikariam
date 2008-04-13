@@ -3117,8 +3117,9 @@ function improveTopPanel() {
   var cityNav = $("cityNav");
   var preciseCityIncome = $("valueWorkCosts") ||
     $X('//li[contains(@class,"incomegold")]/span[@class="value"]');
+  var sciCost = 8 - config.getServer("tech3110", 0); // Letter chute upkeep red.
   var gold = preciseCityIncome ? integer(preciseCityIncome) :
-    getFreeWorkers() * 4 - 8 * config.getCity("researchers", 0);
+    getFreeWorkers() * 4 - sciCost * config.getCity("researchers", 0);
   //var gold = config.getCity("gold", 0);
   if (gold) {
     gold = node({ id: "income", className: gold < 0 ? "negative" : "",
@@ -3256,6 +3257,8 @@ function shipyardView() {
 function barracksView() {
   dontSubmitZero();
   showUnitLevels(troops);
+  var u = $x('id("unitConstructionList")//div[starts-with(@id,"queueEntry")]');
+  u.forEach(projectCompletion);
 }
 
 function unitStatsFromImage(img) {
