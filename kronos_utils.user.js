@@ -835,11 +835,12 @@ var resourceIDs = {
 };
 
 function currentResources() {
+  var inhab = $("value_inhabitants").textContent.split(/\s+/);
   return {
-    p: number($("value_inhabitants").textContent.replace(/\s.*/, "")),
-    g: number($("value_gold")), w: number($("value_wood")),
-    W: number($("value_wine")), M: number($("value_marble")),
-    C: number($("value_crystal")), S: number($("value_sulfur"))
+    p: getFreeWorkers(), P: getPopulation(),
+    g: integer($("value_gold")), w: integer($("value_wood")),
+    W: integer($("value_wine")), M: integer($("value_marble")),
+    C: integer($("value_crystal")), S: integer($("value_sulfur"))
   };
 }
 
@@ -896,15 +897,25 @@ function haveResources(needs) {
 }
 
 function reapingPace() {
-  var pace = {
-    g: config.getCity("gold", 0),
-    p: config.getServer("growth", 0),
-    w: secondsToHours(jsVariable("startResourcesDelta"))
-  };
-  pace[luxuryType()] = secondsToHours(jsVariable("startTradegoodDelta"));
-  var wineUse = config.getCity("wine", 0);
-  if (wineUse)
-    pace.W = (pace.W || 0) - wineUse;
+  var pace = reapingPace.pace;
+  if (!pace) {
+    // FIXME: This just gives city income; ought to do a pace.G for totals too
+    var preciseCityIncome = $("valueWorkCosts") ||
+      $X('//li[contains(@class,"incomegold")]/span[@class="value"]');
+    var sciCost = 8 - config.getServer("tech3110", 0); // Letter chute bonus
+    var gold = preciseCityIncome ? integer(preciseCityIncome) :
+      getFreeWorkers() * 4 - sciCost * config.getCity("researchers", 0);
+
+    reapingPace.pace = pace = {
+      g: gold,
+      w: secondsToHours(jsVariable("startResourcesDelta"))
+    };
+    pace[luxuryType()] = secondsToHours(jsVariable("startTradegoodDelta"));
+
+    var wineUse = config.getCity("wine", 0);
+    if (wineUse)
+      pace.W = (pace.W || 0) - wineUse;
+  }
   return pace;
 }
 
@@ -2879,19 +2890,20 @@ function colonizeView() {
   css("#container .resources li { white-space: nowrap; }");
 
   var have = currentResources();
+  var pace = reapingPace();
 
-/* FIXME: hook up the population predictor with a "time until X pop" option
-  var growth = config.getServer("growth", 0);
-  var needPop = $X('//ul/li[@class="citizens"]');
-  if (have.p < 40 && growth > 0)
-    annotate(needPop, resolveTime((40 - have.p) / (growth / 3600.0), 1));
-*/
+  var needPop = $X('//ul/li[@class="citizens"]'); // the div to annotate
+  if (have.p < 40) { // need more colonists!
+    var busyPop = have.P - have.p;
+    var wantPop = 40 - have.p;
+    var people = projectPopulation({ popgte: busyPop + wantPop });
+    if (people && people != Infinity)
+      annotate(needPop, resolveTime(people, 1));
+  }
 
-  // FIXME: really ought to kill this code full of lies too
-  var income = config.getServer("income", 0);
   var needGold = $X('//ul/li[@class="gold"]');
-  if (have.g < 12e3 && income > 0)
-    annotate(needGold, resolveTime((12e3 - have.g) / (income / 3600), 1));
+  if (have.g < 12e3 && pace.g > 0)
+    annotate(needGold, resolveTime((12e3 - have.g) / (pace.g / 3600), 1));
 
   var woodadd = secondsToHours(jsVariable("startResourcesDelta"));
   var needWood = $X('//ul/li[@class="wood"]');
@@ -3115,15 +3127,9 @@ function improveTopPanel() {
   }
 
   var cityNav = $("cityNav");
-  var preciseCityIncome = $("valueWorkCosts") ||
-    $X('//li[contains(@class,"incomegold")]/span[@class="value"]');
-  var sciCost = 8 - config.getServer("tech3110", 0); // Letter chute upkeep red.
-  var gold = preciseCityIncome ? integer(preciseCityIncome) :
-    getFreeWorkers() * 4 - sciCost * config.getCity("researchers", 0);
-  //var gold = config.getCity("gold", 0);
-  if (gold) {
-    gold = node({ id: "income", className: gold < 0 ? "negative" : "",
-                  text: sign(gold), append: cityNav, title: " " });
+  if (flow.g) {
+    node({ id: "income", className: flow.g < 0 ? "negative" : "",
+           text: sign(flow.g), append: cityNav, title: " " });
 
     var ap = $("value_maxActionPoints").parentNode;
     ap.style.top = "-49px";
@@ -3353,7 +3359,6 @@ function getMaxPopulation(townHallLevel) {
   return maxPopulation;
 }
 
-
 function projectPopulation(opts) {
   function getGrowth(population) {
     return (happy - Math.floor(population)) / 50;
@@ -3386,7 +3391,10 @@ function projectPopulation(opts) {
     currentGrowth = getGrowth(population);
     population += currentGrowth / 4; // add 15 minutes of growth
     time += 60 * 15;
+    if (opts && opts.popgte && population >= opts.popgte)
+      return time;
   }
+  if (opts && opts.popgte) return Infinity;
 
   var hint = $("cityNav"), warn = true;
   if (asymptoticPopulation <= maximumPopulation) {
