@@ -1782,9 +1782,9 @@ function queueState() {
 
 function processQueue(mayUpgrade) {
   var state = queueState(), time = isNumber(state) && state;
-  //console.log("q: "+ state, mayUpgrade);
+  //console.log("q: "+ state + " ("+ secsToDHMS(time/1e3) +")", mayUpgrade);
   if (time) {
-    setTimeout(processQueue, Math.max(time * 1e3, 30e30));
+    setTimeout(processQueue, Math.max(time, 30e3));
   } else if (0 === time) {
     if (mayUpgrade) upgrade();
   } // else FIXME? This might be safe, if unrelated pages don't self-refresh:
