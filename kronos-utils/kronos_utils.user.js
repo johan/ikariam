@@ -2,7 +2,8 @@
 // @name           Kronos Utils
 // @namespace      Kronos
 // @description    Tons of UI upgrades and features for Ikariam.
-// @include        http://*.ikariam.*/*
+// @include        http://ikariam.tld/
+// @include        http://*.ikariam.*
 // @exclude        http://board.ikariam.*/
 // @exclude        http://*.ikariam.*/index.php?view=renameCity*
 // @require        http://ecmanaut.googlecode.com/svn/trunk/lib/gm/wget.js
@@ -15,6 +16,7 @@ var version = "0.5", lang;
 
 function init() {
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
+  if (!location.hostname.match(/^s\d+\./)) return login();
   css(GM_getResourceText("css"));
   lang = langs[getLanguage()];
 
@@ -75,7 +77,6 @@ function init() {
     case "safehouseReports": safehouseReportsView(); break;
     case "academy": academyView(); break;
   }
-  title();
 
   var upgradeDiv = $("upgradeCountDown");
   var buildDiv = $("buildCountDown");
@@ -106,10 +107,20 @@ function init() {
   if ({ city: 1, island: 1 }[view])
     unsafeWindow.friends = eval(config.getServer("culturetreaties", "([])"));
 
+  title();
   var FIN = new Date();
   langChoice.title = lang.execTime +": "+ (FIN - DEBUT) +"ms";
 }
 
+function login() {
+  var uni = $("universe");
+  if (!uni || location.pathname != "/" || !document.referrer ||
+      !document.referrer.indexOf(location.href))
+    return;
+  var site = /^http:..s(\d+)\.ikariam/.exec(document.referrer);
+  if (site)
+    uni.selectedIndex = integer(site[1]) - 1;
+}
 
 function nth(n) {
   var th = [, "st", "nd", "rd"];
@@ -3179,8 +3190,9 @@ function title(detail) {
     server = "αβγδεζηθικλμνξοπρστυφχψω".charAt(parseInt(server[1], 10)-1);
   }
   if (!detail)
-    detail = $X('id("breadcrumbs")/*[last()]').textContent;
-  document.title = (server ? server + " " : "") + detail + host;
+    detail = $X('id("breadcrumbs")/*[last()]');
+  if (detail)
+    document.title = (server ? server + " " : "") + detail.textContent + host;
 }
 
 function clickResourceToSell() {
