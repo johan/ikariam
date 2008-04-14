@@ -72,6 +72,7 @@ function init() {
     case "plunder": plunderView(); break;
     case "Espionage":
     case "safehouse": safehouseView(); break;
+    case "safehouseReports": safehouseReportsView(); break;
     case "academy": academyView(); break;
   }
   title();
@@ -1549,7 +1550,7 @@ function drawQueue() {
 
     // Upgrade and move clock forwards upgradeTime seconds
     annotateBuilding(li, ++level[b]);
-    var need = buildingExpansionNeeds(b, level[b]);
+    var need = buildingExpansionNeeds(b, level[b] - 1);
     have = subResources(have, need); // FIXME - improve (zero out negative)
     dt = parseTime(need.t) + 1;
     li.title = "Start time: "+ resolveTime((t - Date.now())/1000+1, 1); // I18N
@@ -1640,7 +1641,7 @@ function processQueue(mayUpgrade) {
   var state = queueState(), time = isNumber(state) && state;
   //console.log("q: "+ state, mayUpgrade);
   if (time) {
-    setTimeout(processQueue, time * 1e3);
+    setTimeout(processQueue, Math.max(time * 1e3, 30e30));
   } else if (0 === time) {
     if (mayUpgrade) upgrade();
   } // else FIXME? This might be safe, if unrelated pages don't self-refresh:
@@ -1925,6 +1926,58 @@ function scrapeIkipediaBuilding(doc, id) {
   prompt("Data:", b.toSource().replace(/\s*\(void 0\)/g, ""));
   //}
   return cost;
+}
+
+function resourceFromUrl(img) {
+  if (isObject(img))
+    img = img.src;
+  if (!(img = img.match(/_([^.]+).gif$/)))
+    return "";
+  return resourceIDs[img[1]];
+}
+
+// ?action=Espionage&function=executeMission&id=51713&position=3&spy=25700&mission=5
+// ?view=safehouseReports&id=51713&spy=25700&position=3&reportId=135947
+function warehouseSpy() {
+  function steal(tr) {
+    var n = integer($X('td[2]', tr));
+    var r = resourceFromUrl($X('td[1]/img', tr));
+    var id = r == "w" ? "wood" : "rest";
+    var safe = buildingCapacities.warehouse[id][warehouse];
+    var lootable = Math.max(0, n - safe);
+    //console.log(n, r, id, safe, loot);
+    if (count) {
+      node({ tag: "td", text: safe, append: tr });
+      all += lootable;
+    } else {
+      lootable = (lootable / all) * 20 * buildingCapacities.port[port];
+      node({ tag: "td", text: Math.floor(lootable), append: tr });
+    }
+  }
+
+  var body = $X('id("resources")/tbody');
+  if (body) {
+    var port = prompt("Port level?", 0);
+    if (isUndefined(port)) return;
+    var warehouse = prompt("Warehouse level?", 0);
+    if (isUndefined(warehouse)) return;
+    port = integer(port);
+    warehouse = integer(warehouse);
+    var head = $X('tr[1]', body);
+    node({ tag: "th", className: "count", text: "Safe", append: head });
+    node({ tag: "th", className: "count", text: "Loot", append: head });
+    var rows = $x('tr[td]', body);
+    var all = 0, count;
+    count = 1; rows.forEach(steal);
+    count = 0; rows.forEach(steal);
+  }
+}
+
+function safehouseReportsView() {
+  var mission = $X('normalize-space(id("mainview")//tr[1]/td[2])');
+  console.log(mission);
+  if ("Spy out warehouse" == mission)
+    warehouseSpy();
 }
 
 function safehouseView() {
