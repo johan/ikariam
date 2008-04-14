@@ -7,6 +7,7 @@ en: { // English language strings maintained by myself. :-)
     finished: " Finished ", // Building / resource upgrades, unit construction
     execTime: "Time of execution", // Shown in tooltip for the language choice
  researching: "Researching", // Start of the "currently being researched" link
+    showLoot: "Show loot table", // For the military advisor view's loot table
        shown: "Shown",  // These two are buttons in Library view's page title
       hidden: "Hidden", //
        empty: "empty: ", // Typically your wine stash, if replenish rate < 0
@@ -45,6 +46,7 @@ de: { // German version maintained by pusteblume:
     finished: " Beendet ",
     execTime: "benötigte Zeit zum Ausführen",
  researching: "Aktuelle Forschung",
+    showLoot: "Raubgut anzeigen",
        shown: "Sichtbar",
       hidden: "Versteckt",
        empty: "leer: ",
@@ -66,6 +68,7 @@ sv: { // Swedish strings also maintained by myself:
     finished: " Färdigt ",
     execTime: "Exekveringstid",
  researching: "Forskning",
+    showLoot: "Visa stöldgods",
        shown: "Visas",
       hidden: "Gömda",
        empty: "tomt: ",
@@ -88,7 +91,7 @@ cs: { // Czech translation maintained by Sisel:
  researching: "Zkoumání",
        shown: "Ukázat",
       hidden: "Skrytý",
-       empty: undefined,
+       empty: "Prázdno: ",
         full: "Plno: ",
       months: ["Led", "Úno", "Bře", "Dub", "Kvě", "Čer",
                "Čec", "Srp", "Zař", "Říj", "Lis", "Pro"],
