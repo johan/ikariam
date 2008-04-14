@@ -159,7 +159,16 @@
 }
 
 /* Our island quick links */
-a.island-link:hover { outline: 1px solid #FFF; }
+#changeCityForm .viewIsland a.island-link:hover { outline: 1px solid #FFF; }
+
+#changeCityForm .viewIsland a.island-link {
+  background: url(/skin/layout/icon-island.gif) no-repeat 0 1px;
+  padding: 1px 8px 5px 9px;
+  display: inline;
+  height: 10px;
+  width: 13px;
+}
+
 
 
 /**** Top panel improvements ****/

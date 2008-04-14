@@ -1323,9 +1323,7 @@ function urlTo(what, id, opts) {
       var city = "";
       if (isObject(id)) {
         if ((city = id.city)) {
-          if (id.island)
-            id = id.island;
-          else if (!(id.island = config.getCity("i", 0, city)))
+          if (!id.island && !(id.island = config.getCity("i", 0, city)))
             return "#";
           city = "&selectCity="+ city;
         }
@@ -2764,9 +2762,7 @@ function showCityBuildCompletions() {
 
       if (links) { // island link bar
         var a = <a href={urlTo("island", { city: id })} title={names[i]}
-          style="background: url(/skin/layout/icon-island.gif) no-repeat 0 1px;
-                 padding: 1px 8px 5px 10px; display: inline;
-                 width: 15px; height: 13px;" class="island-link"></a>;
+                   class="island-link"></a>;
         images.push(img); // as we can't set innerHTML of an E4X node
         links.* += a;
       }
@@ -2789,14 +2785,13 @@ function showCityBuildCompletions() {
   //prompt(!links || !isle, isles);
   isle.innerHTML += isles.toXMLString();
   $x('div/div/a', isle).forEach(kludge);
+  $x('div/div//text()', isle).forEach(rm);
 
   function kludge(a, i) {
     a.innerHTML = images[i];
     img = $X('img', a);
     img.height = 10;
     img.width = 13;
-    if (/marble/.test(img.src))
-      img.style.marginLeft = "-2px";
   }
 }
 
