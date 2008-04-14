@@ -158,6 +158,8 @@
   font-size: 10px;
 }
 
+/* Our island quick links */
+a.island-link:hover { outline: 1px solid #FFF; }
 
 
 /**** Top panel improvements ****/

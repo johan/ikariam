@@ -23,7 +23,7 @@ function init() {
   var view = urlParse("view");
   var action = urlParse("action");
   var building = view && buildingID(view);
-  if ("undefined" != building) {
+  if (isDefined(building)) {
     var level = $X('id("buildingUpgrade")//div[@class="buildingLevel"]');
     if (level)
       config.setCity("building"+ building, number(level));
@@ -1313,13 +1313,25 @@ function urlTo(what, id, opts) {
       return building();
 
     case "city":	return url('?view=city&id='+ c);
-    case "island":	return url('?view=island&id='+ (!isObject(id) ? id :
-                                   id.island + "&selectCity="+ id.city));
     case "building":	return url("?view=buildingDetail&buildingId="+ id);
     case "research":	return url("?view=researchDetail&researchId="+ id);
 
     case "library":
       return urlTo("academy").replace("academy", "researchOverview");
+
+    case "island":
+      var city = "";
+      if (isObject(id)) {
+        if ((city = id.city)) {
+          if (id.island)
+            id = id.island;
+          else if (!(id.island = config.getCity("i", 0, city)))
+            return "#";
+          city = "&selectCity="+ city;
+        }
+        id = id.island;
+      }
+      return url('?view=island&id='+ id + city);
   }
 }
 
@@ -2425,7 +2437,8 @@ function visualResources(what, opt) {
       icon.@height = h1;
       icon.@width = w1;
     }
-    icon.@style = "margin-bottom: "+ margin +"px";
+    if (!opt || !opt.noMargin)
+      icon.@style = "margin-bottom: "+ margin +"px";
     return icon.toXMLString();
   }
   if (typeof what == "object") {
@@ -2666,6 +2679,7 @@ function improveTopPanel() {
 
   // city resource type, for the city selection pane:
   config.setCity("r", type, referenceCityID());
+  config.setCity("i", islandID(), referenceCityID());
 
   for (name in income) {
     var amount = income[name];
@@ -2720,8 +2734,15 @@ function improveTopPanel() {
 
 function showCityBuildCompletions() {
   var focused = referenceCityID();
+  var isles = <div style="position: absolute; top: -20px; left: 45px;"></div>;
+  var isle = $X('id("changeCityForm")/ul/li[@class="viewIsland"]');
   var lis = get("citynames");
   var ids = cityIDs();
+  var names = cityNames();
+  if (names.length > 1) {
+    var images = [];
+    var links = <div style="left: -50%; position: absolute;"></div>;
+  }
   for (var i = 0; i < lis.length; i++) {
     var id = ids[i];
     var url = config.getCity("buildurl", 0, ids[i]);
@@ -2738,17 +2759,44 @@ function showCityBuildCompletions() {
 
     if (res) {
       var has = {}; has[res] = "";
-      li.innerHTML = visualResources(has) + li.innerHTML;
-      var img = $X('img', li);
-      img.height = Math.round(img.height / 2);
-      img.width = Math.round(img.width / 2);
+      var img = visualResources(has, { size: 0.5, noMargin: 1 });
+      li.innerHTML = img + li.innerHTML;
+
+      if (links) { // island link bar
+        var a = <a href={urlTo("island", { city: id })} title={names[i]}
+          style="background: url(/skin/layout/icon-island.gif) no-repeat 0 1px;
+                 padding: 1px 8px 5px 10px; display: inline;
+                 width: 15px; height: 13px;" class="island-link"></a>;
+        images.push(img); // as we can't set innerHTML of an E4X node
+        links.* += a;
+      }
+
+      img = $X('img', li);
       img.style.margin = "0 3px";
       img.style.background = "none";
       if (id == focused) {
         var current = $X('preceding::div[@class="dropbutton"]', li);
         current.insertBefore(img.cloneNode(true), current.firstChild);
+        if (a) a.@style += " outline: 1px solid #FFF;";
       }
     }
+  }
+  if (!links || !isle) return;
+  var width = "width: "+ (lis.length * 33) + "px";
+  isles.@style += width;
+  links.@style += width;
+  isles += links;
+  //prompt(!links || !isle, isles);
+  isle.innerHTML += isles.toXMLString();
+  $x('div/div/a', isle).forEach(kludge);
+
+  function kludge(a, i) {
+    a.innerHTML = images[i];
+    img = $X('img', a);
+    img.height = 10;
+    img.width = 13;
+    if (/marble/.test(img.src))
+      img.style.marginLeft = "-2px";
   }
 }
 
