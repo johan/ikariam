@@ -4,8 +4,8 @@
 // @email          merwinkronos@gmail.com
 // @namespace      Kronos
 // @description    Divers petits utilitaires.
-// @include        http://*.ikariam.*/*
-// @exclude        http://board.ikariam.*/
+// @include        http://ikariam.tld/
+// @include        http://s*.ikariam.*/*
 // @exclude        http://*.ikariam.*/index.php?view=renameCity*
 // ==/UserScript==
 
@@ -3650,8 +3650,8 @@ function title(detail) {
     server = "αβγδεζηθικλμνξοπρστυφχψω".charAt(parseInt(server[1], 10)-1);
   }
   if (!detail)
-    detail = $X('id("breadcrumbs")/*[last()]').textContent;
-  document.title = (server ? server + " " : "") + detail + host;
+    detail = $X('id("breadcrumbs")/*[last()]');
+  document.title = (server ? server + " " : "") + detail.textContent + host;
 }
 
 function clickResourceToSell() {
@@ -3759,6 +3759,7 @@ function isMyCity() {
 
 function principal() {
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
+  if (!location.hostname.match(/^s\d+\./)) return login();
   var langChoice = panelInfo();
   var chemin = $("Kronos");
   addCSSBubbles();
@@ -3817,7 +3818,6 @@ function principal() {
     case "safehouseReports": safehouseReportsView(); break;
     case "academy": academyView(); break;
   }
-  title();
 
   var upgradeDiv = $("upgradeCountDown");
   var buildDiv = $("buildCountDown");
@@ -3848,10 +3848,20 @@ function principal() {
   if ({ city: 1, island: 1 }[view])
     unsafeWindow.friends = eval(config.getServer("culturetreaties", "([])"));
 
+  title();
   var FIN = new Date();
   langChoice.title = lang[execTime] +": "+ (FIN - DEBUT) +"ms";
 }
 
+function login() {
+  var uni = $("universe");
+  if (!uni || location.pathname != "/" || !document.referrer ||
+      !document.referrer.indexOf(location.href))
+    return;
+  var site = /^http:..s(\d+)\.ikariam/.exec(document.referrer);
+  if (site)
+    uni.selectedIndex = integer(site[1]) - 1;
+}
 
 
 
