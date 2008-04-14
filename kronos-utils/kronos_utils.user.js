@@ -661,7 +661,7 @@ function militaryAdvisorCombatReportsView() {
     }
   }
   var header = $X('id("troopsOverview")/div/h3');
-  var loot = node({ tag: "a", text: "Show loot table", // I18N
+  var loot = node({ tag: "a", text: lang.showLoot,
                     style: { marginLeft: "8px" }, append: header });
   clickTo(loot, function() { rm(loot); makeLootTable(table, rows); });
 
