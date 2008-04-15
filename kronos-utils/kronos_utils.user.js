@@ -250,7 +250,7 @@ function gotoCity(url, id) {
 }
 
 function css(rules, disabled) {
-  var head = $X('/html/head');
+  var head = document.documentElement.firstChild;
   var style = document.createElement("style");
   style.type = "text/css";
   style.textContent = isString(rules) ? rules : rules.toString();
@@ -839,7 +839,7 @@ function buildingPosition(b, otherwise) {
   return "?" == p ? otherwise : p;
 }
 
-function buildingLevel(b, otherwise, saved) {
+function buildingLevel(b, otherwise, saved, city) {
   b = buildingID(b);
   if (!saved && "city" == urlParse("view")) {
     var div = $("position" + buildingPosition(b));
@@ -848,7 +848,7 @@ function buildingLevel(b, otherwise, saved) {
       a = null; // a ghost house we set up to visualize the queue
   }
   if (saved || !a)
-    b = config.getCity("building"+ b, "?");
+    b = config.getCity("building"+ b, "?", city);
   else
     b = number(a.title);
   return "?" == b ? otherwise : b;
@@ -1086,7 +1086,7 @@ function worldmap_isoView() {
   $x('//area[@title]').forEach(dropTooltip);
   $x('id("worldmap")/text()').forEach(rm);
   var resources = {}, tradegood = 0, wood = 1;
-  var islands = upgradeConfig0()["s11.ikariam.org"].islands;
+  var islands = upgradeConfig0()[location.host].islands;
   for (var id in islands) {
     var i = islands[id];
     if (i.R)
@@ -1947,6 +1947,9 @@ function resourceFromUrl(img) {
   return resourceIDs[img[1]];
 }
 
+// spies: 23947: { h: 42528, c: 35083, r: {122745: {c: 35083}} }
+// (missing 35083: target city), id: home city, spy id, pos in hc, report id
+// ?view=safehouseReports&id=42528&spy=23947&position=7&reportId=122745
 // ?action=Espionage&function=executeMission&id=51713&position=3&spy=25700&mission=5
 // ?view=safehouseReports&id=51713&spy=25700&position=3&reportId=135947
 function warehouseSpy() {
@@ -1971,6 +1974,7 @@ function warehouseSpy() {
     var port = prompt("Port level?", 0);
     if (isUndefined(port)) return;
     var warehouse = prompt("Warehouse level?", 0);
+    // buildingLevel("warehouse", 0, "save", cityID);
     if (isUndefined(warehouse)) return;
     port = integer(port);
     warehouse = integer(warehouse);
@@ -3565,4 +3569,4 @@ XML.setSettings({
 });
 
 init();
-//prompt(1, upgradeConfig0()["s11.ikariam.org"].islands[5].toSource());
+//prompt(1, (upgradeConfig0()[location.host].cities[35083]||0).toSource());
