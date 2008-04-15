@@ -2796,7 +2796,7 @@ function improveTopPanel() {
 
 function showCityBuildCompletions() {
   var focused = referenceCityID();
-  var isles = <div style="position: absolute; top: -20px; left: 45px;"></div>;
+  var isles = <div style="position: absolute; top: -20px; left: 43px;"></div>;
   var isle = $X('id("changeCityForm")/ul/li[@class="viewIsland"]');
   var lis = get("citynames");
   var ids = cityIDs();
