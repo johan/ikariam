@@ -15,6 +15,7 @@
 var version = "0.5", lang;
 
 function init() {
+  upgradeConfig();
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
   if (!location.hostname.match(/^s\d+\./)) return login();
   css(GM_getResourceText("css"));
@@ -2816,7 +2817,7 @@ function showCityBuildCompletions() {
     var li = lis[i];
     var t = config.getCity("build", 0, ids[i]);
     if (t && t > Date.now() && url) {
-      t = resolveTime((t - Date.now()) / 1e3, 1);
+      t = secsToDHMS((t - Date.now()) / 1e3, 0);
       node({ tag: "a", className: "ellipsis", href: url, append: li, text: t,
            style: { marginLeft: "3px", background: "none", position: "static",
                     display: "inline", color: "#542C0F" }});
@@ -3301,6 +3302,11 @@ function isMyCity() {
 
 function $(id) {
   return document.getElementById(id);
+}
+
+function upgradeConfig() {
+  var old = config.get("posbldg0:"+ cityID()+ ":"+ location.host);
+  var v = config.get("v", old);
 }
 
 function upgradeConfig0() {
