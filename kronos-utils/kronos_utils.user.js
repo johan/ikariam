@@ -956,7 +956,7 @@ function buildingExtraInfo(div, id, name, level) {
 function annotateBuilding(li, level) {
   var a = $X('a', li);
   if (!a) return;
-  $x('div[@class="pointsLevelBat"]', li).forEach(rm);
+  $x('div[@class="rounded"]', li).forEach(rm);
   var id = buildingID(a);
   if (isNumber(id) && li.id && isUndefined(level)) {
     config.setCity("building"+ id, number(a.title));
@@ -968,7 +968,7 @@ function annotateBuilding(li, level) {
   } else {
     level = level || number(a.title);
   }
-  var div = node({ className: "pointsLevelBat", text: level, append: li });
+  var div = node({ className: "rounded", text: level, append: li });
   if (haveEnoughToUpgrade(a, level)) {
     div.style.backgroundColor = "#FEFCE8";
     div.style.borderColor = "#B1AB89";
@@ -983,7 +983,7 @@ function showResourceNeeds(needs, parent, div, top, left) {
   if (div)
     rm(div);
   else
-    div = node({ className: "pointsLevelBat toBuild" });
+    div = node({ className: "rounded resource-list" });
   div.innerHTML = visualResources(needs, { nonegative: true });
   if (parent.id == "position3") { // far right
     div.style.top = top || "";
@@ -1030,7 +1030,7 @@ function levelBat() { // Ajout d'un du level sur les batiments.
 
   var places = $("locations");
   if (places) {
-    var hovering = node({ id: "hovering", className: "pointsLevelBat toBuild",
+    var hovering = node({ id: "hovering", className: "rounded resource-list",
                           title: lang.popupInfo, append: $('position0') });
     hide(hovering);
     places.addEventListener("mouseover", hoverHouse, false);
@@ -1205,7 +1205,7 @@ function levelResources() {
     if (!what) return;
 
     var level = number(what.className);
-    node({ className: "pointsLevelBat", text: level, append: what });
+    node({ className: "rounded", text: level, append: what });
 
     var id = urlParse("id");
     if (id) {
@@ -1642,17 +1642,17 @@ function queueState() {
       return 0;
     var b = q.shift();
     var l = buildingLevel(b, 0);
-    //console.log("Building %x [%d]: %xs", b, l, replenishTime(b, l));
+    console.log("Building %x [%d]: %xs", b, l, replenishTime(b, l));
     return replenishTime(b, l);
   } // busy building something; return time until completion
-  return t - Date.now() + 3e3;
+  return (t - Date.now()) / 1e3 + 3;
 }
 
 function processQueue(mayUpgrade) {
   var state = queueState(), time = isNumber(state) && state;
-  //console.log("q: "+ state, mayUpgrade);
+  //console.log("q: "+ state + " ("+ secsToDHMS(time) +")", mayUpgrade);
   if (time) {
-    setTimeout(processQueue, Math.max(time * 1e3, 30e30));
+    setTimeout(processQueue, Math.max(time * 1e3, 30e3));
   } else if (0 === time) {
     if (mayUpgrade) upgrade();
   } // else FIXME? This might be safe, if unrelated pages don't self-refresh:
