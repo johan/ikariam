@@ -1463,7 +1463,8 @@ function replenishTime(b, level, lack, have, accumulate) {
       takesMax = Infinity;
     }
   }
-  takesMax = accumulate.t = Math.max(takesMin, takesMax);
+  takesMax = Math.max(takesMin, takesMax);
+  accumulate.t = takesMin + (accumulate.t || 0);
 
   // replenish all resources (that can be replenished in finite time)
   var replenish = mulResources(pace, takesMin / 3600, Math.floor);
@@ -1545,13 +1546,10 @@ function drawQueue() {
     var time = replenishTime(b, level[b], stalledOn, have, miss);
     //console.log("Stalled %x seconds on %s", stall.t, buildingClass(b));
     if (time) {
-      if (time == Infinity) {
-        time = "∞"; // FIXME: this merits a more clear error message
-      } else {
-        dt += time;
-        t += time * 1e3;
-        time = secsToDHMS(time, 1, " ");
-      }
+      time = secsToDHMS(time, 1, " ");
+      dt += miss.t;
+      t += miss.t * 1e3;
+      console.log(miss.t, secsToDHMS(miss.t, 1, " "));
       stalledOn.t = time;
       var div = showResourceNeeds(stalledOn, li, null, "112px", "");
       div.style.backgroundColor = "#FCC";
