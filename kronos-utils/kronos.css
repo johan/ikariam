@@ -86,7 +86,7 @@
 
 /* the rounded corners around level numbers, and resources needed to build */
 
-.pointsLevelBat {
+.rounded {
   background-color: #FDF8C1;
   -moz-border-radius: 1em;
   border: 2px solid #918B69; /*"#B1AB89"*/
@@ -105,8 +105,8 @@
   z-index: 50;
 }
 
-/* extra class for resources needed to build */ */
-.toBuild {
+/* extra class for resources needed to build */
+.resource-list {
   top: 32px;
   width: auto;
   height: 23px;
@@ -115,26 +115,26 @@
   z-index: 1000;
 }
 
-.toBuild img { display: inline !important; }
+.resource-list img { display: inline; }
 
 /* correct positioning of the rounded corners around resource level numbers */
-#islandfeatures .wood .pointsLevelBat {
+#islandfeatures .wood .rounded {
   margin-top: 9px;
   margin-left: -18px;
 }
-#islandfeatures .wine .pointsLevelBat {
+#islandfeatures .wine .rounded {
   margin-left: 8px;
   margin-top: 0px;
 }
-#islandfeatures .marble .pointsLevelBat {
+#islandfeatures .marble .rounded {
   margin-top: 18px;
   margin-left: 0px;
 }
-#islandfeatures .crystal .pointsLevelBat {
+#islandfeatures .crystal .rounded {
   margin-top: 9px;
   margin-left: -8px;
 }
-#islandfeatures .sulfur .pointsLevelBat {
+#islandfeatures .sulfur .rounded {
   margin-top: 4px;
   margin-left: 10px;
 }
@@ -169,6 +169,9 @@
   width: 13px;
 }
 
+.citySelect .optionList.expanded a.ellipsis:hover {
+  text-decoration: underline;
+}
 
 
 /**** Top panel improvements ****/
@@ -328,7 +331,7 @@
   height: 43px;
   position: relative;
 }
-#q li .pointsLevelBat { margin-left: 19px; margin-top: 30px; }
+#q li .rounded { margin-left: 19px; margin-top: 30px; }
 
 #q li .timetofinish {
   z-index:500;
