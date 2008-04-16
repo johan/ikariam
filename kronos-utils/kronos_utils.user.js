@@ -1550,8 +1550,9 @@ function drawQueue() {
       } else {
         dt += time;
         t += time * 1e3;
-        stalledOn.t = secsToDHMS(time, 1, " ");
+        time = secsToDHMS(time, 1, " ");
       }
+      stalledOn.t = time;
       var div = showResourceNeeds(stalledOn, li, null, "112px", "");
       div.style.backgroundColor = "#FCC";
       div.style.borderColor = "#E88";
