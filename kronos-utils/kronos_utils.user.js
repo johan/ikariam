@@ -25,16 +25,17 @@ function init() {
   var chemin = $("Kronos");
   var view = urlParse("view");
   var action = urlParse("action");
-  var building = view && buildingID(view);
-  if (isDefined(building)) {
-    var level = $X('id("buildingUpgrade")//div[@class="buildingLevel"]');
-    if (level)
-      config.setCity("building"+ building, number(level));
-  }
 
   var help = $X('id("buildingUpgrade")/h3/a[@class="help"]');
-  if (help)
+  if (help) {
     linkTo(urlTo("building", buildingID(urlParse("view"))), help);
+    var building = buildingID(view);
+    if (isDefined(building)) {
+      var level = $X('id("buildingUpgrade")//div[@class="buildingLevel"]');
+      if (level)
+        config.setCity("building"+ building, number(level));
+    }
+  }
 
   switch (view || action) {
     case "tavern": tavernView(); break;
@@ -3266,7 +3267,8 @@ function cityID() {
     if (buildingIDs.hasOwnProperty(view) ||
         { city:1 }[view])
       return integer(id);
-  return integer(urlParse("id", $X('//li[@class="viewCity"]/a').search));
+  var a = $X('//li[@class="viewCity"]//a');
+  return a && integer(urlParse("id", a.search));
 }
 
 function cityIDs() {
