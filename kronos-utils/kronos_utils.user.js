@@ -73,8 +73,8 @@ function init() {
     case "researchAdvisor": researchAdvisorView(); break;
     case "diplomacyAdvisor": diplomacyAdvisorView(); break;
     case "plunder": plunderView(); break;
-    case "Espionage":
     case "safehouse": safehouseView(); break;
+    case "Espionage":
     case "safehouseReports": safehouseReportsView(); break;
     case "academy": academyView(); break;
   }
@@ -166,15 +166,12 @@ function luxuryType(type) {
 // on récupére une des valeurs get d'une url(son nom est le param.
 function urlParse(param, url) {
   if (!url) url = location.search || ""; // On récupére l'url du site.
-  if (!url && param == "view") {
-    var view = document.body.id;
-    if (view) return view;
-  }
   var keys = {};
   url.replace(/([^=&?]+)=([^&]*)/g, function(m, key, value) {
     keys[decodeURIComponent(key)] = decodeURIComponent(value);
   });
-  return param ? keys[param] : keys;
+  return (param ? keys[param] : keys) ||
+    "view" == param && document.body.id;
 }
 
 var expandos = { id: 1, className: 1, title: 1, type: 1, checked: 1 };
