@@ -33,7 +33,7 @@ function init() {
     if (isDefined(building)) {
       var level = $X('id("buildingUpgrade")//div[@class="buildingLevel"]');
       if (level)
-        config.setCity("building"+ building, number(level));
+        config.setCity(["l", building], number(level));
     }
   }
 
@@ -92,7 +92,7 @@ function init() {
   processQueue(!queued);
   document.addEventListener("click", changeQueue, true);
 
-  var research = config.getServer("research", "");
+  var research = config.getServer("techs.research.n", "");
   if (research) {
     var a = node({ tag: "a", href: urlTo("academy"), append: chemin,
                    text: lang.researching +": "+ research });
@@ -100,14 +100,14 @@ function init() {
     if (tech)
       a.title = tech.does +" ("+ tech.points + " points)"; // I18N
 
-    var done = config.getServer("researchDone");
+    var done = config.getServer("techs.research.t");
     if (done) a.title += resolveTime((done-Date.now()) / 1e3);
     node({ tag: "br", append: chemin });
   }
 
   improveTopPanel();
   if ({ city: 1, island: 1 }[view])
-    unsafeWindow.friends = eval(config.getServer("culturetreaties", "([])"));
+    unsafeWindow.friends = config.getServer("treaties", []);
 
   title();
   var FIN = new Date();
@@ -255,7 +255,7 @@ function css(rules, disabled) {
   style.textContent = isString(rules) ? rules : rules.toString();
   if (isBoolean(disabled))
     style.disabled = disabled;
-  return head.appendChild(style);
+  return head && head.appendChild(style);
 }
 
 
@@ -494,8 +494,8 @@ function makeLootTable(table, reports) {
     if (11 == i) th.style.width = "400px";
     if (r) { // only show filter for cols with relevant data
       var id = "#" == r ? "bash" : r;
-      var op = config.getCity("report.op."+ r, /[T#]/.test(r) ? "≤" : "≥");
-      var val = config.getCity("report.val."+ r, "");
+      var op = /[T#]/.test(r) ? "≤" : "≥"; // config.getCity(...+ r, def);
+      var val = ""; // config.getCity(...+ r, "");
       var html = <><span id={"op"+ id}>{op}</span><input
                          id={"v"+ id} value={val} type="text"/></>;
       var filter = node({ tag: "th", className: "filter", html: html,
@@ -574,7 +574,7 @@ function researchAdvisorView() {
     if (!tech.length) return;
     tech = tech[0];
 
-    config.setServer("tech"+ tech.id, 1);
+    config.setServer(["techs", tech.id], 1);
 
     a.title = a.textContent;
     a.href = urlTo("research", tech.id);
@@ -638,8 +638,8 @@ function militaryAdvisorCombatReportsView() {
   }
   var table = $X('id("finishedReports")/table[@class="operations"]');
   if (!table) return;
-  var history = eval(config.getServer("war", "({ won: 0, lost: 0 })"));
-  var allreps = eval(config.getServer("reports", "({})"));
+  var history = config.getServer("battles", { won: 0, lost: 0 });
+  var allreps = config.getServer("battles.reports", {});
   var reports = $x('tbody/tr[td[contains(@class,"subject")]]', table);
   var newreps = {};
   var cities = {};
@@ -676,8 +676,9 @@ function militaryAdvisorCombatReportsView() {
                     style: { marginLeft: "8px" }, append: header });
   clickTo(loot, function() { rm(loot); makeLootTable(table, rows); });
 
-  config.setServer("war", history);
-  config.setServer("reports", allreps);
+  config.setServer("battles", history);
+  config.setServer("cities", city);
+  //config.setServer("reports", allreps);
   //console.log(history.toSource());
   //console.log(allreps.toSource());
 }
@@ -688,7 +689,7 @@ function militaryAdvisorReportViewView() {
   var cities = config.getServer("cities", {});
   var city = parseInt(urlParse("selectCity", a.search));
   var island = parseInt(urlParse("id", a.search));
-  var reports = config.getServer("reports", {});
+  var reports = config.getServer("battles.reports", {});
   var r = urlParse("combatId");
   var report = reports[r];
   if (report) {
@@ -699,9 +700,9 @@ function militaryAdvisorReportViewView() {
     cities[city] = {};
   var c = cities[city];
   c.n = a.textContent;
-  c.i = island;
+  c.i = integer(island);
   config.setServer("cities", cities);
-  config.setServer("reports", reports);
+  config.setServer("battles.reports", reports);
   //console.log(cities.toSource());
   //console.log(reports[r].toSource());
 }
@@ -799,9 +800,10 @@ function reapingPace() {
     // FIXME: This just gives city income; ought to do a pace.G for totals too
     var preciseCityIncome = $("valueWorkCosts") ||
       $X('//li[contains(@class,"incomegold")]/span[@class="value"]');
-    var sciCost = 8 - config.getServer("tech3110", 0); // Letter chute bonus
+    var sciCost = 8 - config.getServer("techs.3110", 0); // Letter chute bonus
     var gold = preciseCityIncome ? integer(preciseCityIncome) :
-      getFreeWorkers() * 4 - sciCost * config.getCity("researchers", 0);
+      getFreeWorkers() * 4 -
+      config.getCity(["x", buildingIDs.academy], 0) * sciCost;
 
     reapingPace.pace = pace = {
       g: gold,
@@ -809,7 +811,7 @@ function reapingPace() {
     };
     pace[luxuryType()] = secondsToHours(jsVariable("startTradegoodDelta"));
 
-    var wineUse = config.getCity("wine", 0);
+    var wineUse = config.getCity(["x", buildingIDs.tavern], 0);
     if (wineUse)
       pace.W = (pace.W || 0) - wineUse;
   }
@@ -834,7 +836,7 @@ function haveBuilding(b) {
 }
 
 function buildingPosition(b, otherwise) {
-  var p = config.getCity("posbldg"+ buildingID(b), "?");
+  var p = config.getCity(["p", buildingID(b)], "?");
   return "?" == p ? otherwise : p;
 }
 
@@ -847,7 +849,7 @@ function buildingLevel(b, otherwise, saved, city) {
       a = null; // a ghost house we set up to visualize the queue
   }
   if (saved || !a)
-    b = config.getCity("building"+ b, "?", city);
+    b = config.getCity(["l", b], "?", city);
   else
     b = number(a.title);
   return "?" == b ? otherwise : b;
@@ -857,7 +859,7 @@ function buildingLevels() {
   var levels = {};
   for (var name in buildingIDs) {
     var id = buildingIDs[name];
-    var level = config.getCity("building"+ id, 0);
+    var level = config.getCity(["l", id], 0);
     if (level)
       levels[id] = level;
   }
@@ -876,9 +878,9 @@ function buildingExpansionNeeds(b, level) {
   var needs = costs[b = buildingID(b)][level];
   var value = {};
   var factor = 1.00;
-  if (config.getServer("tech2020")) factor -= 0.02; // Pulley
-  if (config.getServer("tech2060")) factor -= 0.04; // Geometry
-  if (config.getServer("tech2100")) factor -= 0.08; // Spirit Level
+  if (config.getServer("techs.2020")) factor -= 0.02; // Pulley
+  if (config.getServer("techs.2060")) factor -= 0.04; // Geometry
+  if (config.getServer("techs.2100")) factor -= 0.08; // Spirit Level
   for (var r in needs)
     if ("t" == r) // no time discount
       value[r] = needs[r];
@@ -924,21 +926,21 @@ function buildingExtraInfo(div, id, name, level) {
 
     case "tavern":
       var wineMax = buildingCapacity(name, level);
-      var wineCur = config.getCity("wine", 0);
+      var wineCur = config.getCity(["x", buildingIDs.tavern], 0);
       if (wineCur != wineMax)
         annotate(wineCur +"/"+ wineMax);
       break;
 
     case "museum":
       var museum = buildingLevel(name) || 0;
-      var culture = config.getCity("culture", 0);
+      var culture = config.getCity(["x", buildingIDs.museum], 0);
       if (culture != museum)
         annotate(culture +"/"+ museum);
       break;
 
     case "academy":
       var seats = buildingCapacity(name, level);
-      var working = config.getCity("researchers", 0);
+      var working = config.getCity(["x", buildingIDs.academy], 0);
       if (working != seats)
         annotate(working +"/"+ seats);
       break;
@@ -958,8 +960,8 @@ function annotateBuilding(li, level) {
   $x('div[@class="rounded"]', li).forEach(rm);
   var id = buildingID(a);
   if (isNumber(id) && li.id && isUndefined(level)) {
-    config.setCity("building"+ id, number(a.title));
-    config.setCity("posbldg"+ id, number(li.id));
+    config.setCity(["l", id], number(a.title));
+    config.setCity(["p", id], number(li.id));
   }
   if ("original" == level) {
     level = buildingLevel(id, 0, "saved");
@@ -1044,9 +1046,7 @@ function levelBat() { // Ajout d'un du level sur les batiments.
     }, false);
   }
 
-  for (var name in buildingIDs)
-    config.remCity("building"+ buildingIDs[name]); // clear old broken config
-
+  config.setCity("l", []); // clear old broken config
   var all = $x('id("locations")/li[not(contains(@class,"buildingGround"))]');
   all.forEach(function(li) { annotateBuilding(li); });
 }
@@ -1085,7 +1085,7 @@ function worldmap_isoView() {
   $x('//area[@title]').forEach(dropTooltip);
   $x('id("worldmap")/text()').forEach(rm);
   var resources = {}, tradegood = 0, wood = 1;
-  var islands = upgradeConfig0()[location.host].islands;
+  var islands = config.getServer("islands");
   for (var id in islands) {
     var i = islands[id];
     if (i.R)
@@ -1345,11 +1345,11 @@ function urlTo(what, id, opts) {
 }
 
 function getQueue() {
-  return eval(config.getCity("q", "[]"));
+  return config.getCity("q", []);
 }
 
 function setQueue(q) {
-  return config.setCity("q", uneval(q));
+  return config.setCity("q", q.concat());
 }
 
 function addToQueue(b, first) {
@@ -1397,7 +1397,7 @@ function reallyUpgrade(name) {
   }
   if (haveResources(buildingExpansionNeeds(b, l))) {
     return setTimeout(function() {
-      config.remCity("build");
+      config.remCity("t");
       setQueue(q);
       if (!l)
         return goto(url("?action=CityScreen&function=build&id="+ i +
@@ -1497,7 +1497,7 @@ function hoverQueue(have, e) {
 
 function drawQueue() {
   var q = getQueue();
-  var t = Math.max(Date.now(), config.getCity("build")); // in ms
+  var t = Math.max(Date.now(), config.getCity("t")); // in ms
   var dt = (t - Date.now()) / 1e3; // in s
   var have = currentResources();
   var pace = reapingPace();
@@ -1505,8 +1505,8 @@ function drawQueue() {
   var level = buildingLevels();
 
   // add a level for what is being built now, if anything
-  var building = config.getCity("buildurl");
-  var buildEnd = config.getCity("build", 0);
+  var building = config.getCity("u");
+  var buildEnd = config.getCity("t", 0);
   if (buildEnd > Date.now() && building) {
     building = buildingID(urlParse("view", building));
     level[building] = 1 + (level[building] || 0);
@@ -1626,8 +1626,8 @@ function drawQueue() {
 // or resources expected to be available to start building something now queued.
 function queueState() {
   var v = urlParse("view");
-  var u = config.getCity("buildurl");
-  var t = config.getCity("build", Infinity);
+  var u = config.getCity("u");
+  var t = config.getCity("t", Infinity);
   var busy = $X('id("buildCountDown") | id("upgradeCountDown")');
   //console.log("u: %x, t: %x, b: %x, ql: %x", u, t, busy, getQueue().length);
   if (t < Date.now()) { // last known item is completed by now
@@ -1673,7 +1673,7 @@ function alreadyAllocated(pos, building) {
 function buildingGroundView() {
   function build(id, pos, e) {
     buts.forEach(rm);
-    config.setCity("posbldg"+ id, pos);
+    config.setCity(["p", id], pos);
     var prepend = e.shiftKey;
     addToQueue(id, prepend);
   }
@@ -1969,9 +1969,20 @@ function warehouseSpy() {
 
   var body = $X('id("resources")/tbody');
   if (body) {
-    var port = prompt("Port level?", 0);
-    if (isUndefined(port)) return;
-    var warehouse = prompt("Warehouse level?", 0);
+    var found = false;
+    var cityName = $X('tr[2]/td[2]', body).textContent;
+    var allCities = config.getServer("cities");
+    for (var id in allCities) {
+      var city = allCities[id];
+      if (city.n != cityName) continue;
+      if (city.l) { console.log("Found!"); found = true; break; }
+    }
+    var guess = found && buildingLevel("port", 0, "save", id) || found;
+    var port = prompt("Port level? (0 for no port)", guess);
+    if (!isNumber(port)) return;
+    var warehouse = prompt("Warehouse level? (0 for no warehouse)", found &&
+                           buildingLevel("warehouse", 0, "save", id) || 0);
+    if (!isNumber(warehouse)) return;
     // buildingLevel("warehouse", 0, "save", cityID);
     if (isUndefined(warehouse)) return;
     port = integer(port);
@@ -2009,7 +2020,8 @@ function isleForCity(city) {
 }
 
 function cityView() {
-  var city = cityID(), isle;
+  var city = cityID(), isle, name = mainviewCityName();
+  if (name) config.setCity("n", name);
   if (referenceCityID() == city) {
     if ((isle = $X('id("changeCityForm")//li[@class="viewIsland"]/a'))) {
       var cities = config.getServer("cities", {});
@@ -2025,9 +2037,6 @@ function cityView() {
 }
 
 function townHallView() {
-  var income = $X('//li[contains(@class,"incomegold")]/span[@class="value"]');
-  config.setCity("gold", number(income));
-
   var g = { context: $("PopulationGraph") };
   var growth = $("SatisfactionOverview");
   linkTo("wood", 'div[@class="woodworkers"]/span[@class="production"]', 0, g);
@@ -2045,31 +2054,33 @@ function townHallView() {
 function museumView() {
   var goods = $X('id("val_culturalGoodsDeposit")/..');
   if (goods)
-    config.setCity("culture", integer(goods.textContent.match(/\d+/)[0]));
+    config.setCity(["x", buildingIDs.museum],
+                   integer(goods.textContent.match(/\d+/)[0]));
 
   var cities = cityIDs();
   for (var i = 0; i < cities.length; i++)
     if ((goods = $("textfield_city_"+ cities[i])))
-      config.setCity("culture", integer(goods), cities[i]);
+      config.setCity(["x", buildingIDs.museum],
+                     integer(goods), cities[i]);
 
   var friends = $x('id("mainview")/div[last()]//td[@class="actions"]/a[1]');
   for (var i = 0; i < friends.length; i++)
     friends[i] = urlParse("receiverName", friends[i].search);
-  config.setServer("culturetreaties", friends);
+  config.setServer("treaties", friends);
 }
 
 function updateCurrentResearch() {
   var research = $X('//div[@class="researchName"]/a');
   if (research)
-    config.setServer("research", research.title);
-  config.setServer("researchDone", projectCompletion("researchCountDown"));
+    config.setServer("techs.research.n", research.title);
+  config.setServer("techs.research.t", projectCompletion("researchCountDown"));
 }
 
 function academyView() {
   updateCurrentResearch();
   var research = $("inputScientists");
   if (research)
-    config.setCity("researchers", number(research));
+    config.setCity(["x", buildingIDs.academy], number(research));
 }
 
 function trim(str) {
@@ -2097,7 +2108,7 @@ function techinfo(what) {
              deps: deps, points: integer(points) };
     if ((spec.a = $X('//a[.="'+ name +'"]'))) {
       if ((spec.known = $x('ancestor::ul/@class = "explored"', spec.a)))
-        config.setServer("tech"+ urlParse("researchId", spec.a.search), 1);
+        config.setServer(["tech", urlParse("researchId", spec.a.search)], 1);
     }
     return spec;
   }
@@ -2741,7 +2752,7 @@ function improveTopPanel() {
   if (name != "wine") // already did that
     income[name] = luxe;
 
-  // city resource type, for the city selection pane:
+  // FIXME: deprecate _city_ resource type, for the city selection pane:
   config.setCity("r", type, referenceCityID());
   config.setCity("i", islandID(), referenceCityID());
 
@@ -2783,10 +2794,10 @@ function improveTopPanel() {
 
   if (!isMyCity()) return;
 
-  var build = config.getCity("build", 0), now = Date.now();
+  var build = config.getCity("t", 0), now = Date.now();
   if (build > now) {
     time = $X('id("servertime")/ancestor::li[1]');
-    var a = node({ tag: "a", href: config.getCity("buildurl"), append: time });
+    var a = node({ tag: "a", href: config.getCity("u"), append: time });
     node({ tag: "span", id: "done", className: "textLabel", append: a,
           text: trim(resolveTime(Math.ceil((build-now)/1e3))) });
   }
@@ -2809,10 +2820,10 @@ function showCityBuildCompletions() {
   }
   for (var i = 0; i < lis.length; i++) {
     var id = ids[i];
-    var url = config.getCity("buildurl", 0, ids[i]);
+    var url = config.getCity("u", 0, ids[i]);
     var res = config.getCity("r", "", id);
     var li = lis[i];
-    var t = config.getCity("build", 0, ids[i]);
+    var t = config.getCity("t", 0, ids[i]);
     if (t && t > Date.now() && url) {
       t = secsToDHMS((t - Date.now()) / 1e3, 0);
       node({ tag: "a", className: "ellipsis", href: url, append: li, text: t,
@@ -2948,7 +2959,7 @@ function showSafeWarehouseLevels() {
     var n = "wood" == div.parentNode.className ? wood : rest;
     node({ tag: "span", className: "ellipsis", text: n, append: div });
   }
-  var level = config.getCity("building7", 0);
+  var level = config.getCity(["l", buildingIDs.warehouse], 0);
   var wood = buildingCapacity("warehouse", "wood", level);
   var rest = buildingCapacity("warehouse", "rest", level);
   $x('id("cityResources")/ul/li/*[@class="tooltip"]').map(showSafeLevel);
@@ -2985,9 +2996,9 @@ function getMaxPopulation(townHallLevel) {
   if ("undefined" == typeof townHallLevel)
     townHallLevel = buildingLevel("townHall", 1);
   var maxPopulation = buildingCapacity("townHall", townHallLevel);
-  if (config.getServer("tech2080"))
+  if (config.getServer("techs.2080"))
     maxPopulation += 50; // Holiday bonus
-  if (config.getServer("tech3010") && isCapital())
+  if (config.getServer("techs.3010") && isCapital())
     maxPopulation += 50; // Well Digging bonus (capital city only)
   return maxPopulation;
 }
@@ -2996,14 +3007,14 @@ function projectPopulation(opts) {
   function getGrowth(population) {
     return (happy - Math.floor(population)) / 50;
   }
-  var wellDigging = isCapital() && config.getServer("tech3010") ? 50 : 0;
-  var holiday = config.getServer("tech2080") ? 25 : 0;
+  var wellDigging = isCapital() && config.getServer("techs.3010") ? 50 : 0;
+  var holiday = config.getServer("techs.2080") ? 25 : 0;
   var tavern = 12 * buildingLevel("tavern", 0);
   var wineLevel = opts && opts.hasOwnProperty("wine") ? opts.wine :
-    config.getCity("wine", 0);
+    config.getCity(["x", buildingIDs.tavern], 0);
   var wine = 80 * buildingCapacities.tavern.indexOf(wineLevel);
   var museum = 20 * buildingLevel("museum", 0);
-  var culture = 50 * config.getCity("culture", 0);
+  var culture = 50 * config.getCity(["x", buildingIDs.museum], 0);
   var happy = 196 + wellDigging + holiday + tavern + wine + museum + culture;
   //console.log(wellDigging, holiday, tavern, wine, museum, culture, happy);
 
@@ -3037,7 +3048,7 @@ function projectPopulation(opts) {
   }
 
   var people = $("value_inhabitants");
-  var hqLevel = config.getCity("building0", 1);
+  var hqLevel = config.getCity("l.0", 1);
   var nextHQUpgradeTime = parseTime(costs[0][hqLevel].t);
   var upgradingTownHall = $X('id("done")/../@href = "'+ urlTo("townHall") +'"');
 
@@ -3136,9 +3147,9 @@ function projectCompletion(id, className, loc) {
                      after: tag, text: done });
     time = time * 1e3 + Date.now();
     if ("upgradeCountDown" == id)
-      set = config.setCity("build", time);
+      set = config.setCity("t", time);
     if ("cityCountdown" == id) {
-      set = config.setCity("build", time);
+      set = config.setCity("t", time);
       var move = $X('ancestor::*[contains(@class,"timetofinish")]', tag);
       if (move)
         move.style.marginLeft = "-40%";
@@ -3152,7 +3163,7 @@ function projectCompletion(id, className, loc) {
         else
           loc = { href: urlTo(document.body.id) };
       if (loc)
-        config.setCity("buildurl", loc.href);
+        config.setCity("u", loc.href);
     }
   }
   return time;
@@ -3181,7 +3192,7 @@ function tavernView() {
   wine.parentNode.addEventListener("DOMNodeInserted", function() {
     setTimeout(recalcTownHall, 10);
   }, false);
-  config.setCity("wine", amount());
+  config.setCity(["x", buildingIDs.tavern], amount());
   recalcTownHall();
 }
 
@@ -3243,13 +3254,13 @@ function panelInfo() { // Ajoute un element en plus dans le menu.
 }
 
 function islandID(city) {
-  return urlParse("id", $X('//li[@class="viewIsland"]/a').search);
+  return urlParse("id", ($X('id("breadcrumbs")//a[@class="island"]') ||
+                         $X('//li[@class="viewIsland"]//a')).search);
 }
 
 function referenceIslandID(city) {
   city = city || referenceCityID();
-  city = config.getServer("cities", {})[city];
-  return city && city.i;
+  return config.getCity("i", city);
 }
 
 function referenceCityID(index) {
@@ -3273,6 +3284,11 @@ function cityID() {
 
 function cityIDs() {
   return pluck($x('id("citySelect")/option'), "value").map(integer);
+}
+
+function mainviewCityName() {
+  var city = $X('id("breadcrumbs")//*[@class="city"]');
+  return city && city.textContent;
 }
 
 function cityName() {
@@ -3303,26 +3319,29 @@ function $(id) {
 }
 
 function upgradeConfig() {
-  var old = config.get("posbldg0:"+ cityID()+ ":"+ location.host);
-  var v = config.get("v", old);
+  var v = GM_getValue(location.host) && config.getServer("v") || 0;
+  //console.log("ver ", v);
+  if (v < 1) upgradeConfig0();
 }
 
 function upgradeConfig0() {
   function makeNWO() {
     var obj = { v: 1 };
     for (var name in nwo)
-      obj[name] = {};
+      obj[name] = name == "treaties" ? [] : {};
     return obj;
   }
   var ns = {};
-  var nwo = { capital:1, treaties:1, cities:1, islands:1, techs:1, battles:1 };
-  var old = config.keys(), key, server, isle, city, tech, r, b, save, junk;
+  var nwo = { capital: 1, treaties: 1, techs: 1, spies: 1,
+              players: 1, cities: 1, islands: 1, battles: 1 };
+  var old = config.keys(), key, host, isle, city, tech, r, b, save, junk;
   for (var i = 0; key = old[i]; i++) {
     var value = config.get(save = key);
+    config.remove(key);
 
     // belongs to which server scope?
-    if ((server = key.match(/(.*):([^:]+\D[^.])$/))) {
-      [junk, key, server] = server;
+    if ((host = key.match(/(.*):([^:]+\D[^.])$/))) {
+      [junk, key, host] = host;
     } else { // data sanitization; probably drop
       if ("language" == key) {
         ns.config = ns.config || {};
@@ -3330,8 +3349,8 @@ function upgradeConfig0() {
       }
       continue;
     }
-    var scope = ns[server] || makeNWO();
-    ns[server] = scope;
+    var scope = ns[host] || makeNWO();
+    ns[host] = scope;
 
 
     // server global stuff first:
@@ -3357,7 +3376,7 @@ function upgradeConfig0() {
         scope = scope.cities;
         for (var id in value) {
           city = scope[id] = scope[id] || {};
-          city.i = value[id].i;
+          city.i = integer(value[id].i);
           city.n = value[id].n;
         }
         continue;
@@ -3406,7 +3425,7 @@ function upgradeConfig0() {
     switch (key) {
       case "q":		city.q = eval(value); continue;
       case "r":		city.r = value; continue; // temporary hack
-      case "gold":	city.g = value; continue;
+      //case "gold":	city.g = value; continue;
       case "build":	city.t = value; continue;
       case "buildurl":	city.u = value; continue;
 
@@ -3420,6 +3439,10 @@ function upgradeConfig0() {
     if (!city.x) city.x = {};
     city.x[b] = integer(value);
   }
+  data = ns.config;
+  server = ns[location.host];
+  for (var name in ns)
+    GM_setValue(name, uneval(ns[name]));
   return ns;
 }
 
@@ -3450,7 +3473,7 @@ reports: {
       p: [ pos0, ...], // building position
       q: [ bID, ...], // buildings sceduled to be built
       x: { bID:building-special - tavern: wine level; academy: scientists,
-           r: resourceWorkers, w: woodWorkers },
+           r: resourceWorkers, w: woodWorkers, museum: culture items },
       b: { bID:time busy to }
     }, ...
   }
@@ -3458,36 +3481,83 @@ reports: {
 */
 
 // config.get() and config.set() store config data in (near-)json in prefs.js.
-var config = (function(data) {
+var none = { v: 1, capital: 0, treaties: [], spies: {}, players: {},
+             cities: {}, islands: {}, techs: {}, battles: {} };
+var data = eval(GM_getValue("config", none));
+var server = eval(GM_getValue(location.host, none));
+function saveConfig() {
+  GM_setValue("config", uneval(data));
+  console.log("config ", uneval(data));
+}
+function saveServer() {
+  GM_setValue(location.host, uneval(server));
+  //console.log("server ", uneval(server));
+}
+var config = (function() {
   function get(name, value) {
     return data.hasOwnProperty(name) ? data[name] : value;
   }
   function getCity(name, value, id) {
-    return getServer(name +":"+ (id || cityID()), value);
-  }
-  function getIsle(name, value, id) {
-    return getServer(name +"/"+ (id || cityID()), value);
-  }
-  function getServer(name, value) {
-    return get(name +":"+ location.hostname, value);
-  }
-  function set(name, value) {
-    if (value === undefined)
-      delete data[name];
-    else
-      data[name] = value;
-    //console.count("set");
-    GM_setValue("config", uneval(data));
-    return value;
+    return getServer(["cities", id || cityID()].concat(array(name)), value);
   }
   function setCity(name, value, id) {
-    return setServer(name +":"+ (id || cityID()), value);
+    return setServer(["cities", id || cityID()].concat(array(name)), value);
+  }
+  function getIsle(name, value, id) {
+    return getServer(["islands", id || islandID()].concat(array(name)), value);
   }
   function setIsle(name, value, id) {
-    return setServer(name +"/"+ (id || islandID()), value);
+    return setServer(["islands", id || islandID()].concat(array(name)), value);
+  }
+  function getServer(name, value) {
+    if ("?!" == value) console.log(name, value);
+    var path = isString(name) ? name.split(".") : name;
+    var save = name;
+    var scope = server;
+    for (var i = 0; i < path.length; i++) {
+      name = path[i];
+      if (!scope.hasOwnProperty(name)) {
+        if ("?!" == value) console.log(save.join("/"), scope);
+        //console.log(save.join("/", value);
+        return value;
+      }
+      scope = scope[name];
+    }
+    if ("?!" == value) console.log(save.join("-"), scope);
+    //console.log(save, value, scope);
+    return scope;
+  }
+  function set(name, value) {
+    var path = isString(name) ? name.split(".") : name;
+    var scope = server, last = path.length - 1;
+    for (var i = 0; i <= last; i++) {
+      name = path[i];
+      if (i != last)
+        scope = scope[name] = scope[name] || {};
+      else
+        scope[name] = value;
+    }
+    expensive(saveConfig)();
+    return value;
   }
   function setServer(name, value) {
-    return set(name +":"+ location.hostname, value);
+    var path = isString(name) ? name.split(".") : name;
+    var tmpl = { 3: { cities: [{}, {l: Array, p: Array, q: Array}] } };
+    var scope = server, last = path.length - 1;
+    for (var i = 0; i <= last; i++) {
+      name = path[i];
+      if (i != last) {
+        if (!scope.hasOwnProperty(name)) try {
+          var type = tmpl[path[0]][path.length][i][name];
+        } catch(e) { type = Object; } finally {
+          scope[name] = new type;
+        }
+        scope = scope[name];
+      } else
+        scope[name] = value;
+    }
+    expensive(saveServer)();
+    return value;
   }
   function remCity(name) {
     return remServer(name +":"+ cityID());
@@ -3524,7 +3594,7 @@ var config = (function(data) {
            setCity:setCity, getCity:getCity, remCity:remCity,
            setIsle:setIsle, getIsle:getIsle, remIsle:remIsle,
            setServer:setServer, getServer:getServer, remServer:remServer };
-})(eval(GM_getValue("config", "({})")));
+})();
 
 function bind(fn, self) {
   var args = [].slice.call(arguments, 2);
@@ -3534,7 +3604,7 @@ function bind(fn, self) {
 }
 
 function isNull(n) { return null === n; }
-function isArray(a) { return a && a.hasOwnProperty("length"); }
+function isArray(a) { return isObject(a) && isNumber(a.length); }
 function isString(s) { return "string" == typeof s; }
 function isNumber(n) { return "number" == typeof n; }
 function isObject(o) { return "object" == typeof o; }
@@ -3543,6 +3613,8 @@ function isDefined(v) { return "undefined" != typeof v; }
 function isFunction(f) { return "function" == typeof f; }
 function isUndefined(u) { return "undefined" == typeof u; }
 function isTextNode(n) { return isObject(n) && n.nodeType == 3; }
+
+function array(a) { return isArray(a) ? a : [a]; }
 
 function rm(node) {
   node && node.parentNode && node.parentNode.removeChild(node);
@@ -3573,4 +3645,6 @@ XML.setSettings({
 });
 
 init();
-//prompt(1, (upgradeConfig0()[location.host].cities[35083]||0).toSource());
+//unsafeWindow.g = config;
+//unsafeWindow.data = data;
+//unsafeWindow.server = server;

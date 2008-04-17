@@ -19,8 +19,8 @@ var resourceIDs = {
 var buildingIDs = {
   townHall: 0, townhall: 0, port: 3, academy: 4, shipyard: 5, barracks: 6,
   warehouse: 7, wall: 8, tavern: 9, museum: 10, palace: 11, embassy: 12,
-  branchOffice:13, "workshop-army": 15, "workshop-fleet": 15, safehouse: 16,
-  palaceColony: 17
+  branchOffice:13, workshop: 15, "workshop-army": 15, "workshop-fleet": 15,
+  safehouse: 16, palaceColony: 17
 };
 
 var buildingCapacities = {
