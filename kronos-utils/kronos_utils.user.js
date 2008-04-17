@@ -1323,9 +1323,10 @@ function urlTo(what, id, opts) {
     case "safehouse":	case "tavern":	case "workshop-army":
       return building();
 
-    case "city":	return url('?view=city&id='+ c);
+    case "city":	return url('?view=city&id='+ (id || c));
     case "building":	return url("?view=buildingDetail&buildingId="+ id);
     case "research":	return url("?view=researchDetail&researchId="+ id);
+    case "pillage":	return url("?view=plunder&destinationCityId="+ id);
 
     case "library":
       return urlTo("academy").replace("academy", "researchOverview");
@@ -1969,21 +1970,32 @@ function warehouseSpy() {
 
   var body = $X('id("resources")/tbody');
   if (body) {
-    var found = false;
-    var cityName = $X('tr[2]/td[2]', body).textContent;
+    var found;
+    var nameTD = $X('id("mainview")//tr[2]/td[2]');
+    var cityName = nameTD.textContent;
     var allCities = config.getServer("cities");
     for (var id in allCities) {
       var city = allCities[id];
       if (city.n != cityName) continue;
-      if (city.l) { console.log("Found!"); found = true; break; }
+      if (city.l) {
+        found = true;
+        var a = <><a href={urlTo("city", id)}>{cityName}</a> (</>;
+        var isle = config.getCity("i", id);
+        if (isle) {
+          isle = urlTo("island", {city: id, island: isle});
+          a += <><a href={isle}>island</a> </>;
+        }
+        a += <><a href={urlTo("pillage", id)}>pillage</a>)</>;
+        nameTD.innerHTML = a.toXMLString();
+        break;
+      }
     }
-    var guess = found && buildingLevel("port", 0, "save", id) || found;
+    var guess = found && buildingLevel("port", 0, "save", id) || 0;
     var port = prompt("Port level? (0 for no port)", guess);
-    if (!isNumber(port)) return;
+    if (port === null || !isNumber(port = integer(port))) return;
     var warehouse = prompt("Warehouse level? (0 for no warehouse)", found &&
                            buildingLevel("warehouse", 0, "save", id) || 0);
-    if (!isNumber(warehouse)) return;
-    // buildingLevel("warehouse", 0, "save", cityID);
+    if (warehouse === null || !isNumber(warehouse = integer(warehouse))) return;
     if (isUndefined(warehouse)) return;
     port = integer(port);
     warehouse = integer(warehouse);
@@ -2014,24 +2026,14 @@ function highlightMeInTable() {
   if (tr.length == 1) tr[0].style.background = "pink";
 }
 
-function isleForCity(city) {
-  var cities = config.getServer("cities", {});
-  return (cities[city] || {}).i;
-}
+function isleForCity(city) { return config.getCity("i"); }
 
 function cityView() {
-  var city = cityID(), isle, name = mainviewCityName();
+  var city = cityID();
+  var name = mainviewCityName();
   if (name) config.setCity("n", name);
-  if (referenceCityID() == city) {
-    if ((isle = $X('id("changeCityForm")//li[@class="viewIsland"]/a'))) {
-      var cities = config.getServer("cities", {});
-      cities[city] = cities[city] || {};
-      city = cities[city];
-      city.i = integer(urlParse("id", isle.search));
-      city.n = cityName();
-      config.setServer("cities", cities);
-    }
-  }
+  var isle = mainviewIslandID();
+  if (isle) config.setCity("i", isle);
   projectCompletion("cityCountdown", null, '../preceding-sibling::a');
   levelBat();
 }
@@ -3286,6 +3288,11 @@ function cityIDs() {
   return pluck($x('id("citySelect")/option'), "value").map(integer);
 }
 
+function mainviewIslandID() {
+  var city = $X('id("breadcrumbs")//a[@class="island"]');
+  return city && urlParse("id", city.search);
+}
+
 function mainviewCityName() {
   var city = $X('id("breadcrumbs")//*[@class="city"]');
   return city && city.textContent;
@@ -3647,4 +3654,4 @@ XML.setSettings({
 init();
 //unsafeWindow.g = config;
 //unsafeWindow.data = data;
-//unsafeWindow.server = server;
+//unsafeWindow.s = server;
