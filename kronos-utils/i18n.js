@@ -89,7 +89,7 @@ cs: { // Czech translation maintained by Sisel:
     finished: " Dokončeno ",
     execTime: "Čas dokončení",
  researching: "Vynalézáme",
-    showLoot: "Ukaž tabulku kradení", 
+    showLoot: "Drancovací tabulka",
        shown: "Zobrazit",
       hidden: "Skrýt",
        empty: "Prázdno: ",
