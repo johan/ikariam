@@ -2029,11 +2029,13 @@ function highlightMeInTable() {
 function isleForCity(city) { return config.getCity("i"); }
 
 function cityView() {
-  var city = cityID();
-  var name = mainviewCityName();
-  if (name) config.setCity("n", name);
-  var isle = mainviewIslandID();
-  if (isle) config.setCity("i", isle);
+  var id = urlParse("id");
+  if (id) {
+    var name = mainviewCityName();
+    if (name) config.setCity("n", name, id);
+    var isle = mainviewIslandID();
+    if (isle) config.setCity("i", isle, id);
+  }
   projectCompletion("cityCountdown", null, '../preceding-sibling::a');
   levelBat();
 }
