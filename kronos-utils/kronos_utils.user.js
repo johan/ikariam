@@ -919,9 +919,8 @@ function buildingExtraInfo(div, id, name, level) {
       break;
 
     case "wall":
-      var wall = buildingLevel("townHall", 0);
-      if (wall)
-        annotate(Math.floor(10 * level * level / wall) + "%");
+      var townSize = buildingLevel("townHall", 0);
+      annotate(Math.floor(Math.min(1, level / townSize) * level * 10) + "%");
       break;
 
     case "tavern":
