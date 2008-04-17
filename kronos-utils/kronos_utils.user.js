@@ -10,6 +10,8 @@
 // @resource       css kronos.css
 // @require        i18n.js
 // @require        gamedata.js
+// @require        support.js
+// @require        memory.js
 // ==/UserScript==
 
 var version = "0.5", lang;
@@ -22,7 +24,6 @@ function init() {
   lang = langs[getLanguage()];
 
   var langChoice = panelInfo();
-  var chemin = $("Kronos");
   var view = urlParse("view");
   var action = urlParse("action");
 
@@ -92,19 +93,6 @@ function init() {
   processQueue(!queued);
   document.addEventListener("click", changeQueue, true);
 
-  var research = config.getServer("techs.research.n", "");
-  if (research) {
-    var a = node({ tag: "a", href: urlTo("academy"), append: chemin,
-                   text: lang.researching +": "+ research });
-    var tech = techinfo(research);
-    if (tech)
-      a.title = tech.does +" ("+ tech.points + " points)"; // I18N
-
-    var done = config.getServer("techs.research.t");
-    if (done) a.title += resolveTime((done-Date.now()) / 1e3);
-    node({ tag: "br", append: chemin });
-  }
-
   improveTopPanel();
   if ({ city: 1, island: 1 }[view])
     unsafeWindow.friends = config.getServer("treaties", []);
@@ -122,11 +110,6 @@ function login() {
   var site = /^http:..s(\d+)\.ikariam/.exec(document.referrer);
   if (site)
     uni.selectedIndex = integer(site[1]) - 1;
-}
-
-function nth(n) {
-  var th = [, "st", "nd", "rd"];
-  return n + (th[n] || "th");
 }
 
 function url(query) {
@@ -164,67 +147,6 @@ function luxuryType(type) {
   }
 }
 
-// on récupére une des valeurs get d'une url(son nom est le param.
-function urlParse(param, url) {
-  if (!url) url = location.search || ""; // On récupére l'url du site.
-  var keys = {};
-  url.replace(/([^=&?]+)=([^&]*)/g, function(m, key, value) {
-    keys[decodeURIComponent(key)] = decodeURIComponent(value);
-  });
-  return (param ? keys[param] : keys) ||
-    "view" == param && document.body.id;
-}
-
-var expandos = { id: 1, className: 1, title: 1, type: 1, checked: 1 };
-
-function node(opt) {
-  function attr(name) {
-    var value = opt[name];
-    delete opt[name];
-    return value;
-  }
-  var id = opt.id;
-  var n = $(id);
-  if (!n) {
-    n = document.createElement(attr("tag") || "div");
-    var after = attr("after");
-    var before = opt.prepend ? opt.prepend.firstChild : attr("before");
-    var parent = attr("prepend") || attr("append") ||
-                   (before || after || {}).parentNode;
-    if (parent) {
-      if (before)
-        parent.insertBefore(n, before);
-      else if (after)
-        parent.insertBefore(n, after.nextSibling);
-      else
-        parent.appendChild(n);
-    }
-    if (id) n.id = id;
-  }
-  var html = attr("html");
-  if (isDefined(html)) n.innerHTML = html;
-  var text = attr("text");
-  if (isDefined(text)) n.textContent = text;
-  var style = attr("style");
-  if (style)
-    for (var prop in style)
-      n.style[prop] = style[prop];
-  for (prop in opt)
-    if (expandos[prop])
-      n[prop] = opt[prop];
-    else
-      n.setAttribute(prop, opt[prop]+"");
-  return n;
-}
-
-function createLink(nom, href) {
-  var lien = document.createElement('a');//création d'un lien
-  lien.setAttribute('href', href);//On ajoute le href
-  lien.appendChild(document.createTextNode(nom));//On ajoute le text.
-
-  return lien;
-}
-
 function goto(href) {
   //console.log("aborted goto %x", href); return;
   location.href = href.match(/\?/) ? href : urlTo(href);
@@ -248,16 +170,6 @@ function gotoCity(url, id) {
   form.submit()
 }
 
-function css(rules, disabled) {
-  var head = document.documentElement.firstChild;
-  var style = document.createElement("style");
-  style.type = "text/css";
-  style.textContent = isString(rules) ? rules : rules.toString();
-  if (isBoolean(disabled))
-    style.disabled = disabled;
-  return head && head.appendChild(style);
-}
-
 
 // Military stuff:
 
@@ -268,24 +180,6 @@ function militaryAdvisorMilitaryMovementsView() {
     li.style.height = "52px";
   }
   $x('//li/div/div[contains(@id,"CountDown")]').forEach(project);
-}
-
-// returns a function that only runs expensive function fn after no call to it
-// has been made for n ms, or 100, if not given, or the time fn took last time,
-// if it has been run at least once and no n was given.
-function expensive(fn, n) {
-  function run() {
-    fn.timeout = null;
-    var time = n || new Date;
-    fn();
-    if (!n) duration = (new Date) - time;
-  }
-  var duration;
-  return function() {
-    if (fn.timeout)
-      clearTimeout(fn.timeout);
-    fn.timeout = setTimeout(run, n || duration || 100);
-  };
 }
 
 function makeLootTable(table, reports) {
@@ -557,13 +451,6 @@ function safeMarkAll(cmd) {
   }
 }
 
-function copy(object) {
-  // Doug Crockford
-  var fn = function() {};
-  fn.prototype = object;
-  return new fn;
-}
-
 function researchAdvisorView() {
   function learnTech(a) {
     var name = a.textContent.match(/['"]([^'"]+)['"]/);
@@ -712,25 +599,6 @@ function plunderView() {
   dontSubmitZero(2, 'id("selectArmy")//input[@type="submit"]');
 }
 
-
-function add(fmt) {
-  for (var i = 1; i < arguments.length; i++) {
-    var id = arguments[i];
-    xpath[id] = fmt.replace("%s", id);
-  }
-}
-
-var xpath = {
-  ship: 'id("globalResources")/ul/li[@class="transporters"]/a',
-  citynames: 'id("changeCityForm")//ul[contains(@class,"optionList")]/li'
-};
-add('id("value_%s")', "wood", "wine", "marble", "crystal", "sulfur");
-
-function get(what, context) {
-  var many = { citynames: 1 };
-  var func = many[what] ? $x : $X;
-  return what in xpath ? func(xpath[what], context) : undefined;
-}
 
 function currentResources() {
   var inhab = $("value_inhabitants").textContent.split(/\s+/);
@@ -1475,13 +1343,6 @@ function replenishTime(b, level, lack, have, accumulate) {
   return takesMax;
 }
 
-function copyObject(o) {
-  var copy = {};
-  for (var n in o)
-    copy[n] = o;
-  return copy;
-}
-
 function hoverQueue(have, e) {
   var node = e.target;
   if ($X('self::li[@rel]', node)) {
@@ -2086,16 +1947,6 @@ function academyView() {
     config.setCity(["x", buildingIDs.academy], number(research));
 }
 
-function trim(str) {
-  return str.replace(/^\s+|\s+$/g, "");
-}
-
-function pluck(a, prop) {
-  return a.map(function(i) { return i[prop]; });
-}
-
-function I(i) { return i; }
-
 function researchOverviewView() {
   techinfo();
 }
@@ -2605,25 +2456,6 @@ function secsToDHMS(t, rough, join) {
   return minus + result.join(join || " ");
 }
 
-function number(n) {
-  if (isNumber(n)) return n;
-  if (isObject(n))
-    if (/input/i.test(n.nodeName||""))
-      n = n.value;
-    else if (n.textContent)
-      n = n.textContent;
-  return parseFloat(n.replace(/[^\d.-]+/g, ""));
-}
-
-function integer(n) {
-  if (isNumber(n)) return n;
-  if (isObject(n))
-    if (/input/i.test(n.nodeName||""))
-      n = n.value;
-    else if (n.textContent)
-      n = n.textContent;
-  return parseInt(n.replace(/[^\d-]+/g, ""), 10);
-}
 
 function colonizeView() {
   function annotate(what, time) {
@@ -2712,11 +2544,6 @@ function trade(operation, what, amount) {
   var id = { w: "resource", W: 1, M: 2, C: 3, S: 4 }[resourceIDs[what]];
   post(urlTo("branchOffice"), { type: { buy:"444", sell:"333" }[operation],
                                 searchResource: id, range: "99" });
-}
-
-function sign(n) {
-  if ("undefined" == typeof n) n = 0;
-  return (n > 0 ? "+" : n == 0 ? "±" : "") + n;
 }
 
 // projects wine shortage time and adds lots of shortcut clicking functionality
@@ -3241,19 +3068,36 @@ function clickResourceToSell() {
 Ajout du panel dans le menu
 ---------------------*/
 function panelInfo() { // Ajoute un element en plus dans le menu.
-  var panel = node({ className: "dynamic", before: $("mainview") });
+  var panel = <div class="dynamic">
+    <h3 class="header">
+      Kronos {version}:
+      <a href={"#"+ config.get("language")} id="language">{lang.language}</a>
+      <a href={urlTo("library")} title="Library" class="help">
+        <span class="textLabel">Library</span>
+      </a>
+    </h3>
+    <div id="kronos" class="content" style="margin: 3px 10px;"> </div>
+    <div class="footer"></div>
+  </div>;
 
-  var titre = node({ tag: "h3", className: "header", append: panel,
-                     text: "Kronos "+ version +": " });
-  var langChoice = node({ tag: "a", text: lang.language, append: titre,
-                          href: "#" });
-  langChoice.addEventListener("click", promptLanguage, false);
+  var tags = node({ tag: panel, before: $("mainview") });
+  tags.language.addEventListener("click", promptLanguage, false);
 
-  var corps = node({ id:"Kronos", className: "content", append: panel,
-                     style: { margin: "3px 10px" }});
+  var research = config.getServer("techs.research.n", "");
+  if (research) {
+    var a = node({ prepend: tags.kronos, tag: <>
+<a id="researching" href={urlTo("academy")}>
+  {lang.researching}: {research}
+</a><br/></> }).researching;
 
-  node({ className: "footer", append: panel });
-  return langChoice;
+    var tech = techinfo(research);
+    if (tech)
+      a.title = tech.does +" ("+ tech.points + " points)"; // I18N
+
+    var done = config.getServer("techs.research.t");
+    if (done) a.title += resolveTime((done - Date.now()) / 1e3);
+  }
+  return tags.language;
 }
 
 function islandID(city) {
@@ -3321,10 +3165,6 @@ function isMyCity() {
 
 
 
-
-function $(id) {
-  return document.getElementById(id);
-}
 
 function upgradeConfig() {
   var v = GM_getValue(location.host) && config.getServer("v") || 0;
@@ -3454,188 +3294,6 @@ function upgradeConfig0() {
   return ns;
 }
 
-/*
-s10.org: {
-  techs: {all tech id:s we have},
-         .research: {
-           i: 2090,
-           n: "Helping hands",
-           t: 1207648486127
-         },
-  battles: {
-    won: 113,
-   lost: 8,
-reports: {
-      BID: {
-        t:1207175100000, w:1, l:{g:136, W:59}, c:38714, a:attackingCity?},
-      }
-  },
-  cities: {
-    4711: {
-      n: name,
-      i: iID,
-      g: gold net income,
-      t: completionTime,
-      u: buildURL,
-      l: [ lvl0, ...], // building level
-      p: [ pos0, ...], // building position
-      q: [ bID, ...], // buildings sceduled to be built
-      x: { bID:building-special - tavern: wine level; academy: scientists,
-           r: resourceWorkers, w: woodWorkers, museum: culture items },
-      b: { bID:time busy to }
-    }, ...
-  }
-}
-*/
-
-// config.get() and config.set() store config data in (near-)json in prefs.js.
-var none = { v: 1, capital: 0, treaties: [], spies: {}, players: {},
-             cities: {}, islands: {}, techs: {}, battles: {} };
-var data = eval(GM_getValue("config", none));
-var server = eval(GM_getValue(location.host, none));
-function saveConfig() {
-  GM_setValue("config", uneval(data));
-  console.log("config ", uneval(data));
-}
-function saveServer() {
-  GM_setValue(location.host, uneval(server));
-  //console.log("server ", uneval(server));
-}
-var config = (function() {
-  function get(name, value) {
-    return data.hasOwnProperty(name) ? data[name] : value;
-  }
-  function getCity(name, value, id) {
-    return getServer(["cities", id || cityID()].concat(array(name)), value);
-  }
-  function setCity(name, value, id) {
-    return setServer(["cities", id || cityID()].concat(array(name)), value);
-  }
-  function getIsle(name, value, id) {
-    return getServer(["islands", id || islandID()].concat(array(name)), value);
-  }
-  function setIsle(name, value, id) {
-    return setServer(["islands", id || islandID()].concat(array(name)), value);
-  }
-  function getServer(name, value) {
-    if ("?!" == value) console.log(name, value);
-    var path = isString(name) ? name.split(".") : name;
-    var save = name;
-    var scope = server;
-    for (var i = 0; i < path.length; i++) {
-      name = path[i];
-      if (!scope.hasOwnProperty(name)) {
-        if ("?!" == value) console.log(save.join("/"), scope);
-        //console.log(save.join("/", value);
-        return value;
-      }
-      scope = scope[name];
-    }
-    if ("?!" == value) console.log(save.join("-"), scope);
-    //console.log(save, value, scope);
-    return scope;
-  }
-  function set(name, value) {
-    var path = isString(name) ? name.split(".") : name;
-    var scope = server, last = path.length - 1;
-    for (var i = 0; i <= last; i++) {
-      name = path[i];
-      if (i != last)
-        scope = scope[name] = scope[name] || {};
-      else
-        scope[name] = value;
-    }
-    expensive(saveConfig)();
-    return value;
-  }
-  function setServer(name, value) {
-    var path = isString(name) ? name.split(".") : name;
-    var tmpl = { 3: { cities: [{}, {l: Array, p: Array, q: Array}] } };
-    var scope = server, last = path.length - 1;
-    for (var i = 0; i <= last; i++) {
-      name = path[i];
-      if (i != last) {
-        if (!scope.hasOwnProperty(name)) try {
-          var type = tmpl[path[0]][path.length][i][name];
-        } catch(e) { type = Object; } finally {
-          scope[name] = new type;
-        }
-        scope = scope[name];
-      } else
-        scope[name] = value;
-    }
-    expensive(saveServer)();
-    return value;
-  }
-  function remCity(name) {
-    return remServer(name +":"+ cityID());
-  }
-  function remIsle(name) {
-    return remServer(name +"/"+ islandID());
-  }
-  function remServer(name) {
-    return remove(name +":"+ location.hostname);
-  }
-  function keys(re) {
-    re = re || /./;
-    var list = [];
-    for (var id in data)
-      if (data.hasOwnProperty(id) && re.test(id))
-        list.push(id);
-    return list;
-  }
-  function remove(id) {
-    if (/function|object/.test(typeof id)) {
-      var value = [], re = id;
-      for (id in data)
-        if (data.hasOwnProperty(id) && id.test(re)) {
-          value.push(data[id]);
-          delete data[id];
-        }
-    } else {
-      value = data[id];
-      delete data[id];
-    }
-    return value;
-  }
-  return { get:get, set:set, remove:remove, keys:keys,
-           setCity:setCity, getCity:getCity, remCity:remCity,
-           setIsle:setIsle, getIsle:getIsle, remIsle:remIsle,
-           setServer:setServer, getServer:getServer, remServer:remServer };
-})();
-
-function bind(fn, self) {
-  var args = [].slice.call(arguments, 2);
-  return function() {
-    fn.apply(self, args.concat([].slice.call(arguments)));
-  };
-}
-
-function isNull(n) { return null === n; }
-function isArray(a) { return isObject(a) && isNumber(a.length); }
-function isString(s) { return "string" == typeof s; }
-function isNumber(n) { return "number" == typeof n; }
-function isObject(o) { return "object" == typeof o; }
-function isBoolean(b) { return "boolean" == typeof b; }
-function isDefined(v) { return "undefined" != typeof v; }
-function isFunction(f) { return "function" == typeof f; }
-function isUndefined(u) { return "undefined" == typeof u; }
-function isTextNode(n) { return isObject(n) && n.nodeType == 3; }
-
-function array(a) { return isArray(a) ? a : [a]; }
-
-function rm(node) {
-  node && node.parentNode && node.parentNode.removeChild(node);
-}
-
-function hide(node) {
-  if (node) return node.style.display = "none";
-}
-
-function show(node) {
-  if (node) return node.style.display = "block";
-}
-
 function hideshow(node, nodes) {
   function listen(on) {
     on.addEventListener("mouseover", function(){ show(node); }, false);
@@ -3644,13 +3302,6 @@ function hideshow(node, nodes) {
   nodes = nodes || [node];
   nodes.forEach(listen);
 }
-
-XML.setSettings({
-  ignoreProcessingInstructions:false,
-  ignoreWhitespace:false,
-  ignoreComments:false,
-  prettyPrinting:false, prettyIndent:2
-});
 
 init();
 //unsafeWindow.g = config;
