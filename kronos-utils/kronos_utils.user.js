@@ -1190,13 +1190,18 @@ function urlTo(what, id, opts) {
     case "safehouse":	case "tavern":	case "workshop-army":
       return building();
 
-    case "city":	return url('?view=city&id='+ (id || c));
+    case "library":
+      return urlTo("academy").replace("academy", "researchOverview");
+
+    case "city":	return url("?view=city&id="+ (id || c));
     case "building":	return url("?view=buildingDetail&buildingId="+ id);
     case "research":	return url("?view=researchDetail&researchId="+ id);
     case "pillage":	return url("?view=plunder&destinationCityId="+ id);
 
-    case "library":
-      return urlTo("academy").replace("academy", "researchOverview");
+    case "message":
+      var from = opts && opts.from || cityID();
+      return url("?view=sendMessage&with="+ from +"&destinationCityId="+ id +
+                 "&oldView=island");
 
     case "island":
       var city = "";
@@ -1208,7 +1213,7 @@ function urlTo(what, id, opts) {
         }
         id = id.island;
       }
-      return url('?view=island&id='+ id + city);
+      return url("?view=island&id="+ id + city);
   }
 }
 
@@ -1577,7 +1582,17 @@ function sumPrices(table, c1, c2) {
          style: { position: "static", verticalAlign: "top", marginLeft: "3px" }
         });
   }
+  function link(a) {
+    var id = urlParse("destinationCityId", a.search);
+    var city = $X('../preceding-sibling::td[last()]', a), name, player, junk;
+    [junk, name, player] = city.textContent.match(/^(.*) \((.*)\)/);
+    city.innerHTML = <>
+      <a href={urlTo("pillage", id)}>{name}</a>
+     (<a href={urlTo("message", id)}>{player}</a>)
+    </>.toXMLString();
+  }
   $x('tbody/tr[td]', table).forEach(price);
+  $x('tbody/tr/td/a[contains(@href,"view=takeOffer")]', table).forEach(link);
 }
 
 function branchOfficeView() {
