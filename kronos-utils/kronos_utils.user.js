@@ -1174,6 +1174,7 @@ function urlTo(what, id, opts) {
     var id = buildingID(what);
     if ("-" != buildingLevel(id, "-"))
       return url("?view="+ what +"&id="+ c +"&position="+ buildingPosition(id));
+    console.warn("building ID unknown: ", id, what, cityID());
   }
   var c = cityID(), i = islandID();
   if (what == "workshop")
@@ -1236,7 +1237,7 @@ function addToQueue(b, first) {
 }
 
 function changeQueue(e) {
-  var enqueued = $X('ancestor-or-self::li[parent::ul[@id="q"]]', e.target);
+  var enqueued = $X('ancestor-or-self::li[parent::ul[@id="q"]]', e.target), a;
   if (enqueued) { // drop from queue
     var q = getQueue();
     q.splice(enqueued.getAttribute("rel"), 1);
@@ -1244,12 +1245,12 @@ function changeQueue(e) {
     drawQueue();
   } else if (!e.altKey) {
     return;
-  } else { // enqueue
-    var a = $X('parent::li[parent::ul[@id="locations"]]/a', e.target);
-    if (a) {
-      addToQueue(buildingID(a), e.shiftKey);
-      setTimeout(processQueue, 10);
-    }
+  } else if ((a = $X('parent::li[parent::ul[@id="locations"]]/a', e.target))) {
+    addToQueue(buildingID(a), e.shiftKey);
+    setTimeout(processQueue, 10);
+  } else if ((a = $X('ancestor-or-self::a[@href="#upgrade"]', e.target))) {
+    addToQueue(buildingID(urlParse("view")));
+    setTimeout(processQueue, 10);
   }
   if (a || enqueued) {
     e.stopPropagation();
@@ -2793,6 +2794,7 @@ function unitStatsFromImage(img) {
   if (name) {
     var junk = /^(ship|y\d+)_|_(r|\d+x\d+)(?=[_.])|_faceright|\....$/g;
     name = name.replace(junk, "");
+    name = { medic: "doctor" }[name] || name;
     for (var id in troops)
       if (normalize(troops[id].n) == name)
         return troops[id];
@@ -3166,7 +3168,7 @@ function cityID() {
   var id = urlParse("id");
   var view = urlParse("view");
   if (id)
-    if (buildingIDs.hasOwnProperty(view) ||
+    if (buildingIDs.hasOwnProperty(view) && !urlParse("type") ||
         { city:1 }[view])
       return integer(id);
   var a = $X('//li[@class="viewCity"]//a');
