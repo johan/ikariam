@@ -84,7 +84,7 @@ var config = (function() {
   }
   function set(name, value) {
     var path = isString(name) ? name.split(".") : name;
-    var scope = server, last = path.length - 1;
+    var scope = data, last = path.length - 1;
     for (var i = 0; i <= last; i++) {
       name = path[i];
       if (i != last)

@@ -177,7 +177,7 @@
 /**** Top panel improvements ****/
 
 #income {
-  background:transparent url(skin/resources/icon_gold.gif) no-repeat 100% 0;
+  background: transparent url(skin/resources/icon_gold.gif) no-repeat 100% 0;
   line-height: 22px;
   padding-right: 18px;
   text-align: right;
@@ -196,6 +196,36 @@
   overflow: hidden;
   white-space: nowrap;
 }
+
+/* properly center city names in the city name dropdown */
+#cityNav .citySelect .dropbutton, #cityNav .citySelect .optionList li {
+  padding-right: 22px;
+  position: relative;
+}
+
+#cityNav .citySelect .optionList li a.ellipsis:hover {
+  text-decoration: underline;
+}
+#cityNav .citySelect .optionList li a.ellipsis {
+  color: #542C0F;
+  display: inline;
+  position: absolute;
+  margin-left: 3px;
+  background: none;
+}
+#cityNav .citySelect .optionList li a.ellipsis.last {
+  top: -2px;
+}
+
+
+/* clearly mark when the shown city is not the city in the select box */
+#cityNav .citySelect .dropbutton.not-mainview {
+  opacity: 0.5;
+}
+#cityNav .citySelect .dropbutton.not-mainview.expanded {
+  opacity: 1.0;
+}
+
 
 /* Get proper stacking, so names don't look silly near the marble quarry */
 #island #container #mainview ul#islandfeatures li.marble { z-index: 400; }

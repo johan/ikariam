@@ -20,7 +20,8 @@ en: { // English language strings maintained by myself. :-)
   leftByThen: "Resources left ", // gets followed by build queue end date/time
 shoppingList: "Shopping list: click a resource icon to buy that in your port",
  unavailable: "Resources unavailable by build time (and replenish time)",
-   popupInfo: "Click for building info, use scroll wheel to browse levels" },
+   popupInfo: "Click for building info, use scroll wheel to browse levels",
+ notShownNow: "Note: not presently shown in the main view below." },
 
 fr: { // French strings not maintained by anyone! It's bad, too! The horror! :)
     language: "Français",
@@ -82,7 +83,8 @@ sv: { // Swedish strings also maintained by myself:
 shoppingList: "Inköpslista",
  unavailable: "Resurser som kommer saknas vid byggstart, och inskaffningstid",
    popupInfo: "Klicka för att se byggnaden i ikipedia; använd scrollhjulet "+
-                "för att se kostnader för andra expansionsnivåer" },
+                "för att se kostnader för andra expansionsnivåer",
+ notShownNow: "OBS! Visas inte i huvudvyn nedan för närvarande." },
 
 cs: { // Czech translation maintained by Sisel:
     language: "Czech",
@@ -145,59 +147,10 @@ shoppingList: "Resurse necesare pentru a indeplini constructia",
    popupInfo: "Click pentru informatiile cladiri, foloseste scroolul sa "+
                 "cauti levelele" },
 
-es: { // I lazied out; these still needed updating by a native tongue speaker:
-    language: "Espagnol",
-    finished: undefined,
-    execTime: undefined,
- researching: undefined,
-       shown: undefined,
-      hidden: undefined,
-       empty: undefined,
-        full: undefined,
-      months: undefined,
- startExpand: undefined,
-     enqueue: undefined,
-  prependToQ: undefined,
-  leftByThen: undefined,
-shoppingList: undefined,
- unavailable: undefined,
-   popupInfo: undefined },
-
-pt: {
-    language: "Portuguès",
-    finished: undefined,
-    execTime: undefined,
- researching: undefined,
-       shown: undefined,
-      hidden: undefined,
-       empty: undefined,
-        full: undefined,
-      months: undefined,
- startExpand: undefined,
-     enqueue: undefined,
-  prependToQ: undefined,
-  leftByThen: undefined,
-shoppingList: undefined,
- unavailable: undefined,
-   popupInfo: undefined },
-
-da: {
-    language: "Dansk",
-    finished: undefined,
-    execTime: undefined,
- researching: undefined,
-       shown: undefined,
-      hidden: undefined,
-       empty: undefined,
-        full: undefined,
-      months: undefined,
- startExpand: undefined,
-     enqueue: undefined,
-  prependToQ: undefined,
-  leftByThen: undefined,
-shoppingList: undefined,
- unavailable: undefined,
-   popupInfo: undefined },
+// Need updating by natives:
+es: { language: "Espagnol" },
+pt: { language: "Portuguès" },
+da: { language: "Dansk" },
 
 };
 
@@ -212,8 +165,10 @@ function promptLanguage() {
                              "Which language do you prefer?\n(" +
                              help.join(", ") + ")", getLanguage());
     if (!newLanguage) return;
-    if (langs.hasOwnProperty(newLanguage))
+    if (langs.hasOwnProperty(newLanguage)) {
       config.set("language", newLanguage);
+      saveConfig();
+    }
   }
   location.reload();
 }
@@ -236,6 +191,7 @@ function getLanguage() {
            "is missing "+ (incomplete == 1 ? "this text" : "these texts") +
            "; falling back to English until fixed:", uneval(lack).slice(2, -2));
     id = config.set("language", "en");
+    saveConfig();
   }
   return id;
 }

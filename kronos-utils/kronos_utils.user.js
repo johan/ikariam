@@ -2635,6 +2635,15 @@ function improveTopPanel() {
   showHousingOccupancy();
   showSafeWarehouseLevels();
   showCityBuildCompletions();
+  // unconfuseFocus();
+}
+
+function unconfuseFocus() {
+  if (mainviewCityName() != cityName()) {
+    var selected = $X('id("changeCityForm")//div[@class="dropbutton"]');
+    selected.className += " not-mainview";
+    selected.title = lang.notShownNow;
+  }
 }
 
 function showCityBuildCompletions() {
@@ -2656,9 +2665,7 @@ function showCityBuildCompletions() {
     var t = config.getCity("t", 0, ids[i]);
     if (t && t > Date.now() && url) {
       t = secsToDHMS((t - Date.now()) / 1e3, 0);
-      node({ tag: "a", className: "ellipsis", href: url, append: li, text: t,
-           style: { marginLeft: "3px", background: "none", position: "static",
-                    display: "inline", color: "#542C0F" }});
+      node({ tag: "a", className: "ellipsis", href: url, append: li, text: t });
     }
     li.title = " "; // to remove the town hall tooltip
 
@@ -2678,7 +2685,7 @@ function showCityBuildCompletions() {
       img.style.margin = "0 3px";
       img.style.background = "none";
       if (id == focused) {
-        var current = $X('preceding::div[@class="dropbutton"]', li);
+        var current = $X('preceding::div[contains(@class,"dropbutton")]', li);
         current.insertBefore(img.cloneNode(true), current.firstChild);
         if (a) a.@style += " outline: 1px solid #FFF;";
       }
