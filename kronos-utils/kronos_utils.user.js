@@ -41,7 +41,7 @@ function init() {
   switch (view || action) {
     case "tavern": tavernView(); break;
     case "resource":  // fall-through:
-    case "tradegood": highlightMeInTable(); // fall-through:
+    case "tradegood": resourceView(); // fall-through:
     case "deployment": // fall-through:
     case "takeOffer": scrollWheelable(); break;
     case "transport": scrollWheelable(); evenShips(); break;
@@ -1585,14 +1585,23 @@ function sumPrices(table, c1, c2) {
   function link(a) {
     var id = urlParse("destinationCityId", a.search);
     var city = $X('../preceding-sibling::td[last()]', a), name, player, junk;
+    var link = urlTo("island", { city: id });
     [junk, name, player] = city.textContent.match(/^(.*) \((.*)\)/);
     city.innerHTML = <>
-      <a href={urlTo("pillage", id)}>{name}</a>
-     (<a href={urlTo("message", id)}>{player}</a>)
+      {link != "#" ? <a href={link}>{name}</a> : name}
+      (<a href={urlTo("message", id)}>{player}</a>)
     </>.toXMLString();
+    pillageLink(id, { before: a });
   }
   $x('tbody/tr[td]', table).forEach(price);
   $x('tbody/tr/td/a[contains(@href,"view=takeOffer")]', table).forEach(link);
+}
+
+function pillageLink(id, opts) {
+  opts.tag = <a href={urlTo("pillage", id)}>
+    <img src="/skin/actions/plunder.gif" height="20"/>
+  </a>;
+  node(opts);
 }
 
 function branchOfficeView() {
@@ -1901,7 +1910,20 @@ function highlightMeInTable() {
   if (tr.length == 1) tr[0].style.background = "pink";
 }
 
-function isleForCity(city) { return config.getCity("i"); }
+function resourceView() {
+  function link(a) {
+    var id = urlParse("destinationCityId", a.search);
+    var city = $X('../preceding-sibling::td[last()]', a);
+    var link = urlTo("island", { city: id });
+    if ("#" != link)
+      city.innerHTML = <a href={link}>{city.textContent}</a>.toXMLString();
+    pillageLink(id, { after: a });
+  }
+  $x('id("mainview")/div[@class="othercities"]//tr/td[@class="actions"]/' +
+     'a[contains(@href,"view=sendMessage")]').forEach(link);
+}
+
+function isleForCity(city) { return config.getCity("i", 0, city); }
 
 function cityView() {
   var id = urlParse("id");
