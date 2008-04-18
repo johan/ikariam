@@ -21,7 +21,8 @@ en: { // English language strings maintained by myself. :-)
 shoppingList: "Shopping list: click a resource icon to buy that in your port",
  unavailable: "Resources unavailable by build time (and replenish time)",
    popupInfo: "Click for building info, use scroll wheel to browse levels",
- notShownNow: "Note: not presently shown in the main view below." },
+ notShownNow: "Note: not presently shown in the main view below.",
+},
 
 fr: { // French strings not maintained by anyone! It's bad, too! The horror! :)
     language: "Français",
@@ -40,7 +41,8 @@ fr: { // French strings not maintained by anyone! It's bad, too! The horror! :)
   leftByThen: "Même available après ",
 shoppingList: "Acheter ça, s'il vous plaît",
  unavailable: "Il faut attendre pour ces ressources",
-   popupInfo: "Clique pour bàtiment information" },
+   popupInfo: "Clique pour bàtiment information",
+},
 
 de: { // German version maintained by pusteblume:
     language: "Deutsch",
@@ -62,7 +64,9 @@ shoppingList: "Einkaufsliste",
  unavailable: "Ressourcen nicht erreichbar während der Bauzeit "+
                 "(und Regenerieungszeit)",
    popupInfo: "Klicken um Gebäudeinfo zu erhalten, benutze das Mausrad um die "+
-                "Stufen zu sehen" },
+                "Stufen zu sehen",
+ notShownNow: "Notiz: wird zur Zeit nicht in der Hauptansicht angezeigt.",
+},
 
 sv: { // Swedish strings also maintained by myself:
     language: "Svenska",
@@ -84,7 +88,8 @@ shoppingList: "Inköpslista",
  unavailable: "Resurser som kommer saknas vid byggstart, och inskaffningstid",
    popupInfo: "Klicka för att se byggnaden i ikipedia; använd scrollhjulet "+
                 "för att se kostnader för andra expansionsnivåer",
- notShownNow: "OBS! Visas inte i huvudvyn nedan för närvarande." },
+ notShownNow: "OBS! Visas inte i huvudvyn nedan för närvarande.",
+},
 
 cs: { // Czech translation maintained by Sisel:
     language: "Czech",
@@ -104,7 +109,9 @@ cs: { // Czech translation maintained by Sisel:
   leftByThen: "Zbylé suroviny ",
 shoppingList: "Nákupní seznam: klikni na surovinu pro nakup v portu",
  unavailable: "Nedostatek surovin ve stavebním čase (i obnovovacím čase)",
-   popupInfo: "Klikni pro info o budově, scroluj pro prohlížení levelů" },
+   popupInfo: "Klikni pro info o budově, scroluj pro prohlížení levelů",
+ notShownNow: "Notiz: wird zur Zeit nicht in der Hauptansicht angezeigt.",
+},
 
 pl: { // Polish translation maintained by drivex:
     language: "Polski",
@@ -124,7 +131,8 @@ pl: { // Polish translation maintained by drivex:
 shoppingList: "Pozostanie surowców",
  unavailable: "Surowce, które należy kupić by natychmiast rozpocząć budowe",
    popupInfo: "Kliknij aby dowiedzieć się więcej lub zacznij kręcić rolką "+
-                "aby dowiedzieć się o kosztach następnych poziomów" },
+                "aby dowiedzieć się o kosztach następnych poziomów",
+},
 
 ro: { // Romanian translation maintained by n00bster:
     language: "Romana",
@@ -145,7 +153,8 @@ ro: { // Romanian translation maintained by n00bster:
 shoppingList: "Resurse necesare pentru a indeplini constructia",
  unavailable: "Resurse indisponibile la timpul construictiei",
    popupInfo: "Click pentru informatiile cladiri, foloseste scroolul sa "+
-                "cauti levelele" },
+                "cauti levelele",
+},
 
 // Need updating by natives:
 es: { language: "Espagnol" },
