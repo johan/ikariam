@@ -154,6 +154,7 @@ shoppingList: "Resurse necesare pentru a indeplini constructia",
  unavailable: "Resurse indisponibile la timpul construictiei",
    popupInfo: "Click pentru informatiile cladiri, foloseste scroolul sa "+
                 "cauti levelele",
+ notShownNow:"Nota: nu se arata in vederea generala jos.",
 },
 
 // Need updating by natives:
