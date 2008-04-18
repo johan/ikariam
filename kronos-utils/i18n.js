@@ -110,7 +110,7 @@ cs: { // Czech translation maintained by Sisel:
 shoppingList: "Nákupní seznam: klikni na surovinu pro nakup v portu",
  unavailable: "Nedostatek surovin ve stavebním čase (i obnovovacím čase)",
    popupInfo: "Klikni pro info o budově, scroluj pro prohlížení levelů",
- notShownNow: "Notiz: wird zur Zeit nicht in der Hauptansicht angezeigt.",
+ notShownNow: "Poznamka: Není momentálně vidět v hlavním okně."
 },
 
 pl: { // Polish translation maintained by drivex:
