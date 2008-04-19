@@ -52,6 +52,20 @@ var buildingCapacities = {
   }
 };
 
+var gfx = {
+      wood: "/skin/resources/icon_wood.gif",
+      wine: "/skin/resources/icon_wine.gif",
+    marble: "/skin/resources/icon_marble.gif",
+   crystal: "/skin/resources/icon_glass.gif",
+    sulfur: "/skin/resources/icon_sulfur.gif",
+ 
+   citizen: "/skin/resources/icon_citizen.gif",
+      gold: "/skin/resources/icon_gold.gif",
+      bulb: "/skin/layout/bulb-on.gif",
+
+   pillage: "/skin/actions/plunder.gif",
+};
+
 var costs = [
   [{}, {w:70, t:"34m 48s"}, {w:98, t:"56m 24s"}, {w:65, M:17, t:"1h 24m"}, {w:129, M:28, t:"1h 58m"}, {w:236, M:66, t:"2h 40m"}, {w:402, M:95, t:"3h 29m"}, {w:594, M:156, t:"4h 25m"}, {w:849, M:243, t:"5h 30m"}, {w:1176, M:406, t:"6h 43m"}, {w:1586, M:579, t:"8h 5m"}, {w:2101, M:799, t:"9h 35m"}, {w:3280, M:1348, t:"11h 15m"}, {w:4937, M:2124, t:"13h 3m"}, {w:7171, M:2951, t:"15h 1m"}, {w:10139, M:4409, t:"17h 9m"}, {w:14537, M:6461, t:"20h 11m"}, {w:18420, M:8187, t:"22h 44m"}, {w:22896, M:10176, t:"1D 1h"}, {w:28047, M:12466, t:"1D 4h"}, {w:33934, M:15082, t:"1D 7h"}, {w:40623, M:18055, t:"1D 10h"}, {w:48107, M:21381, t:"1D 14h"}, {w:56511, M:25116, t:"1D 17h"}, {w:226044, M:100464, t:"6D 23h"}, {w:452088, M:200928, t:"13D 22h"}, {w:904176, M:401856, t:"27D 21h"}, {w:1808352, M:803712, t:"55D 19h"}, {w:3616704, M:1607424, t:"111D 15h"}, {w:7233408, M:3214848, t:"223D 6h"}, {w:14466816, M:6429696, t:"446D 12h"}, {w:28933632, M:12859392, t:"893D 19m"}],,,
   [{w:18, t:"10m 48s"}, {w:31, t:"24m 29s"}, {w:44, t:"50m 24s"}, {w:87, M:33, t:"1h 26m"}, {w:156, M:48, t:"2h 18m"}, {w:266, M:93, t:"2h 58m"}, {w:425, M:126, t:"3h 41m"}, {w:653, M:215, t:"4h 52m"}, {w:963, M:344, t:"5h 37m"}, {w:1381, M:529, t:"7h 6m"}, {w:1915, M:777, t:"7h 48m"}, {w:2604, M:1100, t:"9h 30m"}, {w:3790, M:1731, t:"10h 36s"}, {w:5349, M:2301, t:"11h 53m"}, {w:7333, M:3017, t:"11h 59m"}, {w:9808, M:4265, t:"13h 56m"}, {w:39232, M:17060, t:"2D 7h"}, {w:78464, M:34120, t:"4D 15h"}, {w:156928, M:68240, t:"9D 7h"}, {w:313856, M:136480, t:"18D 14h"}, {w:627712, M:272960, t:"37D 4h"}, {w:1255424, M:545920, t:"74D 8h"}, {w:2510848, M:1091840, t:"148D 17h"}, {w:5021696, M:2183680, t:"297D 11h"}],

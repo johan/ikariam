@@ -7,7 +7,8 @@
 // @exclude        http://board.ikariam.*/
 // @exclude        http://*.ikariam.*/index.php?view=renameCity*
 // @require        http://ecmanaut.googlecode.com/svn/trunk/lib/gm/wget.js
-// @resource       css kronos.css
+// @resource woody header.png
+// @resource   css kronos.css
 // @require        i18n.js
 // @require        gamedata.js
 // @require        support.js
@@ -1601,7 +1602,7 @@ function sumPrices(table, c1, c2) {
 
 function pillageLink(id, opts) {
   opts.tag = <a href={urlTo("pillage", id)}>
-    <img src="/skin/actions/plunder.gif" height="20"/>
+    <img src={gfx.pillage} height="20"/>
   </a>;
   node(opts);
 }
@@ -2389,13 +2390,13 @@ The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
 }
 
 function visualResources(what, opt) {
-  var gold = <img src="skin/resources/icon_gold.gif" width="17" height="19"/>;
-  var wood = <img src="skin/resources/icon_wood.gif" width="25" height="20"/>;
-  var wine = <img src="skin/resources/icon_wine.gif" width="25" height="20"/>;
-  var glass =<img src="skin/resources/icon_glass.gif" width="23" height="18"/>;
-  var marble=<img src="skin/resources/icon_marble.gif" width="25" height="19"/>;
-  var sulfur=<img src="skin/resources/icon_sulfur.gif" width="25" height="19"/>;
-  var bulb = <img src="skin/layout/bulb-on.gif" width="14" height="21"/>;
+  var gold = <img src={gfx.gold} width="17" height="19"/>;
+  var wood = <img src={gfx.wood} width="25" height="20"/>;
+  var wine = <img src={gfx.wine} width="25" height="20"/>;
+  var glass =<img src={gfx.crystal} width="23" height="18"/>;
+  var marble=<img src={gfx.marble} width="25" height="19"/>;
+  var sulfur=<img src={gfx.sulfur} width="25" height="19"/>;
+  var bulb = <img src={gfx.bulb} width="14" height="21"/>;
   function replace(m, icon) {
     var margin = { glass: -3 }[icon] || -5;
     icon = eval(icon);
@@ -2675,7 +2676,7 @@ function improveTopPanel() {
   showHousingOccupancy();
   showSafeWarehouseLevels();
   showCityBuildCompletions();
-  // showOverview();
+  showOverview();
   // unconfuseFocus();
 }
 
@@ -2687,24 +2688,45 @@ function unconfuseFocus() {
   }
 }
 
+function maybeToggleOverview(e) {
+  if ("class" != e.attrName || "DOMAttrModified" != e.type)
+    return;
+  var table = maybeToggleOverview.table;
+  var shown = /expanded/.test(e.newValue);
+  if (shown) show(table); else hide(table);
+}
+
 function showOverview() {
-  node({ after: $("citySelect"), tag: <table id="overview">
-    <tr class="header"><th class="p"/><th class="w"/>
-      <th class="W"/><th class="M"/><th class="C"/><th class="S"/>
-    </tr>
-    <tr class="first">
-      <td>  922</td><td>14,235</td><td>1,595</td>
-      <td>2,093</td><td> 4,271</td><td>1,109</td>
-    </tr>
-    <tr>
-      <td>  922</td><td>14,235</td><td>1,595</td>
-      <td>2,093</td><td> 4,271</td><td>1,109</td>
-    </tr>
-    <tr class="last">
-      <td>  922</td><td>14,235</td><td>1,595</td>
-      <td>2,093</td><td> 4,271</td><td>1,109</td>
-    </tr>
-  </table> });
+  var grid = {}, res = ["w", "W", "M", "C", "S", "p"];
+  var table = <table id="overview" title=" "><tr id="headers">
+    <th class="w"/><th class="W"/><th class="M"/>
+    <th class="C"/><th class="S"/><th class="p"/>
+  </tr></table>;
+
+  var city = cityID(), p = reapingPace();
+  for each (var id in cityIDs()) {
+    var tr = <tr/>;
+    grid[id] = id == city ? currentResources() : config.getCity("r", {}, id);
+    for each (r in res) {
+      var v = grid[id][r] || "\xA0"; // Math.round(Math.random()*10000)
+      if (id == city)
+        if ("w" == r)
+          v = <a class="text" href={urlTo("wood")} title={sign(p[r])}>{v}</a>;
+        else if (config.getIsle("r") == r)
+          v = <a class="text" href={urlTo("luxe")} title={sign(p[r])}>{v}</a>;
+        else if ("W" == r)
+          v = <span title={sign(p.W)}>{v}</span>;
+      tr.td += <td>{v}</td>;
+    }
+    table.* += tr;
+  }
+  table.tr[1].@class = "first " + (table.tr[1].@class || "");
+  var ids = node({ after: $("citySelect"), tag: table });
+  ids.headers.style.backgroundImage = "url("+ GM_getResourceURL("woody") +")";
+  maybeToggleOverview.table = ids.overview;
+
+  var expander = $X('id("changeCityForm")//div[contains(@class,"dropbutton")]');
+  expander.addEventListener("DOMAttrModified", maybeToggleOverview, false);
 }
 
 function showCityBuildCompletions() {

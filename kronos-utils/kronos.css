@@ -230,6 +230,15 @@
   top: -2px;
 }
 
+html body div#container div#container2 a.text {
+  text-decoration: underline;
+  font-size: 12px;
+  color: #542C0F;
+}
+html body div#container div#container2 a.text:hover {
+  text-decoration: underline;
+}
+
 
 /* clearly mark when the shown city is not the city in the select box */
 #cityNav .citySelect .dropbutton.not-mainview {
@@ -254,66 +263,95 @@
 /* city resources table */
 #cityNav #overview {
   z-index: 1;
-  /*display: none;*/
+  display: none;
+  cursor: default;
   position: absolute;
   width: 157px;
   left: 189px;
   top: 6px;
 }
 
-#cityNav #overview tr.header {
-  background: url(/skin/layout/select_citynav.jpg) no-repeat -1px 0px;
-  background-position: -2px -0px;
+/* gets overridden with background-image: url(@resource header.png) */
+#cityNav #overview tr:first-child#headers {
+  background: #906646 url(/skin/layout/select_citynav.jpg) repeat-x;
+  /*background-color: #FFF5D8;
+  url(/skin/layout/select_citynav.jpg) no-repeat 100% 0;*/
 }
 
-#cityNav #overview tr {
-  background: url(/skin/layout/select_citynav.jpg) no-repeat -1px 0px;
-}
-
-#cityNav #overview tr.header th {
+#cityNav #overview tr:first-child th {
   background-position: center center;
   background-repeat: no-repeat;
-  width: 25px;
+  min-width: 44px;
+  height: 24px;
 }
+
+#cityNav #overview tr:first-child th.p {
+  background-image: url(/skin/resources/icon_citizen.gif);
+}
+#cityNav #overview tr:first-child th.w {
+  background-image: url(/skin/resources/icon_wood.gif);
+}
+#cityNav #overview tr:first-child th.W {
+  background-image: url(/skin/resources/icon_wine.gif);
+}
+#cityNav #overview tr:first-child th.M {
+  background-image: url(/skin/resources/icon_marble.gif);
+}
+#cityNav #overview tr:first-child th.C {
+  background-image: url(/skin/resources/icon_glass.gif);
+}
+#cityNav #overview tr:first-child th.S {
+  background-image: url(/skin/resources/icon_sulfur.gif);
+}
+
 #cityNav #overview tr td:first-child {
   padding-left: 6px;
 }
 #cityNav #overview tr td:last-child {
   padding-right: 6px;
+  min-width: 44px;
 }
 
-#cityNav #overview tr.header th.p {
-  background-image: url(/skin/resources/icon_citizen.gif);
-}
-#cityNav #overview tr.header th.w {
-  background-image: url(/skin/resources/icon_wood.gif);
-}
-#cityNav #overview tr.header th.W {
-  background-image: url(/skin/resources/icon_wine.gif);
-}
-#cityNav #overview tr.header th.M {
-  background-image: url(/skin/resources/icon_marble.gif);
-}
-#cityNav #overview tr.header th.C {
-  background-image: url(/skin/resources/icon_glass.gif);
-}
-#cityNav #overview tr.header th.S {
-  background-image: url(/skin/resources/icon_sulfur.gif);
-}
-
-
-#cityNav #overview tr {
-  background: url(/skin/layout/select_citynav.jpg) no-repeat -1px 0px;
-  background-position: -1px -98px;
-  height: 25px;
-  /*width: 157px;*/
-}
-#cityNav #overview tr.first {
+#cityNav #overview tr.first td:first-child {
   background-position: -1px -72px;
+}
+#cityNav #overview tr.first td {
+  background-position: -25px -72px;
+}
+#cityNav #overview tr.first td:last-child {
+  background-position: -109px -72px;
+}
+
+#cityNav #overview tr td:first-child {
+  background-position: -1px -96px;
+}
+#cityNav #overview tr td {
+  background-position: -25px -96px;
+  /*text-align: right;*/
+}
+#cityNav #overview tr td:last-child {
+  background-position: -109px -96px;
+}
+
+#cityNav #overview tr:last-child td:first-child {
+  background-position: -1px -146px;
+}
+#cityNav #overview tr:last-child td {
+  background-position: -25px -146px;
+}
+#cityNav #overview tr:last-child td:last-child {
+  background-position: -109px -146px;
+}
+
+#cityNav #overview tr td {
+  background: url(/skin/layout/select_citynav.jpg) no-repeat -25px -96px;
+  line-height: 24px;
+  height: 24px;
+}
+#cityNav #overview tr.first td {
   padding-top: 2px;
 }
-#cityNav #overview tr.last {
-  background-position: -1px -146px;
+#cityNav #overview tr:last-child td {
   padding-bottom: 2px;
 }
 
