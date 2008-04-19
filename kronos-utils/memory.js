@@ -14,6 +14,11 @@ reports: {
         t:1207175100000, w:1, l:{g:136, W:59}, c:38714, a:attackingCity?},
       }
   },
+  players: {
+     name: {
+   cities: [id, id, id...]
+    },
+  },
   cities: {
     4711: {
       n: name,
@@ -61,18 +66,23 @@ var config = (function() {
   function get(name, value) {
     return data.hasOwnProperty(name) ? data[name] : value;
   }
+
   function getCity(name, value, id) {
     return getServer(["cities", id || cityID()].concat(array(name)), value);
   }
+
   function setCity(name, value, id) {
     return setServer(["cities", id || cityID()].concat(array(name)), value);
   }
+
   function getIsle(name, value, id) {
     return getServer(["islands", id || islandID()].concat(array(name)), value);
   }
+
   function setIsle(name, value, id) {
     return setServer(["islands", id || islandID()].concat(array(name)), value);
   }
+
   function getServer(name, value) {
     if ("?!" == value) console.log(name, value);
     var path = isString(name) ? name.split(".") : name;
@@ -91,6 +101,7 @@ var config = (function() {
     //console.log(save, value, scope);
     return scope;
   }
+
   function set(name, value) {
     var path = isString(name) ? name.split(".") : name;
     var scope = data, last = path.length - 1;
@@ -104,6 +115,7 @@ var config = (function() {
     expensive(saveConfig)();
     return value;
   }
+
   function setServer(name, value) {
     var path = isString(name) ? name.split(".") : name;
     var tmpl = { 3: { cities: [{}, {l: Array, p: Array, q: Array}] } };
@@ -123,15 +135,19 @@ var config = (function() {
     expensive(saveServer)();
     return value;
   }
+
   function remCity(name) {
     return remServer(name +":"+ cityID());
   }
+
   function remIsle(name) {
     return remServer(name +"/"+ islandID());
   }
+
   function remServer(name) {
     return remove(name +":"+ location.hostname);
   }
+
   function keys(re) {
     re = re || /./;
     var list = [];
@@ -140,6 +156,7 @@ var config = (function() {
         list.push(id);
     return list;
   }
+
   function remove(id) {
     if (/function|object/.test(typeof id)) {
       var value = [], re = id;
@@ -154,6 +171,7 @@ var config = (function() {
     }
     return value;
   }
+
   return { get:get, set:set, remove:remove, keys:keys,
            setCity:setCity, getCity:getCity, remCity:remCity,
            setIsle:setIsle, getIsle:getIsle, remIsle:remIsle,
@@ -282,6 +300,8 @@ function upgradeConfig0() {
     if (!city.x) city.x = {};
     city.x[b] = integer(value);
   }
+  if (!ns[location.host])
+    ns[location.host] = makeNWO();
   data = ns.config;
   server = ns[location.host];
   for (var name in ns)
@@ -289,6 +309,7 @@ function upgradeConfig0() {
   return ns;
 }
 
-// 1 -> 2 is about dropping city:u links (can be auto-generated)
+// n -> m is about dropping city:u links (can be auto-generated)
 function upgradeConfig1() {
 }
+

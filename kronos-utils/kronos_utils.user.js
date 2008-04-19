@@ -1177,6 +1177,7 @@ function urlTo(what, id, opts) {
     if ("-" != buildingLevel(id, "-"))
       return url("?view="+ what +"&id="+ c +"&position="+ buildingPosition(id));
     console.warn("building ID unknown: ", id, what, cityID());
+    return "";
   }
   var c = cityID(), i = islandID();
   if (what == "workshop")
