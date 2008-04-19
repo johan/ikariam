@@ -23,7 +23,6 @@ function init() {
   css(GM_getResourceText("css"));
   lang = langs[getLanguage()];
 
-  var langChoice = panelInfo();
   var view = urlParse("view");
   var action = urlParse("action");
 
@@ -97,6 +96,7 @@ function init() {
   if ({ city: 1, island: 1 }[view])
     unsafeWindow.friends = config.getServer("treaties", []);
 
+  var langChoice = panelInfo();
   title();
   var FIN = new Date();
   langChoice.title = lang.execTime +": "+ (FIN - DEBUT) +"ms";
@@ -486,7 +486,8 @@ function diplomacyAdvisorView() {
     }
     node({ tag: "td", className: "tt", text: t, before: td });
     var r = config.getIsle("r", "x", id||0);
-    node({ tag: "td", className: "tradegood " + r, after: td });
+    var R = config.getIsle("R", "",  id||0);
+    node({ tag: "td", className: "tradegood " + r, title: R, after: td });
   }
 
   //[contains(translate(.,"0123456789:",""),"[]")]').
@@ -1920,6 +1921,7 @@ function resourceView() {
       city.innerHTML = <a href={link}>{city.textContent}</a>.toXMLString();
     pillageLink(id, { after: a });
   }
+  highlightMeInTable();
   $x('id("mainview")/div[@class="othercities"]//tr/td[@class="actions"]/' +
      'a[contains(@href,"view=sendMessage")]').forEach(link);
 }
@@ -2673,6 +2675,7 @@ function improveTopPanel() {
   showHousingOccupancy();
   showSafeWarehouseLevels();
   showCityBuildCompletions();
+  // showOverview();
   // unconfuseFocus();
 }
 
@@ -2682,6 +2685,26 @@ function unconfuseFocus() {
     selected.className += " not-mainview";
     selected.title = lang.notShownNow;
   }
+}
+
+function showOverview() {
+  node({ after: $("citySelect"), tag: <table id="overview">
+    <tr class="header"><th class="p"/><th class="w"/>
+      <th class="W"/><th class="M"/><th class="C"/><th class="S"/>
+    </tr>
+    <tr class="first">
+      <td>  922</td><td>14,235</td><td>1,595</td>
+      <td>2,093</td><td> 4,271</td><td>1,109</td>
+    </tr>
+    <tr>
+      <td>  922</td><td>14,235</td><td>1,595</td>
+      <td>2,093</td><td> 4,271</td><td>1,109</td>
+    </tr>
+    <tr class="last">
+      <td>  922</td><td>14,235</td><td>1,595</td>
+      <td>2,093</td><td> 4,271</td><td>1,109</td>
+    </tr>
+  </table> });
 }
 
 function showCityBuildCompletions() {
@@ -3022,8 +3045,9 @@ function projectCompletion(id, className, loc) {
     var div = node({ tag: tag.nodeName.toLowerCase(), className: className,
                      after: tag, text: done });
     time = time * 1e3 + Date.now();
+    var key = { resource: "wu", tradegood: "ru" }[urlParse("view")];
     if ("upgradeCountDown" == id)
-      set = config.setCity("t", time);
+      set = key ? config.setIsle(key, time) : config.setCity("t", time);
     if ("cityCountdown" == id) {
       set = config.setCity("t", time);
       var move = $X('ancestor::*[contains(@class,"timetofinish")]', tag);
@@ -3211,134 +3235,6 @@ function isMyCity() {
 
 
 
-
-function upgradeConfig() {
-  var v = GM_getValue(location.host) && config.getServer("v") || 0;
-  //console.log("ver ", v);
-  if (v < 1) upgradeConfig0();
-}
-
-function upgradeConfig0() {
-  function makeNWO() {
-    var obj = { v: 1 };
-    for (var name in nwo)
-      obj[name] = name == "treaties" ? [] : {};
-    return obj;
-  }
-  var ns = {};
-  var nwo = { capital: 1, treaties: 1, techs: 1, spies: 1,
-              players: 1, cities: 1, islands: 1, battles: 1 };
-  var old = config.keys(), key, host, isle, city, tech, r, b, save, junk;
-  for (var i = 0; key = old[i]; i++) {
-    var value = config.get(save = key);
-    config.remove(key);
-
-    // belongs to which server scope?
-    if ((host = key.match(/(.*):([^:]+\D[^.])$/))) {
-      [junk, key, host] = host;
-    } else { // data sanitization; probably drop
-      if ("language" == key) {
-        ns.config = ns.config || {};
-        ns.config[key] = value;
-      }
-      continue;
-    }
-    var scope = ns[host] || makeNWO();
-    ns[host] = scope;
-
-
-    // server global stuff first:
-    if ((tech = key.match(/^tech(\d+)$/))) {
-      [junk, tech] = tech;
-      scope.techs[tech] = 1;
-      continue;
-    }
-
-    if (/^research(|Done)$/.test(key)) {
-      scope = scope.techs;
-      scope.research = scope.research || {};
-    }
-
-    switch (key) {
-      case "war":
-        scope = scope.battles;
-        scope.won = value.won;
-        scope.lost = value.lost;
-        continue;
-
-      case "cities":
-        scope = scope.cities;
-        for (var id in value) {
-          city = scope[id] = scope[id] || {};
-          city.i = integer(value[id].i);
-          city.n = value[id].n;
-        }
-        continue;
-
-      case "capital":		scope.capital = integer(value); continue;
-      case "reports":		scope.battles.reports = value; continue;
-      case "research":		scope.research.n = value; continue;
-      case "researchDone":	scope.research.t = value; continue;
-      case "culturetreaties":	scope.treaties.culture = value; continue;
-    }
-
-
-    // island global stuff; only resource levels at this time:
-    if ((isle = key.match(/^(.*)\/(\d+)$/))) {
-      [junk, r, isle] = isle;
-      scope.islands[isle] = scope.islands[isle] || {};
-      scope = scope.islands[isle];
-      if (/^[WMCS]$/.test(r)) {
-        scope.r = r;
-        scope.R = value;
-      } else {
-        scope[r] = value;
-      }
-      continue;
-    }
-
-
-    // the rest; city local stuff:
-    if (!(city = key.match(/^(.*):(\d+)$/)))
-      continue;
-    [junk, key, city] = city;
-
-    city = scope.cities[city] = scope.cities[city] || {};
-
-    if ((b = key.match(/^(building|posbldg)(\d+)$/))) {
-      [junk, key, b] = b;
-      if (!city.l) city.l = [];
-      if (!city.p) city.p = [];
-      if ("building" == key)
-        city.l[b] = value;
-      else
-        city.p[b] = value;
-      continue;
-    }
-
-    switch (key) {
-      case "q":		city.q = eval(value); continue;
-      case "r":		city.r = value; continue; // temporary hack
-      //case "gold":	city.g = value; continue;
-      case "build":	city.t = value; continue;
-      case "buildurl":	city.u = value; continue;
-
-      default:
-        continue;
-
-      case "wine":		b = buildingIDs.tavern; break;
-      case "culture":		b = buildingIDs.museum; break;
-      case "researchers":	b = buildingIDs.academy; break;
-    }
-    if (!city.x) city.x = {};
-    city.x[b] = integer(value);
-  }
-  data = ns.config;
-  server = ns[location.host];
-  for (var name in ns)
-    GM_setValue(name, uneval(ns[name]));
-  return ns;
-}
 
 function hideshow(node, nodes) {
   function listen(on) {

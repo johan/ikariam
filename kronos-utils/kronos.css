@@ -48,8 +48,21 @@
   padding: 2px 10px;
 }
 
+/* move ship indicator to the right?
+#missionSummary .transporters {
+  position: absolute;
+  left: 518px;
+  top: 6px;
+  margin: 0;
+}
+*/
+
 
 /**** Our own hacks ****/
+
+/* don't overflow the upgrade pane when we add a whole date + timestamp: */
+#container #resUpgrade.upgrading .time { font-weight:normal; white-space:pre; }
+#container #resUpgrade.upgrading .time#upgradeCountDown { font-weight: bold; }
 
 /* Our island resource column looks: */
 #diplomacyAdvisor #mainview #messages .tradegood {
@@ -235,6 +248,99 @@
 #container #cityResources .resources .disabled a	{ color: #999999; }
 #container #cityResources .resources .storage_full	{ color: #CC0000; }
 #container #cityResources .resources .storage_danger	{ color: #CC3300; }
+
+
+
+/* city resources table */
+#cityNav #overview {
+  z-index: 1;
+  /*display: none;*/
+  position: absolute;
+  width: 157px;
+  left: 189px;
+  top: 6px;
+}
+
+#cityNav #overview tr.header {
+  background: url(/skin/layout/select_citynav.jpg) no-repeat -1px 0px;
+  background-position: -2px -0px;
+}
+
+#cityNav #overview tr {
+  background: url(/skin/layout/select_citynav.jpg) no-repeat -1px 0px;
+}
+
+#cityNav #overview tr.header th {
+  background-position: center center;
+  background-repeat: no-repeat;
+  width: 25px;
+}
+#cityNav #overview tr td:first-child {
+  padding-left: 6px;
+}
+#cityNav #overview tr td:last-child {
+  padding-right: 6px;
+}
+
+#cityNav #overview tr.header th.p {
+  background-image: url(/skin/resources/icon_citizen.gif);
+}
+#cityNav #overview tr.header th.w {
+  background-image: url(/skin/resources/icon_wood.gif);
+}
+#cityNav #overview tr.header th.W {
+  background-image: url(/skin/resources/icon_wine.gif);
+}
+#cityNav #overview tr.header th.M {
+  background-image: url(/skin/resources/icon_marble.gif);
+}
+#cityNav #overview tr.header th.C {
+  background-image: url(/skin/resources/icon_glass.gif);
+}
+#cityNav #overview tr.header th.S {
+  background-image: url(/skin/resources/icon_sulfur.gif);
+}
+
+
+#cityNav #overview tr {
+  background: url(/skin/layout/select_citynav.jpg) no-repeat -1px 0px;
+  background-position: -1px -98px;
+  height: 25px;
+  /*width: 157px;*/
+}
+#cityNav #overview tr.first {
+  background-position: -1px -72px;
+  padding-top: 2px;
+}
+#cityNav #overview tr.last {
+  background-position: -1px -146px;
+  padding-bottom: 2px;
+}
+
+
+
+#cityNav .citySelect#overview {
+  z-index: 1;
+  /*display: none;*/
+  left: 189px;
+  top: 6px;
+  width: 157px;
+}
+#cityNav .citySelect#overview .optionList {
+  width: 157px;
+}
+
+#cityNav .citySelect#overview li {
+  width: 157px;
+  padding-right: 0;
+  background-position: -1px -98px;
+}
+#cityNav .citySelect#overview li.first {
+  background-position: -1px -72px;
+}
+#cityNav .citySelect#overview li.last {
+  background-position: -1px -146px;
+}
 
 
 
