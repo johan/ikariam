@@ -189,20 +189,22 @@
 
 /**** Top panel improvements ****/
 
+/* how much gold this city makes per hour; overwrites the action point arrow */
 #income {
-  background: transparent url(skin/resources/icon_gold.gif) no-repeat 100% 0;
-  line-height: 22px;
-  padding-right: 18px;
-  text-align: right;
+  background: transparent url(/skin/layout/bg_header.jpg) scroll -383px -66px;
   position: absolute;
-  width: 52px;
-  top: 33px;
+  text-align: right;
+  width: 54px;
+  left: -1px;
+  top: 38px;
 }
 
-#income.negative {
-  background-position:49px -2px;
-  background-image:url(skin/icons/corruption_24x24.gif);
-}
+/* abuses the corruption coin for negative incomes -- have a better one? */
+#coin { position: absolute; width: 0px; }
+#coin.positive { left: 54px; top: 34px; }
+#coin.negative { left: 50px; top: 32px; }
+#coin.positive:after { content: url(/skin/resources/icon_gold.gif); }
+#coin.negative:after { content: url(/skin/icons/corruption_24x24.gif); }
 
 /* don't overflow the city names onto new lines */
 #cityNav .citySelect .optionList li {

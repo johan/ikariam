@@ -2640,8 +2640,9 @@ function improveTopPanel() {
 
   var cityNav = $("cityNav");
   if (flow.g) {
-    node({ id: "income", className: flow.g < 0 ? "negative" : "",
-           text: sign(flow.g), append: cityNav, title: " " });
+    var face = flow.g < 0 ? "negative" : "positive";
+    node({ id: "coin", className: face, append: cityNav, title: " " });
+    node({ id: "income", text: sign(flow.g), append: cityNav, title: " " });
 
     var ap = $("value_maxActionPoints").parentNode;
     ap.style.top = "-49px";
@@ -3178,17 +3179,17 @@ function panelInfo() { // Ajoute un element en plus dans le menu.
 
   var research = config.getServer("techs.research.n", "");
   if (research) {
+    var done = config.getServer("techs.research.t", 0);
+    if (done) done = resolveTime((done - Date.now()) / 1e3, 1);
+
     var a = node({ prepend: tags.kronos, tag: <>
 <a id="researching" href={urlTo("academy")}>
-  {lang.researching}: {research}
+  {done ? done + " \u2014" : lang.researching + ":"} {research}
 </a><br/></> }).researching;
 
     var tech = techinfo(research);
     if (tech)
       a.title = tech.does +" ("+ tech.points + " points)"; // I18N
-
-    var done = config.getServer("techs.research.t");
-    if (done) a.title += resolveTime((done - Date.now()) / 1e3);
   }
   return tags.language;
 }
