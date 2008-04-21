@@ -558,9 +558,8 @@ function militaryAdvisorCombatReportsView() {
       var text = a.textContent;
       text = text.slice(0, text.lastIndexOf(name));
       a.textContent = text;
-      var island = linkTo(urlTo("island", { island: city[r.c].i, city: r.c }),
-                          null, null, { text: name });
-      a.parentNode.appendChild(island);
+      node({ tag: <a href={urlTo("island", { island: city[r.c].i, city: r.c })}
+                     rel={"i" + r.c}>{name}</a>, after: a });
     }
   }
   var header = $X('id("troopsOverview")/div/h3');
@@ -1204,6 +1203,7 @@ function urlTo(what, id, opts) {
     case "building":	return url("?view=buildingDetail&buildingId="+ id);
     case "research":	return url("?view=researchDetail&researchId="+ id);
     case "pillage":	return url("?view=plunder&destinationCityId="+ id);
+    case "transport":	return url("?view=transport&destinationCityId="+ id);
 
     case "message":
       var from = opts && opts.from || cityID();
@@ -1243,7 +1243,8 @@ function addToQueue(b, first) {
 }
 
 function changeQueue(e) {
-  var enqueued = $X('ancestor-or-self::li[parent::ul[@id="q"]]', e.target), a;
+  var clicked = e.target;
+  var enqueued = $X('ancestor-or-self::li[parent::ul[@id="q"]]', clicked), a;
   if (enqueued) { // drop from queue
     var q = getQueue();
     q.splice(enqueued.getAttribute("rel"), 1);
@@ -1251,12 +1252,15 @@ function changeQueue(e) {
     drawQueue();
   } else if (!e.altKey) {
     return;
-  } else if ((a = $X('parent::li[parent::ul[@id="locations"]]/a', e.target))) {
+  } else if ((a = $X('parent::li[parent::ul[@id="locations"]]/a', clicked))) {
     addToQueue(buildingID(a), e.shiftKey);
     setTimeout(processQueue, 10);
-  } else if ((a = $X('ancestor-or-self::a[@href="#upgrade"]', e.target))) {
+  } else if ((a = $X('ancestor-or-self::a[@href="#upgrade"]', clicked))) {
     addToQueue(buildingID(urlParse("view")));
     setTimeout(processQueue, 10);
+  } else if ((a = $X('ancestor-or-self::a[starts-with(@rel,"i")]', clicked))) {
+    e.preventDefault();
+    goto(urlTo(e.shiftKey ? "pillage" : "transport", a.rel.slice(1)));
   }
   if (a || enqueued) {
     e.stopPropagation();
@@ -2533,7 +2537,7 @@ function showCityBuildCompletions() {
 
       if (links) { // island link bar
         var a = <a href={urlTo("island", { city: id })} title={names[i]}
-                   class="island-link"></a>;
+                   class="island-link" rel={"i" + id}></a>;
         images.push(img); // as we can't set innerHTML of an E4X node
         links.* += a;
       }
