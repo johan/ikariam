@@ -588,6 +588,8 @@ a.dependent, a.independent { display: block; padding-left: 60px; }
 
 ul.explored li, ul.unexplored li { position: relative; }
 
+div.points:hover { text-decoration: underline; }
+
 div.points {
   left: 0%;
   position: absolute;

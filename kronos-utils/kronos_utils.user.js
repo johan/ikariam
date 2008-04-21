@@ -2005,7 +2005,8 @@ function researchOverviewView() {
   }
 
   function scrape(a, i) {
-    function got(node) { augment(a, parse(node, id[i], a), id[i]); }
+    function got(node) { augment(a, parse(node, id, a), id); }
+    var id = linkID(a);
     setTimeout(wget$X, Math.random() * 1000 * get.length, a.href, got,
                'id("mainview")//div[@class="content"]/table/tbody', 0, 1);
   }
