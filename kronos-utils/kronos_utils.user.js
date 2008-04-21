@@ -1271,8 +1271,8 @@ function reallyUpgrade(name) {
   var b = buildingID(name);
   var l = buildingLevel(b, 0);
   var p = buildingPosition(b);
-  if (q.shift() != b) { // some other window got there before us; abort
-    location.hash = "#q:in-progress";
+  if (isDefined(q[0]) && q[0] != b) { // other window got there before us; abort
+    location.hash = "#q:in-progress ("+ q[0] +"!="+ b+")";
     return;
   }
   if (haveResources(buildingExpansionNeeds(b, l))) {
