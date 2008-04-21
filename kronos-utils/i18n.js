@@ -45,7 +45,7 @@ shoppingList: "Acheter ça, s'il vous plaît",
    popupInfo: "Clique pour bàtiment information",
 },
 
-de: { // German version maintained by pusteblume:
+de: { // German version maintained by pusteblume and AbrahamLincoln:
     language: "Deutsch",
     finished: " Beendet ",
     execTime: "benötigte Zeit zum Ausführen",
@@ -67,6 +67,7 @@ shoppingList: "Einkaufsliste",
    popupInfo: "Klicken um Gebäudeinfo zu erhalten, benutze das Mausrad um die "+
                 "Stufen zu sehen",
  notShownNow: "Notiz: wird zur Zeit nicht in der Hauptansicht angezeigt.",
+ readlibrary: "Kronos muss Deine Bibliothek lesen. Soll das jetzt geschehen?",
 },
 
 sv: { // Swedish strings also maintained by myself:
