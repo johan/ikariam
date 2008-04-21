@@ -113,7 +113,8 @@ cs: { // Czech translation maintained by Sisel:
 shoppingList: "Nákupní seznam: klikni na surovinu pro nakup v portu",
  unavailable: "Nedostatek surovin ve stavebním čase (i obnovovacím čase)",
    popupInfo: "Klikni pro info o budově, scroluj pro prohlížení levelů",
- notShownNow: "Poznamka: Není momentálně vidět v hlavním okně."
+ notShownNow: "Poznamka: Není momentálně vidět v hlavním okně.",
+ readlibrary: "Kronos potrebuje nacist knihovnu. Chcete provest nacteni?",
 },
 
 pl: { // Polish translation maintained by drivex:
@@ -157,7 +158,8 @@ shoppingList: "Resurse necesare pentru a indeplini constructia",
  unavailable: "Resurse indisponibile la timpul construictiei",
    popupInfo: "Click pentru informatiile cladiri, foloseste scroolul sa "+
                 "cauti levelele",
- notShownNow:"Nota: nu se arata in vederea generala jos.",
+ notShownNow: "Nota: nu se arata in vederea generala jos.",
+ readlibrary: "Kronos are nevoie sa cerceteze libraria.Faci asta acum?",
 },
 
 // Need updating by natives:
