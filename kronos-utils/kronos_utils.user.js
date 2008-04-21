@@ -1997,8 +1997,11 @@ function researchOverviewView() {
 
   function augment(a, info, id) {
     a.className = "dependent";
-    node({ className: "points", id: "P" + id, prepend: a,
-           html: visualResources(info.p +"$bulb", { size: 0.5 }) });
+    node({ className: "points ellipsis", id: "P" + id, prepend: a,
+           html: visualResources('<span id="B'+ id +'">'+ info.p +
+                                 "</span>$bulb", { size: 0.5 }) });
+    node({ className: "points", id: "D" + id, append: a,
+  style: { left: "42%", whiteSpace: "nowrap" }, text: info.x });
   }
 
   function scrape(a, i) {
@@ -2099,21 +2102,34 @@ function techinfo(what, links, div) {
       var tech = byID[id];
       done[id] = tech.depends = true;
       var points = tech.known ? 0 : tech.points;
-      return points + tech.deps.map(mark).reduce(sum, 0);
+      points += tech.deps.map(mark).reduce(sum, 0);
+      //if (points)
+        $("B"+id).textContent = points;
+      //else
+      //  $("P"+id).className = "points ellipsis";
+      return points;
     }
 
     var done = {};
     var points = mark(id);
     tree.forEach(show);
     var tech = byID[id];
-    tech.a.title = tech.does + " ("+ points +" points left)";
+    //tech.a.title = tech.does + " ("+ points +" points left)";
   }
 
   function show(tech) {
     var a = tech.a;
     if (a) {
-      a.className = (tech.depends ? "" : "in") + "dependent";
-      a.title = tech.does;
+      var bulb = $("B" + tech.id);
+      if (tech.depends) {
+        a.className = "dependent";
+        bulb.parentNode.className = "points";
+      } else {
+        a.className = "independent";
+        bulb.textContent = tech.points;
+        bulb.parentNode.className = "points ellipsis";
+      }
+      //a.title = tech.does;
     }
     tech.depends = false;
   }
@@ -2121,7 +2137,8 @@ function techinfo(what, links, div) {
   function hover(e) {
     //console.time("hilight");
     var a = e.target;
-    if (a && "a" == a.nodeName.toLowerCase()) {
+    if (a && "a" == a.nodeName.toLowerCase() ||
+        "points" == a.className) {
       var id = $X('ancestor-or-self::*[@id][1]', a).id.slice(1);
       try { hilightDependencies(id); } catch(e) {}
     } else
@@ -2134,7 +2151,7 @@ function techinfo(what, links, div) {
   }
 
   function indent(what) {
-    what.a.style.paddingLeft = (what.level * 10 + 40) + "px";
+    what.a.style.paddingLeft = (what.level * indentfactor + 40) + "px";
     //console.log(what ? what.toSource() : "!");
     show(what);
   }
@@ -2142,7 +2159,7 @@ function techinfo(what, links, div) {
   function vr(level) {
     node({ tag: "hr", id: "vr", append: div,
            style: { height: (div.offsetHeight - 22) + "px",
-                    left: (level * 10 + 45) + "px" }});
+                    left: (level * indentfactor + 45) + "px" }});
   }
 
   if (isString(what) || isUndefined(what)) {
@@ -2175,6 +2192,7 @@ function techinfo(what, links, div) {
   if ("researchOverview" != urlParse("view"))
     return tree;
 
+  var indentfactor = 5;
   var levels = {}, byName = {}, hr;
   while (!tree.map(unwindDeps).every(I));
   tree.forEach(indent);
