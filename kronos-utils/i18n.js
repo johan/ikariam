@@ -22,6 +22,7 @@ shoppingList: "Shopping list: click a resource icon to buy that in your port",
  unavailable: "Resources unavailable by build time (and replenish time)",
    popupInfo: "Click for building info, use scroll wheel to browse levels",
  notShownNow: "Note: not presently shown in the main view below.",
+ readlibrary: "Kronos needs to read through your library. Do that now?",
 },
 
 fr: { // French strings not maintained by anyone! It's bad, too! The horror! :)
@@ -89,6 +90,7 @@ shoppingList: "Inköpslista",
    popupInfo: "Klicka för att se byggnaden i ikipedia; använd scrollhjulet "+
                 "för att se kostnader för andra expansionsnivåer",
  notShownNow: "OBS! Visas inte i huvudvyn nedan för närvarande.",
+ readlibrary: "Kronos behöver läsa genom ditt bibliotek. Vill du göra det nu?",
 },
 
 cs: { // Czech translation maintained by Sisel:

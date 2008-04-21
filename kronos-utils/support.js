@@ -221,3 +221,70 @@ function get(what, context) {
   var func = many[what] ? $x : $X;
   return what in xpath ? func(xpath[what], context) : undefined;
 }
+
+
+
+function getServerTime(offset) {
+  var Y, M, D, h, m, s, t;
+  [D, M, Y, h, m, s] = $("servertime").textContent.split(/[. :]+/g);
+  t = new Date(Y, parseInt(M, 10)-1, D, h, m, s);
+  return offset ? new Date(t.valueOf() + offset*1e3) : t;
+}
+
+function resolveTime(seconds, timeonly) { // Crée le temps de fin.
+  function z(t) { return (t < 10 ? "0" : "") + t; }
+  var t = getServerTime(seconds);
+  var d = "";
+  if (t.getDate() != (new Date).getDate()) {
+    var m = lang.months[t.getMonth()];
+    d = t.getDate() +" "+ m.slice(0, 3) +", ";
+  }
+  var h = z(t.getHours());
+  var m = z(t.getMinutes());
+  var s = z(t.getSeconds());
+  t = d + h + ":" + m + ":" + s;
+  return timeonly ? t : lang.finished + t;
+}
+
+function secondsToHours(bySeconds) {
+  return isNaN(bySeconds) ? 0 : Math.round(bySeconds * 3600);
+}
+
+var locale = unsafeWindow.LocalizationStrings;
+var units = { day: 86400, hour: 3600, minute: 60, second: 1 };
+
+// input: "Nd Nh Nm Ns", output: number of seconds left
+function parseTime(t) {
+  function parse(what, mult) {
+    var count = t.match(new RegExp("(\\d+)" + locale.timeunits.short[what]));
+    if (count)
+      return parseInt(count[1], 10) * mult;
+    return 0;
+  }
+  var s = 0;
+  for (var unit in units)
+    s += parse(unit, units[unit]);
+  return s;
+}
+
+function secsToDHMS(t, rough, join) {
+  if (t == Infinity) return "∞";
+  var result = [];
+  var minus = t < 0 ? "-" : "";
+  if (minus)
+    t = -t;
+  for (var unit in units) {
+    var u = locale.timeunits.short[unit];
+    var n = units[unit];
+    var r = t % n;
+    if (r == t) continue;
+    if ("undefined" == typeof rough || rough--)
+      result.push(((t - r) / n) + u);
+    else {
+      result.push(Math.round(t / n) + u);
+      break;
+    }
+    t = r;
+  }
+  return minus + result.join(join || " ");
+}

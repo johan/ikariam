@@ -310,6 +310,9 @@ function upgradeConfig0() {
 }
 
 // n -> m is about dropping city:u links (can be auto-generated)
+// move techs.info (and techs.asked) from server to tld scope
+// drop techs.info.t (it's dependent on your pace and .p anyway)
+// kill configs for non-sN.ikariam.* servers (not "config" though)
 function upgradeConfig1() {
 }
 

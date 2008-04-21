@@ -16,11 +16,14 @@
 // ==/UserScript==
 
 var version = "0.5", lang;
+if (location.hostname.match(/^s\d+\./))
+  init();
+else
+  login();
 
 function init() {
   upgradeConfig();
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
-  if (!location.hostname.match(/^s\d+\./)) return login();
   css(GM_getResourceText("css"));
   lang = langs[getLanguage()];
 
@@ -466,8 +469,8 @@ function researchAdvisorView() {
 
     a.title = a.textContent;
     a.href = urlTo("research", tech.id);
-    a.innerHTML = name.bold() +" "+
-      tech.does[0].toLowerCase() + tech.does.slice(1);
+    a.innerHTML = name.bold() +" — "+ tech.does;
+    // tech.does[0].toLowerCase() + tech.does.slice(1);
   }
 
   updateCurrentResearch();
@@ -1990,57 +1993,119 @@ function academyView() {
 }
 
 function researchOverviewView() {
-  techinfo();
+  function linkID(a) { return integer(urlParse("researchId", a.search)); }
+
+  function augment(a, info, id) {
+    a.className = "dependent";
+    node({ className: "points", id: "P" + id, prepend: a,
+           html: visualResources(info.p +"$bulb", { size: 0.5 }) });
+  }
+
+  function scrape(a, i) {
+    function got(node) { augment(a, parse(node, id[i], a), id[i]); }
+    setTimeout(wget$X, Math.random() * 1000 * get.length, a.href, got,
+               'id("mainview")//div[@class="content"]/table/tbody', 0, 1);
+  }
+
+  function parse(body, id) {
+    var data = {}; // n: name, x: does, t: time, d: deps, p: points
+    var what = { n: 2, x: 3, p: 4, d: 'tr[6]/td[2]/ul/li/a' }, junk, t, p;
+    for (var i in what) {
+      var xpath = what[i];
+      if ("number" == typeof xpath)
+        data[i] = $X('tr['+ xpath +']/td[2]/text()[last()]', body).textContent;
+      else
+        data[i] = $x(xpath, body);
+    }
+    [what, data.p] = /\(([0-9,.]+)/.exec(data.p);
+    data.p = integer(data.p);
+    data.d = data.d.map(linkID);
+    data.x = trim(data.x.replace(/\s+/g, " "));
+    //console.log(n + data.toSource());
+    info[id] = data;
+    config.setServer("techs.info", info);
+    if (!--n) {
+      config.remServer("techs.asked");
+      setTimeout(techinfo, 100, info, all, div);
+    }
+    return data;
+  }
+
+  var div = $X('id("mainview")/div/div[@class="content"]');
+  if (div) $x('br', div).forEach(rm);
+
+  var info = config.getServer("techs.info", {});
+  var all = $x('id("mainview")//div[@class="content"]/ul/li/a'), get = [];
+  var id = all.map(linkID);
+  var n = all.length;
+
+  for (var i = 0; i < all.length; i++) {
+    var tech = id[i];
+    var a = all[i];
+    a.id = "T" + tech;
+    a.className = "dependent";
+    info[tech] = info[tech] || { n: trim(a.textContent.replace(/\s+/, " ")) };
+    if (info[tech].hasOwnProperty("p")) {
+      augment(a, info[tech], tech);
+      n--;
+    } else {
+      a.className = "independent";
+      get.push(a);
+    }
+  }
+
+  if (get.length)
+    get.forEach(scrape);
+  else
+    techinfo(info, all, div);
 }
 
-function techinfo(what) {
-  function makeTech(spec) {
-    var id, name, does, time, deps, points, junk;
-    [name, does, time, deps] = trim(spec).split("\n");
-    [id, name] = name.split(": ");
-    [junk, time, points] = /^(.*) \(([0-9,]+).*\)/.exec(time);
-    deps = deps ? deps.split(/,\s*/) : [];
-    spec = { name: name, id: integer(id), does: does, time: time,
-             deps: deps, points: integer(points) };
-    if ((spec.a = $X('//a[.="'+ name +'"]'))) {
-      if ((spec.known = $x('ancestor::ul/@class = "explored"', spec.a)))
-        config.setServer(["tech", urlParse("researchId", spec.a.search)], 1);
+function techinfo(what, links, div) {
+  function linearize(object, byID) {
+    var array = [], j = 0;
+    for (var i in object) {
+      var info = object[i];
+      var item = { name: info.n, id: i, does: info.x, points: info.p,
+                   deps: info.d };
+      if (links) {
+        item.a = links[j++];
+        if ((item.known = $x('ancestor::ul/@class = "explored"', item.a)))
+          config.setServer(["techs", i], 1);
+      }
+      array.push(byID[i] = item);
     }
-    return spec;
+    return array;
   }
 
   function unwindDeps(of) {
-    function level(name) {
-      return tech[name];
-    }
-
     if (of.hasOwnProperty("level")) // already unwound
       return true;
-    if (!of.deps.length) // no dependencies
-      return !(of.level = tech[of.name] = 0);
 
-    var levels = of.deps.map(level);
-    if (!levels.every(isDefined)) // unresolved dependencies
+    if (!of.deps.length) // no dependencies
+      return !(of.level = levels[of.id] = 0);
+
+    var l = of.deps.map(function level(id) { return levels[id]; });
+    if (!l.every(isDefined)) // unresolved dependencies
       return false;
 
-    of.level = tech[of.name] = 1 + Math.max.apply(Math, levels);
+    of.level = levels[of.id] = 1 + Math.max.apply(Math, l);
     return true;
   }
 
-  function hilightDependencies(techName) {
+  function hilightDependencies(id) {
     function sum(a, b) { return a + b; }
-    function mark(name) {
-      if (done[name]) return 0;
-      var tech = byName[name];
-      done[name] = tech.depends = true;
-      var points = tech.known ? 0 : integer(tech.points);
+    function mark(id) {
+      if (done[id]) return 0;
+      var tech = byID[id];
+      done[id] = tech.depends = true;
+      var points = tech.known ? 0 : tech.points;
       return points + tech.deps.map(mark).reduce(sum, 0);
     }
 
     var done = {};
-    var points = mark(techName);
+    var points = mark(id);
     tree.forEach(show);
-    var tech = byName[techName];
+    var tech = byID[id];
     tech.a.title = tech.does + " ("+ points +" points left)";
   }
 
@@ -2057,8 +2122,8 @@ function techinfo(what) {
     //console.time("hilight");
     var a = e.target;
     if (a && "a" == a.nodeName.toLowerCase()) {
-      var name = a.textContent.replace(/:.*/, "");
-      hilightDependencies(name);
+      var id = $X('ancestor-or-self::*[@id][1]', a).id.slice(1);
+      try { hilightDependencies(id); } catch(e) {}
     } else
       tree.forEach(show);
     //console.timeEnd("hilight");
@@ -2069,322 +2134,80 @@ function techinfo(what) {
   }
 
   function indent(what) {
-    byName[what.name] = what;
-    var a = $X('//a[.="'+ what.name +'"]');
-    a.style.marginLeft = (what.level * 10) + "px";
-    a.innerHTML += visualResources(": "+ what.points +" $bulb");
+    what.a.style.paddingLeft = (what.level * 10 + 40) + "px";
+    //console.log(what ? what.toSource() : "!");
     show(what);
   }
 
   function vr(level) {
-    hr = document.createElement("hr");
-    hr.style.position = "absolute";
-    hr.style.height = (div.offsetHeight - 22) + "px";
-    hr.style.width = "1px";
-    hr.style.top = "10px";
-    hr.style.left = (level*10 + 3) + "px";
-    hr.style.backgroundColor = "#E3AE87";
-    hr.style.opacity = "0.4";
-    div.appendChild(hr);
+    node({ tag: "hr", id: "vr", append: div,
+           style: { height: (div.offsetHeight - 22) + "px",
+                    left: (level * 10 + 45) + "px" }});
   }
 
-  var tree = techinfo.tree = techinfo.tree || <>
-1010: Deck Weapons
-Allows: Building ballista ships in the shipyard
-1h 5m 27s (24)
-Dry-Dock
+  if (isString(what) || isUndefined(what)) {
+    var name = what;
+    what = config.getServer("techs.info", 0);
 
-1020: Ship Maintenance
-Effect: 2% less upkeep for ships
-1h 5m 27s (24)
-Deck Weapons
+    if (what && name)
+      for each (var t in what)
+        if (name == t.n)
+          return t;
 
-1030: Expansion
-Allows: Building palaces, founding colonies
-20h (440)
-Ship Maintenance, Wealth
+    if (!what) {
+      var lastAsked = config.getServer("techs.asked", 0);
+      var url = urlTo("library");
+      if (url && ("researchOverview" != urlParse("view")) &&
+          ((Date.now() - lastAsked) > 864e5))
+        if (confirm(lang.readlibrary))
+//chrome://browser/content/browser.xul?view=researchOverview&id=77357&position=9
+          location.search = url;
+        else
+          config.setServer("techs.asked", Date.now());
 
-1040: Foreign Cultures
-Allows: Construction of Embassies
-1D 10h 54m 32s (768)
-Expansion, Espionage
+      return {};
+    }
+  }
 
-1050: Pitch
-Effect: 4% less upkeep for ships
-2D 4h (1,144)
-Foreign Cultures
+  var byID = {};
+  var tree = linearize(what, byID);
 
-1060: Greek Fire
-Allows: Building Flame Ships
-4D 12h (2,376)
-Pitch, Culinary Specialities
-
-1070: Counterweight
-Allows: Building catapult-ships at the shipyard
-10D 4h 21m 49s (5,376)
-Greek Fire, Invention
-
-1080: Diplomacy
-Allows: Military Treaties
-19D 2h 10m 54s (10,080)
-Counterweight
-
-1090: Sea Charts
-Effect: 8% less upkeep for ships
-39D 18h 32m 43s (21,000)
-Diplomacy
-
-1100: Paddle Wheel Engine
-Allows: Building steam rams in the shipyard
-136D 19h 38m 10s (72,240)
-Sea Charts, Helping Hands
-
-1110: Mortar Attachment
-Allows: Building mortar ships in the shipyard
-231D 19h 38m 10s (122,400)
-Paddle Wheel Engine, Glass
-
-1999: Seafaring Future
-Seafaring Future
-831D 19h 38m 10s (439,200)
-The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
-
-2010: Conservation
-Allows: Building of Warehouses
-54m 32s (20)
-
-2020: Pulley
-Effect: 2% less building costs
-1h 5m 27s (24)
-Conservation
-
-2030: Wealth
-Effect: Allows the mining of trade goods and the building of trading posts
-6h 32m 43s (144)
-Pulley
-
-2040: Wine Press
-Allows: Building of taverns
-16h (352)
-Wealth, Well Digging
-
-2050: Culinary Specialities
-Allows: Training of chefs in the barracks
-1D 10h 54m 32s (768)
-Wine Press, Expansion, Professional Army
-
-2060: Geometry
-Effect: 4% less building costs
-2D 4h (1,144)
-Culinary Specialities
-
-2070: Market
-Allows: Trade Agreements
-4D 12h (2,376)
-Geometry, Foreign Cultures
-
-2080: Holiday
-Effect: Increases the satisfaction in all towns
-11D 10h 54m 32s (6,048)
-Market
-
-2090: Helping Hands
-Allows: Overloading of resources
-25D 10h 54m 32s (13,440)
-Holiday
-
-2100: Spirit Level
-Effect: 8% less costs for the construction of buildings
-39D 18h 32m 43s (21,000)
-Helping Hands
-
-2110: Bureaucracy
-Allows: An additional building space in the towns
-117D 6h 32m 43s (61,920)
-Spirit Level
-
-2120: Utopia
-Utopia
-606D 19h 38m 10s (320,400)
-Bureaucracy, Diplomacy, Letter Chute, Gunpowder
-
-2999: Economy Future
-Economy Future
-831D 19h 38m 10s (439,200)
-The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
-
-3010: Well Digging
-Effect: +50 housing space, +50 happiness in the capital
-1h 27m 16s (32)
-
-3020: Paper
-Effect: 2% more research points
-1h 21m 49s (30)
-Well Digging
-
-3030: Espionage
-Allows: Building hideouts
-16h (352)
-Paper, Wealth
-
-3040: Invention
-Allows: Building of workshops
-1D 16h 43m 38s (896)
-Espionage, Wine Press, Professional Army
-
-3050: Ink
-Effect: 4% more research points
-2D 4h (1,144)
-Invention
-
-3060: Cultural Exchange
-Allows: building museums
-5D 12h (2,904)
-Ink, Culinary Specialities
-
-3070: Anatomy
-Allows: Recruiting Doctors in the Barracks
-11D 10h 54m 32s (6,048)
-Cultural Exchange
-
-3080: Glass
-Allows: Usage of crystal glass in order to accelerate research in the academy
-25D 10h 54m 32s (13,440)
-Anatomy, Market
-
-3090: Mechanical Pen
-Effect: 8% more research points
-39D 18h 32m 43s (21,000)
-Glass
-
-3100: Bird´s Flight
-Allows: Gyrocopter
-127D 1h 5m 27s (67,080)
-Mechanical Pen, Governor
-
-3110: Letter Chute
-Effect: 1 Gold upkeep less per scientist
-313D 15h 16m 21s (165,600)
-Bird´s Flight, Helping Hands
-
-3120: Pressure Chamber
-Allows: Building diving boats in the shipyard
-404D 13h 5m 27s (213,600)
-Letter Chute, Utopia, Robotics
-
-3130: The Archimedic Principle
-Allows: Building Bombardiers in the Barracks
-272D 17h 27m 16s (144,000)
-Pressure Chamber
-
-3999: Knowledge Future
-Knowledge Future
-831D 19h 38m 10s (439,200)
-The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
-
-4010: Dry-Dock
-Allows: Building Shipyards
-1h 5m 27s (24)
-
-4020: Maps
-Effect: 2% less upkeep for soldiers
-1h 5m 27s (24)
-Dry-Dock
-
-4030: Professional Army
-Allows: Training swordsmen and phalanxes in the barracks
-20h (440)
-Maps, Wealth
-
-4040: Siege
-Allows: Building battering rams in the barracks
-1D 10h 54m 32s (768)
-Professional Army, Espionage
-
-4050: Code of Honour
-Effect: 4% less upkeep
-2D 4h (1,144)
-Siege
-
-4060: Ballistics
-Allows: Archers
-4D 12h (2,376)
-Code of Honour, Culinary Specialities
-
-4070: Law of the Lever
-Allows: Building catapults in the barracks
-10D 4h 21m 49s (5,376)
-Ballistics, Invention
-
-4080: Governor
-Allows: Occupation
-19D 2h 10m 54s (10,080)
-Law of the Lever, Market
-
-4090: Logistics
-Effect: 8% less upkeep for soldiers
-39D 18h 32m 43s (21,000)
-Governor
-
-4100: Gunpowder
-Allows: Building marksmen in the barracks
-127D 1h 5m 27s (67,080)
-Logistics, Glass
-
-4110: Robotics
-Allows: Building steam giants in the barracks
-272D 17h 27m 16s (144,000)
-Gunpowder
-
-4120: Canon Casting
-Allows: Building mortars in the barracks
-404D 13h 5m 27s (213,600)
-Robotics, Greek Fire
-
-4999: Military Future
-Military Future
-831D 19h 38m 10s (439,200)
-The Archimedic Principle, Canon Casting, Utopia, Mortar Attachment
-</>.toString().split(/\n\n+/).map(makeTech);
-
-  if (what)
-    return tree.filter(function(t) { return t.name == what; })[0];
   if ("researchOverview" != urlParse("view"))
     return tree;
 
-  var tech = {}, byName = {}, hr;
+  var levels = {}, byName = {}, hr;
   while (!tree.map(unwindDeps).every(I));
   tree.forEach(indent);
 
-  var div = $X('id("mainview")/div/div[@class="content"]');
-  $x('br', div).forEach(rm);
-  var maxLevel = Math.max.apply(Math, pluck(tree.filter(isKnown), "level"));
-  vr(maxLevel);
+  // silly; there is one max level per research branch, and it's always the 1st
+  //var maxLevel = Math.max.apply(Math, pluck(tree.filter(isKnown), "level"));
+  //vr(maxLevel);
 
-  if (!techinfo.hide) {
-    var hide = document.createElement("style");
-    hide.type = "text/css";
-    hide.textContent = "ul.explored { display:none; }";
-    document.documentElement.firstChild.appendChild(hide);
-    hide.disabled = true;
-    var header = $X('preceding-sibling::h3/span', div);
+  var hide = config.get("hide-known-tech", false);
+  var toggle = node({ tag: "style", text: "ul.explored { display: none; }",
+                      append: document.documentElement.firstChild });
+  toggle.disabled = !hide;
+  var header = $X('preceding-sibling::h3/span', div);
+  if (header) {
     header.innerHTML += ": ";
-    var toggle = node({ tag: "span", id: "hideshow", append: header,
-                        text: lang.shown });
+    var text = node({ tag: "span", id: "hideshow", append: header,
+                      text: hide ? lang.hidden : lang.shown });
     clickTo(header, function() {
-      hide.disabled = !hide.disabled;
-      toggle.textContent = hide.disabled ? lang.shown : lang.hidden;
+      toggle.disabled = hide;
+      config.set("hide-known-tech", hide = !hide);
+      text.textContent = hide ? lang.hidden : lang.shown;
       hr.style.height = (div.offsetHeight - 22) + "px";
     });
   }
 
+/*
   function addTimeSpan(a, t) {
-    var li = a.parentNode;
     var id = "t"+ urlParse("researchId", a.search);
     var span = node({ id: id, tag: "span", before: a });
+    a.id = id.toUpperCase();
   }
-
   $x('ul/li/a', div).forEach(addTimeSpan);
+*/
 
   div.addEventListener("mousemove", hover, false);
   return tree;
@@ -2428,74 +2251,6 @@ function visualResources(what, opt) {
     what = html.join(" \xA0 ");
   }
   return what.replace(/\$([a-z]{4,6})/g, replace);
-}
-
-/*--------------------------------------------------------
-Création des fonctions de temps.
----------------------------------------------------------*/
-function getServerTime(offset) {
-  var Y, M, D, h, m, s, t;
-  [D, M, Y, h, m, s] = $("servertime").textContent.split(/[. :]+/g);
-  t = new Date(Y, parseInt(M, 10)-1, D, h, m, s);
-  return offset ? new Date(t.valueOf() + offset*1e3) : t;
-}
-
-function resolveTime(seconds, timeonly) { // Crée le temps de fin.
-  function z(t) { return (t < 10 ? "0" : "") + t; }
-  var t = getServerTime(seconds);
-  var d = "";
-  if (t.getDate() != (new Date).getDate()) {
-    var m = lang.months[t.getMonth()];
-    d = t.getDate() +" "+ m.slice(0, 3) +", ";
-  }
-  var h = z(t.getHours());
-  var m = z(t.getMinutes());
-  var s = z(t.getSeconds());
-  t = d + h + ":" + m + ":" + s;
-  return timeonly ? t : lang.finished + t;
-}
-
-function secondsToHours(bySeconds) {
-  return isNaN(bySeconds) ? 0 : Math.round(bySeconds * 3600);
-}
-
-var locale = unsafeWindow.LocalizationStrings;
-var units = { day: 86400, hour: 3600, minute: 60, second: 1 };
-
-// input: "Nd Nh Nm Ns", output: number of seconds left
-function parseTime(t) {
-  function parse(what, mult) {
-    var count = t.match(new RegExp("(\\d+)" + locale.timeunits.short[what]));
-    if (count)
-      return parseInt(count[1], 10) * mult;
-    return 0;
-  }
-  var s = 0;
-  for (var unit in units)
-    s += parse(unit, units[unit]);
-  return s;
-}
-
-function secsToDHMS(t, rough, join) {
-  if (t == Infinity) return "∞";
-  var result = [];
-  var minus = t < 0 ? "-" : "";
-  if (minus)
-    t = -t;
-  for (var unit in units) {
-    var u = locale.timeunits.short[unit];
-    var n = units[unit];
-    var r = t % n;
-    if (r == t) continue;
-    if ("undefined" == typeof rough || rough--)
-      result.push(((t - r) / n) + u);
-    else {
-      result.push(Math.round(t / n) + u);
-      break;
-    }
-    t = r;
-  }
-  return minus + result.join(join || " ");
 }
 
 
@@ -2639,18 +2394,16 @@ function improveTopPanel() {
   }
 
   var cityNav = $("cityNav");
-  if (flow.g) {
-    var face = flow.g < 0 ? "negative" : "positive";
-    node({ id: "coin", className: face, append: cityNav, title: " " });
-    node({ id: "income", text: sign(flow.g), append: cityNav, title: " " });
+  var face = flow.g < 0 ? "negative" : "positive";
+  node({ id: "coin", className: face, append: cityNav, title: " " });
+  node({ id: "income", text: sign(flow.g), append: cityNav, title: " " });
 
-    var ap = $("value_maxActionPoints").parentNode;
-    ap.style.top = "-49px";
-    ap.style.left = "-67px";
-    ap.addEventListener("mouseover", hilightShip, false);
-    ap.addEventListener("mouseout", unhilightShip, false);
-    clickTo(ap, urlTo("merchantNavy"));
-  }
+  var ap = $("value_maxActionPoints").parentNode;
+  ap.style.top = "-49px";
+  ap.style.left = "-67px";
+  ap.addEventListener("mouseover", hilightShip, false);
+  ap.addEventListener("mouseout", unhilightShip, false);
+  clickTo(ap, urlTo("merchantNavy"));
 
   $x('id("cityResources")/ul[@class="resources"]/li/div[@class="tooltip"]').
     forEach(function(tooltip) {
@@ -3189,7 +2942,7 @@ function panelInfo() { // Ajoute un element en plus dans le menu.
 
     var tech = techinfo(research);
     if (tech)
-      a.title = tech.does +" ("+ tech.points + " points)"; // I18N
+      a.title = tech.x +" ("+ tech.p + " points)"; // I18N
   }
   return tags.language;
 }
@@ -3269,7 +3022,6 @@ function hideshow(node, nodes) {
   nodes.forEach(listen);
 }
 
-init();
 //unsafeWindow.g = config;
 //unsafeWindow.data = data;
 //unsafeWindow.s = server;

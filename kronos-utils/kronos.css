@@ -582,3 +582,24 @@ html body div#container div#container2 a.text:hover {
 /* Dependency hover checkboxes, or not */
 a.dependent:before { content: "\2713 "; }
 a.independent { padding-left: 9px; }
+
+/* Research overview hacks */
+a.dependent, a.independent { display: block; padding-left: 60px; }
+
+ul.explored li, ul.unexplored li { position: relative; }
+
+div.points {
+  left: 0%;
+  position: absolute;
+  font-size: 10px;
+  bottom: 1px;
+  /*text-align: right;*/
+}
+
+hr#vr {
+  position: absolute;
+  width: 1px;
+  top: 10px;
+  background-color: #E3AE87;
+  opacity: 0.4;
+}
