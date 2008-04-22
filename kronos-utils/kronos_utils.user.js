@@ -1347,14 +1347,26 @@ function reallyUpgrade(name) {
 }
 
 function upgrade() {
+  function countdown() {
+    if (soon < 1) {
+      document.title = lang.countdone;
+      return gotoCity("/#q:"+ buildingClass(b));
+    }
+    document.title = lang.countdown + (soon--) + "...";
+    setTimeout(countdown, 1e3);
+  }
+
   //console.log("upgrade: %x", getQueue().length);
   var q = getQueue();
   if (!q.length) return;
   var b = q.shift();
   var l = buildingLevel(b, 0);
-  if (haveResources(buildingExpansionNeeds(b, l))) // ascertain we're in a good
-    return gotoCity("/#q:"+ buildingClass(b)); // view -- and in the right city
-
+  if (haveResources(buildingExpansionNeeds(b, l))) {
+    // ascertain that we are in a good view -- and are focusing the right city
+    var soon = 10 + (Math.random() * 5);
+    var chaff = soon - Math.floor(soon); soon -= chaff;
+    return setTimeout(countdown, chaff * 1e3);
+  }
   var t = replenishTime(b, l);
   if (t && isFinite(t)) {
     setTimeout(upgrade, Math.max(++t * 1e3, 60e3));
