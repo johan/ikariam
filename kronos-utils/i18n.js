@@ -113,6 +113,11 @@ shoppingList: "Einkaufsliste",
                 "Stufen zu sehen",
  notShownNow: "Notiz: wird zur Zeit nicht in der Hauptansicht angezeigt.",
  readlibrary: "Kronos muss Deine Bibliothek lesen. Soll das jetzt geschehen?",
+  travelTime: "Reise Dauer",
+   startTime: "Start Zeit",
+      points: "Punkte",
+   countdown: "Nächster Auftrag der Queue in ",
+   countdone: "Und los geht's -- Initiiere Aufbau Sequenz!",
 },
 
 cs: { // Czech translation maintained by Sisel:
