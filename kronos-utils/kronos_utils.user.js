@@ -684,14 +684,12 @@ function reapingPace() {
       config.getCity(["x", buildingIDs.academy], 0) * sciCost;
     var refCity = referenceCityID();
     var mainCity = mainviewCityID();
-    console.log(mainCity == refCity && !!preciseCityIncome,
-                mainCity, refCity, preciseCityIncome);
-    if (mainCity == refCity && preciseCityIncome) {
+    if ((mainCity == refCity) && preciseCityIncome) {
       gold = integer(preciseCityIncome);
       maintenance = computedIncome - gold;
-      setMaintenanceCost(maintenance, mainCity);
+      setMaintenanceCost(maintenance, refCity);
     } else {
-      maintenance = maintenanceCost(mainCity);
+      maintenance = maintenanceCost(refCity);
       gold = computedIncome - maintenance;
     }
 
@@ -1996,7 +1994,7 @@ function maintenanceCost(cityID) {
 }
 
 function financesView() {
-  var costs = $x('id("balance")/tbody/tr[not(@class)]/td[3]');
+  var costs = $x('id("balance")/tbody/tr[position() < last()]/td[3]');
   for each (var id in cityIDs())
     setMaintenanceCost(integer(costs.shift()), id);
 }
