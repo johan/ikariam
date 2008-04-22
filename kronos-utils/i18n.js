@@ -120,7 +120,10 @@ shoppingList: "Nákupní seznam: klikni na surovinu pro nakup v portu",
  unavailable: "Nedostatek surovin ve stavebním čase (i obnovovacím čase)",
    popupInfo: "Klikni pro info o budově, scroluj pro prohlížení levelů",
  notShownNow: "Poznamka: Není momentálně vidět v hlavním okně.",
- readlibrary: "Kronos potrebuje nacist knihovnu. Chcete provest nacteni?",
+ readlibrary: "Kronos potřebuje načíst knihovnu. Chcete provést načtení?",
+  travelTime: "Čas cestování",
+   startTime: "Čas startu",
+      points: "body",
 },
 
 pl: { // Polish translation maintained by drivex:
