@@ -20,6 +20,18 @@ function isTextNode(n) { return isObject(n) && n.nodeType == 3; }
 
 function array(a) { return isArray(a) ? a : [a]; }
 
+function reduce(func, a, last){
+  switch (a.length) {
+    case 0: return last;
+    case 1: return func(last, a[0]);
+    case 2: return func(a[0], a[1]);
+  }
+  last = a[0];
+  for (var i = 1; i < a.length; i++)
+    last = func(last, a[i]);
+  return last;
+}
+
 function copy(object) {
   // Doug Crockford
   var fn = function() {};

@@ -1672,7 +1672,7 @@ function evenShips(nodes) {
   function fillNextEvenShip(e) {
     var input = e.target;
     var value = number(input);
-    var count = nodes.reduce(sum, 0);
+    var count = reduce(sum, nodes, 0);
     var remainder = count % 300;
     if (remainder) {
       input.value = value + (300 - remainder);
@@ -2159,7 +2159,7 @@ function techinfo(what, links, div) {
       var tech = byID[id];
       done[id] = tech.depends = true;
       var points = tech.known ? 0 : tech.points;
-      points += tech.deps.map(mark).reduce(sum, 0);
+      points += reduce(sum, tech.deps.map(mark), 0);
       if (tech.known) return points;
 
       $("P" + id).innerHTML = techLegend(points, tech, true);
