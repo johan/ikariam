@@ -1320,12 +1320,12 @@ function changeQueue(e) {
 function reallyUpgrade(name) {
   //console.log("upgrading %x", name);
   var i = cityID();
-  var q = getQueue();
+  var q = getQueue(), next = q.shift();
   var b = buildingID(name);
   var l = buildingLevel(b, 0);
   var p = buildingPosition(b);
-  if (isDefined(q[0]) && q[0] != b) { // other window got there before us; abort
-    location.hash = "#q:in-progress ("+ q[0] +"!="+ b+")";
+  if (isDefined(next) && next != b) { // other window got there before us; abort
+    location.hash = "#q:in-progress ("+ next +"!="+ b +")";
     return;
   }
   if (haveResources(buildingExpansionNeeds(b, l))) {
