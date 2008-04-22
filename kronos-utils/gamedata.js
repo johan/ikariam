@@ -61,6 +61,7 @@ var gfx = {
  
    citizen: "/skin/resources/icon_citizen.gif",
       gold: "/skin/resources/icon_gold.gif",
+      time: "/skin/resources/icon_time.gif",
       bulb: "/skin/layout/bulb-on.gif",
 
    pillage: "/skin/actions/plunder.gif",
@@ -131,3 +132,24 @@ var nonIslands = { 3:1,    8:1,   10:1,   12:1,   14:1,   21:3,  138:1,  191:12,
 4801:2, 4956:2, 4959:1, 4961:2, 4965:2, 5012:4, 5018:4, 5061:1, 5066:2, 5069:1,
 5071:1, 5185:2, 5189:1, 5255:2, 5296:2, 5322:1, 5530:1, 5548:1, 5550:1, 5552:1,
 5554:1, 5578:1, 5580:2, 5654:8, 5669:4, 5697:2, 5701:2, 5709:2, 5722:-5721 };
+
+
+/*
+
+
+// military score contribution: 8 slingers => 1,264 == 8 * 3.95 * slinger.w
+var key = { n: "name", i: "image",
+  // build costs:
+  p: "people", w: "wood", W: "wine", C: "crystal", S: "sulfur", b: "buildtime",
+  u: "upkeep", m: "minlevel", o: "optlevel",
+  // unit stats:
+  a: "attack", d: "defend", s: "stamina", c: "class", v: "speed", x: "special"
+};
+
+hideout ?view=safehouse&id=51713&position=3
+spy orders url for city :
+http://s9.ikariam.org/index.php?
+view=safehouseMissions&id=51713&position=3&spy=20190
+
+
+*/

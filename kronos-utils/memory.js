@@ -1,26 +1,34 @@
 /*
 s10.org: {
-  techs: {all tech id:s we have},
+  techs: { <all tech id:s we have>:1 },
          .research: {
            i: 2090,
            n: "Helping hands",
            t: 1207648486127
          },
+         .points: { count: research points, at: sample timestamp },
+         .info: {
+           <id>: {
+             n: "Helping hands",
+             p: 4711, // research points
+             x: "Description of its effect"
+           }
+         },
   battles: {
     won: 113,
    lost: 8,
 reports: {
-      BID: {
+    <BID>: {
         t:1207175100000, w:1, l:{g:136, W:59}, c:38714, a:attackingCity?},
       }
   },
   players: {
-     name: {
+   <name>: {
    cities: [id, id, id...]
     },
   },
   cities: {
-    4711: {
+    <id>: {
       n: name,
       i: iID,
       g: gold net income,
@@ -29,20 +37,24 @@ reports: {
       l: [ lvl0, ...], // building level
       p: [ pos0, ...], // building position
       q: [ bID, ...], // buildings sceduled to be built
+      o: owner, // player name
+      r: { }, // saved resource inventory / info for the city
       x: { bID:building-special - tavern: wine level; academy: scientists,
            r: resourceWorkers, w: woodWorkers, museum: culture items },
       b: { bID:time busy to }
     }, ...
   },
   islands: {
-    r: "W" / "M" / "C" / "S"
-    R: tradegood level
-    w: sawmill level
-    wu: sawmill upgrade done
-    ru: tradegood upgrade done
-    x, y: coords
-    n: name
-  },
+    <id>: {
+      r: "W" / "M" / "C" / "S"
+      R: tradegood level
+      w: sawmill level
+      wu: sawmill upgrade done
+      ru: tradegood upgrade done
+      x, y: coords
+      n: name
+    },
+  }
 }
 */
 
@@ -58,7 +70,7 @@ function saveConfig() {
   console.log("config ", uneval(data));
 }
 function saveServer() {
-  GM_setValue(location.host, uneval(server));
+  GM_setValue(location.host, uneval(server).replace(/ \(void 0\)/g, ""));
   //console.log("server ", uneval(server));
 }
 
@@ -313,6 +325,8 @@ function upgradeConfig0() {
 // move techs.info (and techs.asked) from server to tld scope
 // drop techs.info.t (it's dependent on your pace and .p anyway)
 // kill configs for non-sN.ikariam.* servers (not "config" though)
+// kill "tech" key, if available
+// replace cities.id.r key (a resource id) with {} for current resource counts
 function upgradeConfig1() {
 }
 

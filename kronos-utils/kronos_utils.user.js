@@ -15,7 +15,7 @@
 // @require        memory.js
 // ==/UserScript==
 
-var version = "0.5", lang;
+var version = "0.5", lang, scientists;
 if (location.hostname.match(/^s\d+\./))
   init();
 else
@@ -102,8 +102,7 @@ function init() {
 
   var langChoice = panelInfo();
   title();
-  var FIN = new Date();
-  langChoice.title = lang.execTime +": "+ (FIN - DEBUT) +"ms";
+  langChoice.title = lang.execTime +": "+ (Date.now() - DEBUT) +"ms";
 }
 
 function login() {
@@ -473,6 +472,11 @@ function researchAdvisorView() {
     // tech.does[0].toLowerCase() + tech.does.slice(1);
   }
 
+  var rp = $X('id("breadcrumbs")/following::div[1]/div[@class="content"]/p[2]');
+  if (rp) {
+    rp = integer(rp.textContent.split("/")[0]);
+    config.setServer("techs.points", { count: rp, at: Date.now() });
+  }
   updateCurrentResearch();
   var techs = techinfo();
   $x('id("inboxResearch")/tbody/tr/td[@class="text"]/a').forEach(learnTech);
@@ -499,7 +503,7 @@ function diplomacyAdvisorView() {
   var date = $X('tr[1]/th[6]', body);
   var town = $X('tr[1]/th[5]', body);
   node({ tag: "th", className: "tradegood", before: date });
-  node({ tag: "th", className: "tt", text: "Travel Time", before: town }); // I18N
+  node({ tag: "th", className: "tt", text: lang.travelTime, before: town });
   $x('tr/td[5]/a', body).forEach(showIslandInfo);
   $x('tr/td[@colspan="6"]', body).forEach(span);
 }
@@ -1030,13 +1034,46 @@ function islandView() {
     }
   }
 
+  function registerCity(ul) {
+    function item(p) {
+      var li = $X('li[@class="'+ city[p] +'"]/span/following::text()[1]', ul);
+      return li && trim(li.textContent);
+    }
+
+    var id = number($X('preceding-sibling::a[contains(@id,"city_")]', ul).id);
+    var city = { i: island, n: "name", o: "owner" };
+    for (var p in city)
+      if (isString(city[p]))
+        city[p] = item(p);
+    for (p in city)
+      config.setCity(p, city[p], id);
+
+    var players = config.getServer("players", {});
+    var player = players[city.o] = players[city.o] || {};
+    player.c = player.c || [];
+    if (-1 == player.c.indexOf(id)) {
+      player.c.push(id);
+      player.c.sort(function(a, b) { return a - b; });
+    }
+    config.setServer("players", players);
+  }
+
+  function showSpies() {
+
+  }
+
   var city = urlParse("selectCity");
   if (city)
     setTimeout(focusCity, 200, city);
   levelTown();
   levelResources();
-  var island = urlParse("id", $X('id("advCities")/a').search);
+  var island = integer(urlParse("id", $X('id("advCities")/a').search));
   travelDistanceBreadcrumbs(island);
+
+  $x('id("cities")/li[contains(@class," city level")]/ul[@class="cityinfo"]').
+    forEach(registerCity);
+
+  showSpies();
 
   if (island)
     addEventListener("keypress", nextprev, false);
@@ -1424,7 +1461,7 @@ function drawQueue() {
       time = secsToDHMS(time, 1, " ");
       dt += miss.t;
       t += miss.t * 1e3;
-      console.log(miss.t, secsToDHMS(miss.t, 1, " "));
+      //console.log(miss.t, secsToDHMS(miss.t, 1, " "));
       stalledOn.t = time;
       var div = showResourceNeeds(stalledOn, li, null, "112px", "");
       div.style.backgroundColor = "#FCC";
@@ -1439,7 +1476,7 @@ function drawQueue() {
     var need = buildingExpansionNeeds(b, level[b] - 1);
     have = subResources(have, need); // FIXME - improve (zero out negative)
     dt = parseTime(need.t) + 1;
-    li.title = "Start time: "+ resolveTime((t - Date.now())/1000+1, 1); // I18N
+    li.title = lang.startTime +": "+ resolveTime((t - Date.now())/1000+1, 1);
     t += dt * 1000;
 
     var done = trim(resolveTime((t - Date.now()) / 1000));
@@ -1906,7 +1943,7 @@ function warehouseSpy() {
 
 function safehouseReportsView() {
   var mission = $X('normalize-space(id("mainview")//tr[1]/td[2])');
-  console.log(mission);
+  //console.log("safehouse: "+ mission);
   if ("Spy out warehouse" == mission)
     warehouseSpy();
 }
@@ -2001,11 +2038,10 @@ function researchOverviewView() {
 
   function augment(a, info, id) {
     a.className = "dependent";
-    node({ className: "points ellipsis", id: "P" + id, prepend: a,
-           html: visualResources('<span id="B'+ id +'">'+ info.p +
-                                 "</span>$bulb", { size: 0.5 }) });
+    node({ className: "points", id: "P" + id, prepend: a, // ellipsis
+           html: techLegend(info.p) });
     node({ className: "points", id: "D" + id, append: a,
-  style: { left: "42%", whiteSpace: "nowrap" }, text: info.x });
+           style: { left: "42%", whiteSpace: "nowrap" }, text: info.x });
   }
 
   function scrape(a, i) {
@@ -2020,7 +2056,7 @@ function researchOverviewView() {
     var what = { n: 2, x: 3, p: 4, d: 'tr[6]/td[2]/ul/li/a' }, junk, t, p;
     for (var i in what) {
       var xpath = what[i];
-      if ("number" == typeof xpath)
+      if (isNumber(xpath))
         data[i] = $X('tr['+ xpath +']/td[2]/text()[last()]', body).textContent;
       else
         data[i] = $x(xpath, body);
@@ -2062,11 +2098,27 @@ function researchOverviewView() {
     }
   }
 
+  scientists = 0;
+  for each (var city in cityIDs())
+    scientists += config.getCity("x", {}, city)[buildingIDs.academy] || 0;
+
   if (get.length)
     get.forEach(scrape);
   else
     techinfo(info, all, div);
 }
+
+function techLegend(points, tech, checked) {
+  var format;
+  if (!tech || !scientists || tech.known)
+    format = points + "$bulb";
+  else if (!checked)
+    format = secsToDHMS(3600 * tech.points / scientists, 1) + "$time";
+  else
+    format = resolveTime(3600 * points / scientists, 2);
+  return visualResources(format, { size: 0.5 });
+}
+
 
 function techinfo(what, links, div) {
   function linearize(object, byID) {
@@ -2108,10 +2160,14 @@ function techinfo(what, links, div) {
       done[id] = tech.depends = true;
       var points = tech.known ? 0 : tech.points;
       points += tech.deps.map(mark).reduce(sum, 0);
-      //if (points)
-        $("B"+id).textContent = points;
-      //else
-      //  $("P"+id).className = "points ellipsis";
+      if (tech.known) return points;
+
+      $("P" + id).innerHTML = techLegend(points, tech, true);
+      return points;
+      var show = !scientists ? points + "$bulb" :
+        secsToDHMS(3600 * points / scientists, 1) + '$time';
+      $("P" + id).innerHTML = visualResources(show, { size: 0.5 });
+
       return points;
     }
 
@@ -2125,16 +2181,12 @@ function techinfo(what, links, div) {
   function show(tech) {
     var a = tech.a;
     if (a) {
-      var bulb = $("B" + tech.id);
       if (tech.depends) {
         a.className = "dependent";
-        bulb.parentNode.className = "points";
       } else {
         a.className = "independent";
-        bulb.textContent = tech.points;
-        bulb.parentNode.className = "points ellipsis";
+        $("P" + tech.id).innerHTML = techLegend(tech.points, tech);
       }
-      //a.title = tech.does;
     }
     tech.depends = false;
   }
@@ -2162,9 +2214,9 @@ function techinfo(what, links, div) {
   }
 
   function vr(level) {
-    node({ tag: "hr", id: "vr", append: div,
-           style: { height: (div.offsetHeight - 22) + "px",
-                    left: (level * indentfactor + 45) + "px" }});
+    hr = node({ tag: "hr", id: "vr", append: div,
+                style: { height: (div.offsetHeight - 22) + "px",
+                         left: (level * indentfactor + 45) + "px" }});
   }
 
   if (isString(what) || isUndefined(what)) {
@@ -2219,34 +2271,28 @@ function techinfo(what, links, div) {
       toggle.disabled = hide;
       config.set("hide-known-tech", hide = !hide);
       text.textContent = hide ? lang.hidden : lang.shown;
-      hr.style.height = (div.offsetHeight - 22) + "px";
+      //hr.style.height = (div.offsetHeight - 22) + "px";
     });
   }
-
-/*
-  function addTimeSpan(a, t) {
-    var id = "t"+ urlParse("researchId", a.search);
-    var span = node({ id: id, tag: "span", before: a });
-    a.id = id.toUpperCase();
-  }
-  $x('ul/li/a', div).forEach(addTimeSpan);
-*/
 
   div.addEventListener("mousemove", hover, false);
   return tree;
 }
 
 function visualResources(what, opt) {
-  var gold = <img src={gfx.gold} width="17" height="19"/>;
-  var wood = <img src={gfx.wood} width="25" height="20"/>;
-  var wine = <img src={gfx.wine} width="25" height="20"/>;
-  var glass =<img src={gfx.crystal} width="23" height="18"/>;
-  var marble=<img src={gfx.marble} width="25" height="19"/>;
-  var sulfur=<img src={gfx.sulfur} width="25" height="19"/>;
-  var bulb = <img src={gfx.bulb} width="14" height="21"/>;
+  var icons = {
+    gold: <img src={gfx.gold} width="17" height="19"/>,
+    wood: <img src={gfx.wood} width="25" height="20"/>,
+    wine: <img src={gfx.wine} width="25" height="20"/>,
+   glass: <img src={gfx.crystal} width="23" height="18"/>,
+  marble: <img src={gfx.marble} width="25" height="19"/>,
+  sulfur: <img src={gfx.sulfur} width="25" height="19"/>,
+    bulb: <img src={gfx.bulb} width="14" height="21"/>,
+    time: <img src={gfx.time} width="20" height="20"/>,
+  };
   function replace(m, icon) {
     var margin = { glass: -3 }[icon] || -5;
-    icon = eval(icon);
+    icon = icons[icon];
     if (opt && opt.size) {
       var h0 = icon.@height, h1 = Math.ceil(opt.size * h0);
       var w0 = icon.@width,  w1 = Math.ceil(opt.size * w0);
@@ -2258,7 +2304,7 @@ function visualResources(what, opt) {
       icon.@style = "margin-bottom: "+ margin +"px";
     return icon.toXMLString();
   }
-  if (typeof what == "object") {
+  if (isObject(what)) {
     var name = { w: "wood", g: "gold",
                  M: "marble", C: "glass", W: "wine", S: "sulfur" };
     var html = []
@@ -2484,15 +2530,16 @@ function showOverview() {
   var city = cityID(), p = reapingPace();
   for each (var id in cityIDs()) {
     var tr = <tr/>;
+    var island = config.getCity("i", 0, id);
     grid[id] = id == city ? currentResources() : config.getCity("r", {}, id);
     for each (r in res) {
       var v = grid[id][r] || "\xA0"; // Math.round(Math.random()*10000)
       if (id == city)
         if ("w" == r)
           v = <a class="text" href={urlTo("wood")} title={sign(p[r])}>{v}</a>;
-        else if (config.getIsle("r") == r)
+        else if (config.getIsle("r", "", island) == r)
           v = <a class="text" href={urlTo("luxe")} title={sign(p[r])}>{v}</a>;
-        else if ("W" == r)
+        else if ("W" == r && config.getCity("l", [], city)[buildingIDs.tavern])
           v = <span title={sign(p.W)}>{v}</span>;
       tr.td += <td>{v}</td>;
     }
@@ -2832,7 +2879,7 @@ function projectHaveResourcesToUpgrade() {
 }
 
 function projectCompletion(id, className, loc) {
-  var tag = "string" == typeof id ? $(id) : id, set = false;
+  var tag = isString(id) ? $(id) : id, set = false;
   if (isNumber(className)) className = loc = undefined; // called by forEach/map
   if (tag) {
     id = tag.id;
@@ -2855,9 +2902,9 @@ function projectCompletion(id, className, loc) {
         move.style.marginLeft = "-40%";
     }
     if (set) {
-      if ("string" == typeof loc)
+      if (isString(loc))
         loc = $X(loc, tag);
-      else if ("undefined" == typeof loc)
+      else if (isUndefined(loc))
         if (location.search.match(/\?/))
           loc = location;
         else
@@ -2965,7 +3012,7 @@ function panelInfo() { // Ajoute un element en plus dans le menu.
 
     var tech = techinfo(research);
     if (tech)
-      a.title = tech.x +" ("+ tech.p + " points)"; // I18N
+      a.title = tech.x +" ("+ tech.p +" "+ lang.points +")";
   }
   return tags.language;
 }

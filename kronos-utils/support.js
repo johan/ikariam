@@ -234,10 +234,13 @@ function getServerTime(offset) {
 function resolveTime(seconds, timeonly) { // Crée le temps de fin.
   function z(t) { return (t < 10 ? "0" : "") + t; }
   var t = getServerTime(seconds);
-  var d = "";
-  if (t.getDate() != (new Date).getDate()) {
+  var d = "", now = (new Date);
+  if (t.getDate() != now.getDate() ||
+      t.getMonth() != now.getMonth()) {
     var m = lang.months[t.getMonth()];
-    d = t.getDate() +" "+ m.slice(0, 3) +", ";
+    d = t.getDate() +" "+ m.slice(0, 3);
+    if (2 == timeonly) return d;
+    d += ", ";
   }
   var h = z(t.getHours());
   var m = z(t.getMinutes());
