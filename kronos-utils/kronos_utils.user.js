@@ -889,7 +889,7 @@ function showResourceNeeds(needs, parent, div, top, left) {
     div.style.right = "auto";
     div.style.margin = "0 0 0 -50%";
   }
-  if (isUndefined(left))
+  if (isDefined(left))
     div.style.left = left;
   show(div);
   parent.appendChild(div);
@@ -1082,7 +1082,8 @@ function islandView() {
   var island = integer(urlParse("id", $X('id("advCities")/a').search));
   travelDistanceBreadcrumbs(island);
 
-  $x('id("cities")/li[contains(@class," city level")]/ul[@class="cityinfo"]').
+  $x('id("cities")/li[contains(@class,"level") and ' +
+                ' not(contains(@class,"level0"))]/ul[@class="cityinfo"]').
     forEach(registerCity);
 
   showSpies();
