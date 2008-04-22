@@ -171,6 +171,8 @@ function keyboard(e) {
       focus(e.shiftKey ? -1 : 1);
   }
 
+  if (/^(input|textarea)$/i.test(e.target.nodeName)) return;
+
   var keys = {
     "\t": tab, j: counterClockwise, k: clockwise,
     d: invoke("diplomacy"), t: invoke("transport"), f: invoke("defend_port"),
