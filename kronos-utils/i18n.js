@@ -86,6 +86,8 @@ shoppingList: "Liste d'achat: Click sur une icone de Ressource pour " +
   travelTime: "Durée du voyage",
    startTime: "Commencé à",
       points: "points",
+   countdown: "Lance l'élément suivant dans la queue dans ",
+   countdone: "Et c'est parti -- démarrage des constructions",
 },
 
 de: { // German version maintained by pusteblume and AbrahamLincoln:
