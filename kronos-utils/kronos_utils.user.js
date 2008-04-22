@@ -723,8 +723,8 @@ function haveBuilding(b) {
   return buildingLevel(b, 0) && ("-" != buildingPosition(b, "-"));
 }
 
-function buildingPosition(b, otherwise) {
-  var p = config.getCity(["p", buildingID(b)], "?");
+function buildingPosition(b, otherwise, cityID) {
+  var p = config.getCity(["p", buildingID(b)], "?", cityID);
   return "?" == p ? otherwise : p;
 }
 
@@ -1225,10 +1225,13 @@ function linkTo(url, node, styles, opts) {
 
 function urlTo(what, id, opts) {
   function building() {
-    var id = buildingID(what);
-    if ("-" != buildingLevel(id, "-"))
-      return url("?view="+ what +"&id="+ c +"&position="+ buildingPosition(id));
-    console.warn("building ID unknown: ", id, what, cityID());
+    var cid = id || c;
+    var bid = buildingID(what);
+    if ("-" != buildingLevel(bid, "-", cid)) {
+      var p = buildingPosition(bid, "", cid);
+      return url("?view="+ what +"&id="+ cid +"&position="+ p);
+    }
+    console.warn("building ID unknown: ", id, what, cid);
     return "";
   }
   var c = cityID(), i = islandID();
@@ -1239,6 +1242,7 @@ function urlTo(what, id, opts) {
     case "wood":	return url("?view=resource&type=resource&id="+ i);
     case "luxe":	return url("?view=tradegood&type=tradegood&id="+ i);
 
+    case "townhall":	case "workshop":
     case "townHall":	case "port":	case "academy":
     case "shipyard":	case "wall":	case "warehouse":
     case "barracks":	case "museum":	case "branchOffice":
@@ -2564,6 +2568,13 @@ function showOverview() {
     <th class="w"/><th class="W"/><th class="M"/>
     <th class="C"/><th class="S"/><th class="p"/>
   </tr></table>;
+  var names = ["townHall", "barracks", "shipyard", "port", "branchOffice",
+               "tavern", "museum", "academy", "workshop", "safehouse",
+               "embassy", "warehouse", "wall", "palace"];
+  for each (var name in names)
+    table.tr.* += <th title={/*lang[*/name/*]*/} class={"building " + name}>
+      <img src={gfx[name]} height={name == "wall" ? "30" : "20"}/>
+    </th>;
 
   var city = cityID(), p = reapingPace();
   for each (var id in cityIDs()) {
@@ -2580,6 +2591,17 @@ function showOverview() {
         else if ("W" == r && config.getCity("l", [], city)[buildingIDs.tavern])
           v = <span title={sign(p.W)}>{v}</span>;
       tr.td += <td>{v}</td>;
+    }
+    for each (var name in names) {
+      var b = buildingIDs[name];
+      var l = config.getCity(["l", b], undefined, id);
+      if ("palace" == name && isUndefined(l)) {
+        name = "palaceColony";
+        l = config.getCity(["l", buildingIDs[name]], undefined, id);
+      }
+      var a = isUndefined(l) ? "\xA0"
+                             : <a href={urlTo(name, id)} title={name}>{l}</a>;
+      tr.td += <td class="building">{a}</td>;
     }
     table.* += tr;
   }
@@ -2777,7 +2799,7 @@ function getPopulation() {
 }
 
 function getMaxPopulation(townHallLevel) {
-  if ("undefined" == typeof townHallLevel)
+  if (isUndefined(townHallLevel))
     townHallLevel = buildingLevel("townHall", 1);
   var maxPopulation = buildingCapacity("townHall", townHallLevel);
   if (config.getServer("techs.2080"))
@@ -2853,6 +2875,7 @@ function projectPopulation(opts) {
     people.className = "";
 
   var upgrade = !upgradingTownHall && asymptoticPopulation > maximumPopulation;
+
   return {
       happy: happy - currentPopulation,
      growth: initialGrowth,

@@ -280,6 +280,27 @@ html body div#container div#container2 a.text:hover {
   url(/skin/layout/select_citynav.jpg) no-repeat 100% 0;*/
 }
 
+#cityNav #overview tr:first-child th.building {
+  position: relative;
+  text-align: center;
+  min-width: 27px;
+}
+
+#cityNav #overview tr:first-child th.building img {
+  margin-top: 2px;
+}
+
+#cityNav #overview tr:first-child th.building.wall img {
+  clip: rect(4px, 37px, 23px, 16px);
+  position: absolute;
+  margin-left: -17px;
+  top: -3px;
+}
+
+/* Show building levels larger, hover extra jumbo large */
+#cityNav #overview tr td.building a {       font-size: 16px; }
+#cityNav #overview tr td.building a:hover { font-size: 22px; }
+
 #cityNav #overview tr:first-child th {
   background-position: center center;
   background-repeat: no-repeat;
@@ -311,7 +332,7 @@ html body div#container div#container2 a.text:hover {
 }
 #cityNav #overview tr td:last-child {
   padding-right: 6px;
-  min-width: 44px;
+  min-width: 27px;
 }
 
 #cityNav #overview tr.first td:first-child {
@@ -321,7 +342,7 @@ html body div#container div#container2 a.text:hover {
   background-position: -25px -72px;
 }
 #cityNav #overview tr.first td:last-child {
-  background-position: -109px -72px;
+  background-position: -126px -72px;
 }
 
 #cityNav #overview tr td:first-child {
@@ -332,7 +353,7 @@ html body div#container div#container2 a.text:hover {
   /*text-align: right;*/
 }
 #cityNav #overview tr td:last-child {
-  background-position: -109px -96px;
+  background-position: -126px -96px;
 }
 
 #cityNav #overview tr:last-child td:first-child {
@@ -342,7 +363,7 @@ html body div#container div#container2 a.text:hover {
   background-position: -25px -146px;
 }
 #cityNav #overview tr:last-child td:last-child {
-  background-position: -109px -146px;
+  background-position: -126px -146px;
 }
 
 #cityNav #overview tr td {

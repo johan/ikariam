@@ -53,18 +53,33 @@ var buildingCapacities = {
 };
 
 var gfx = {
-      wood: "/skin/resources/icon_wood.gif",
-      wine: "/skin/resources/icon_wine.gif",
-    marble: "/skin/resources/icon_marble.gif",
-   crystal: "/skin/resources/icon_glass.gif",
-    sulfur: "/skin/resources/icon_sulfur.gif",
- 
-   citizen: "/skin/resources/icon_citizen.gif",
-      gold: "/skin/resources/icon_gold.gif",
-      time: "/skin/resources/icon_time.gif",
-      bulb: "/skin/layout/bulb-on.gif",
+        wood: "/skin/resources/icon_wood.gif",
+        wine: "/skin/resources/icon_wine.gif",
+      marble: "/skin/resources/icon_marble.gif",
+     crystal: "/skin/resources/icon_glass.gif",
+      sulfur: "/skin/resources/icon_sulfur.gif",
 
-   pillage: "/skin/actions/plunder.gif",
+     citizen: "/skin/resources/icon_citizen.gif",
+        gold: "/skin/resources/icon_gold.gif",
+        time: "/skin/resources/icon_time.gif",
+        bulb: "/skin/layout/bulb-on.gif",
+
+     pillage: "/skin/actions/plunder.gif",
+
+    townHall: "/skin/img/city/building_townhall.gif",
+        port: "/skin/img/city/building_port.gif",
+     academy: "/skin/img/city/building_academy.gif",
+    shipyard: "/skin/img/city/building_shipyard.gif",
+    barracks: "/skin/img/city/building_barracks.gif",
+   warehouse: "/skin/img/city/building_warehouse.gif",
+        wall: "/skin/img/city/building_wall.gif",
+      tavern: "/skin/img/city/building_tavern.gif",
+      museum: "/skin/img/city/building_museum.gif",
+      palace: "/skin/img/city/building_palace.gif",
+     embassy: "/skin/img/city/building_embassy.gif",
+branchOffice: "/skin/img/city/building_branchOffice.gif",
+    workshop: "/skin/img/city/building_workshop.gif",
+   safehouse: "/skin/img/city/building_safehouse.gif",
 };
 
 var costs = [
