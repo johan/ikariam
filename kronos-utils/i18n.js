@@ -26,6 +26,8 @@ shoppingList: "Shopping list: click a resource icon to buy that in your port",
   travelTime: "Travel Time", // column header in Diplomacy view; short is good
    startTime: "Start time", // production queue: when building/upgrade begins
       points: "points", // research points (in current research link tooltip)
+   countdown: "Proceeding to next queue item in ", // 10..., 9..., 8... 7...
+   countdone: "And off we go -- initiating build sequence!",
 },
 
 sv: { // Swedish strings also maintained by myself:
@@ -53,6 +55,8 @@ shoppingList: "Inköpslista",
   travelTime: "Restid",
    startTime: "Arbetet påbörjas",
       points: "poäng",
+   countdown: "Fortsätter med nästa köprojekt om ", // 10..., 9..., 8... 7...
+   countdone: "Håll i er; nu börjar vi bygga igen!",
 },
 
 fr: { // French version maintained by Kissy
