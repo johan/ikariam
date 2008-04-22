@@ -51,6 +51,7 @@ function init() {
     case "loginAvatar":// &function=login
     case "CityScreen": // &function=build&id=...&position=4&building=13
     case "city": cityView(); break;
+    case "finances": financesView(); break;
     case "buildingDetail": buildingDetailView(); break;
     case "port": portView(); break;
     case "island": islandView(); break;
@@ -676,10 +677,23 @@ function reapingPace() {
     // FIXME: This just gives city income; ought to do a pace.G for totals too
     var preciseCityIncome = $("valueWorkCosts") ||
       $X('//li[contains(@class,"incomegold")]/span[@class="value"]');
+
     var sciCost = 8 - config.getServer("techs.3110", 0); // Letter chute bonus
-    var gold = preciseCityIncome ? integer(preciseCityIncome) :
-      getFreeWorkers() * 4 -
+    var maintenance, gold;
+    var computedIncome = getFreeWorkers() * 4 -
       config.getCity(["x", buildingIDs.academy], 0) * sciCost;
+    var refCity = referenceCityID();
+    var mainCity = mainviewCityID();
+    console.log(mainCity == refCity && !!preciseCityIncome,
+                mainCity, refCity, preciseCityIncome);
+    if (mainCity == refCity && preciseCityIncome) {
+      gold = integer(preciseCityIncome);
+      maintenance = computedIncome - gold;
+      setMaintenanceCost(maintenance, mainCity);
+    } else {
+      maintenance = maintenanceCost(mainCity);
+      gold = computedIncome - maintenance;
+    }
 
     reapingPace.pace = pace = {
       g: gold,
@@ -1974,6 +1988,19 @@ function resourceView() {
 
 function isleForCity(city) { return config.getCity("i", 0, city); }
 
+function setMaintenanceCost(n, cityID) {
+  return config.setCity("m", n, cityID);
+}
+function maintenanceCost(cityID) {
+  return config.getCity("m", 0, cityID);
+}
+
+function financesView() {
+  var costs = $x('id("balance")/tbody/tr[not(@class)]/td[3]');
+  for each (var id in cityIDs())
+    setMaintenanceCost(integer(costs.shift()), id);
+}
+
 function cityView() {
   var id = urlParse("id");
   if (id) {
@@ -2421,7 +2448,7 @@ function improveTopPanel() {
     dblClickTo(li, bind(sell, this, what));
   }
   function projectWarehouseFull(node, what, have, pace) {
-    var capacity = number($X('../*[@class="tooltip"]', get(what)));
+    var capacity = integer($X('../*[@class="tooltip"]', get(what)));
     var time = resolveTime((capacity - have) / (pace/3600), 1);
     node.title = (node.title ? node.title +", " : "") + lang.full + time;
   }
@@ -3055,9 +3082,14 @@ function mainviewIslandID() {
   return city && urlParse("id", city.search);
 }
 
+function mainviewCityID() {
+  var city = $X('id("breadcrumbs")/a[@class="city"]');
+  if (city) return number(urlParse("id", city.search));
+}
+
 function mainviewCityName() {
   var city = $X('id("breadcrumbs")//*[@class="city"]');
-  return city && city.textContent;
+  if (city) return city.textContent;
 }
 
 function cityName() {

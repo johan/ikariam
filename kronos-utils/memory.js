@@ -30,8 +30,9 @@ reports: {
   cities: {
     <id>: {
       n: name,
-      i: iID,
-      g: gold net income,
+      i: island ID,
+      m: maintenance cost,
+      g: gold net income (FIXME: remove and add allocated/free pop instead),
       t: completionTime,
       u: buildURL,
       l: [ lvl0, ...], // building level
