@@ -1654,7 +1654,7 @@ function sumPrices(table, c1, c2) {
 
   function buySome(e) {
     var form = $X('.//form', e.target);
-    var amount = $X('input[@name="cargo_tradegood1"]', form);
+    var amount = $X('input[contains(@name,"cargo_tradegood")]', form);
     var count = prompt("Buy how much? (0 or cancel to abort)", amount.value);
     if (!count || !(count = integer(count))) return;
     $X('input[@name="transporters"]', form).value = Math.ceil(count / 300);
@@ -1684,7 +1684,7 @@ function sumPrices(table, c1, c2) {
     var sum = node({ tag: "span", className: "ellipsis price", append: td[c1],
                      text: n+"" });
     var a = $X('a[contains(@href,"view=takeOffer")]', td.pop());
-    if (a) {
+    if (a && players[i]) {
       var type = { W:1, M:2, C:3, S:4 }[resourceFromImage($X('img', td[2]))];
       var vars = urlParse(null, a.search);
       delete vars.view; delete vars.resource;
@@ -1694,7 +1694,7 @@ function sumPrices(table, c1, c2) {
       vars.avatar2Name = players[i];
       vars.city2Name = cities[i];
       vars["tradegood"+ type +"Price"] = p;
-      vars.cargo_tradegood1 = count;
+      vars["cargo_tradegood"+ type] = count;
       vars.transporters = ships;
 
       var form = <form method="post" action="/index.php"
@@ -1710,14 +1710,17 @@ function sumPrices(table, c1, c2) {
 
   function link(a) {
     var id = urlParse("destinationCityId", a.search);
-    var city = $X('../preceding-sibling::td[last()]', a), name, player, junk;
+    var city = $X('../preceding-sibling::td[last()]', a);
     var link = urlTo("island", { city: id });
-    [junk, name, player] = city.textContent.match(/^(.*) \((.*)\)/);
-    city.innerHTML = <>
-      {link != "#" ? <a href={link}>{name}</a> : name}
-      (<a href={urlTo("message", id)}>{player}</a>)
-    </>.toXMLString();
-    pillageLink(id, { before: a });
+    var name, player, junk =  city.textContent.match(/^(.*) \((.*)\)/);
+    if (junk) {
+      [junk, name, player] = junk;
+      city.innerHTML = <>
+        {link != "#" ? <a href={link}>{name}</a> : name}
+        (<a href={urlTo("message", id)}>{player}</a>)
+      </>.toXMLString();
+      pillageLink(id, { before: a });
+    }
     cities.push(name);
     players.push(player);
   }
