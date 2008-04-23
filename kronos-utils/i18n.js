@@ -189,6 +189,11 @@ shoppingList: "Resurse necesare pentru a indeplini constructia",
                 "cauti levelele",
  notShownNow: "Nota: nu se arata in vederea generala jos.",
  readlibrary: "Kronos are nevoie sa cerceteze libraria.Faci asta acum?",
+  travelTime: "Timp Calatorie",
+   startTime: "Timp Pornire",
+      points: "puncte",
+   countdown: "Inaintam la urmatoarea cladire din lista in ",
+   countdone: "Si acum incepem ...",
 },
 
 it: { // Italia language strings maintained by Uomo Merendina. :-)
