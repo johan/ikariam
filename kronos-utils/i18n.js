@@ -29,6 +29,7 @@ shoppingList: "Shopping list: click a resource icon to buy that in your port",
    countdown: "Proceeding to next queue item in ", // 10..., 9..., 8... 7...
    countdone: "And off we go -- initiating build sequence!",
   clickToBuy: "Click to price to purchase as much of the goods as you want.",
+stillRemains: "Still remains:", // donations left until the resource upgrades
 },
 
 sv: { // Swedish strings also maintained by myself:
@@ -59,6 +60,7 @@ shoppingList: "Inköpslista",
    countdown: "Fortsätter med nästa köprojekt om ", // 10..., 9..., 8... 7...
    countdone: "Håll i er; nu börjar vi bygga igen!",
   clickToBuy: "Klicka här för att köpa så mycket av handelsvaran du vill ha.",
+stillRemains: "Återstår:",
 },
 
 fr: { // French version maintained by Kissy
@@ -90,6 +92,7 @@ shoppingList: "Liste d'achat: Click sur une icone de Ressource pour " +
       points: "points",
    countdown: "Lance l'élément suivant dans la queue dans ",
    countdone: "Et c'est parti -- démarrage des constructions",
+  clickToBuy: "Clique sur le prix autant de ressources que tu veux.",
 },
 
 de: { // German version maintained by pusteblume and AbrahamLincoln:
@@ -120,6 +123,7 @@ shoppingList: "Einkaufsliste",
       points: "Punkte",
    countdown: "Nächster Auftrag der Queue in ",
    countdone: "Und los geht's -- Initiiere Aufbau Sequenz!",
+  clickToBuy: "Klicke hier, um die benötigten Waren zu kaufen.",
 },
 
 cs: { // Czech translation maintained by Sisel:
@@ -139,16 +143,16 @@ cs: { // Czech translation maintained by Sisel:
   prependToQ: "Shift+kliknuti pro přidání na začátek fronty",
   leftByThen: "Zbylé suroviny ",
 shoppingList: "Nákupní seznam: klikni na surovinu pro nakup v portu",
- unavailable: "Nedostatek surovin ve stavebním čase (i obnovovacím čase)",
+ unavailable: "Nedostatek surovin pro stavbu ve frontě",
    popupInfo: "Klikni pro info o budově, scroluj pro prohlížení levelů",
  notShownNow: "Poznamka: Není momentálně vidět v hlavním okně.",
  readlibrary: "Kronos potřebuje načíst knihovnu. Chcete provést načtení?",
   travelTime: "Čas cestování",
    startTime: "Čas startu",
       points: "body",
- unavailable: "Nedostatek surovin pro stavbu ve frontě",
    countdown: "Pokračuji na další budovu ve frontě za ",
    countdone: "Inicializuji stavební sekvenci!",
+  clickToBuy: "Klikni na cenu pro nakup libovolného množství zboží.",
 },
 
 pl: { // Polish translation maintained by drivex:

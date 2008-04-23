@@ -1681,10 +1681,11 @@ function sumPrices(table, c1, c2) {
         n += e;
         break;
       }
-    var sum = node({ tag: "span", className: "ellipsis price", append: td[c1],
-                     text: n+"" });
     var a = $X('a[contains(@href,"view=takeOffer")]', td.pop());
-    if (a && players[i]) {
+    var buy = a && players[i] ? " buyable" : "";
+    var sum = node({ tag: "span", text: n+"", append: td[c1],
+                     className: "ellipsis price" + buy });
+    if (buy) {
       var type = { W:1, M:2, C:3, S:4 }[resourceFromImage($X('img', td[2]))];
       var vars = urlParse(null, a.search);
       delete vars.view; delete vars.resource;
@@ -2043,6 +2044,32 @@ function highlightMeInTable() {
   if (tr.length == 1) tr[0].style.background = "pink";
 }
 
+function numFormat(n) {
+  var r = [], all, tail;
+  n += "";
+  while (n.length) {
+    [all, n, tail] = n.match(/(.*?)(.{1,3})$/);
+    r.unshift(tail);
+  }
+  return r.join(" ");
+}
+
+function stillRemains() {
+  var panel = $X('id("resUpgrade")/div[@class="content"]');
+  var counts = $x('.//li[@class="wood"]/text()[last()]', panel);
+  if (counts.length != 2) return;
+  $X('h4[2]', panel).textContent = lang.stillRemains;
+
+  var n = counts.map(integer);
+  var left = n[0] - n[1];
+  counts[1].textContent = numFormat(left);
+
+  var a = $X('id("donate")/a[@onclick]');
+  var max = Math.min(left, integer(a.getAttribute("onclick")));
+  a.removeAttribute("onclick");
+  clickTo(a, function() { $("donateWood").value = max; });
+}
+
 function resourceView() {
   function link(a) {
     var id = urlParse("destinationCityId", a.search);
@@ -2052,6 +2079,7 @@ function resourceView() {
       city.innerHTML = <a href={link}>{city.textContent}</a>.toXMLString();
     pillageLink(id, { after: a });
   }
+  stillRemains();
   highlightMeInTable();
   $x('id("mainview")/div[@class="othercities"]//tr/td[@class="actions"]/' +
      'a[contains(@href,"view=sendMessage")]').forEach(link);
@@ -2084,6 +2112,18 @@ function cityView() {
   levelBat();
 }
 
+function corruption(city) {
+  var colonies = cityIDs().length - 1;
+  var building = "palace" + (isCapital(city) ? "" : "Colony");
+  var governor = buildingLevel(building, 0, city);
+  var max = governor >= colonies ? 0 : 7 * colonies - 8 * governor + 2;
+  var now = new Date, baseline = new Date(Date.UTC(2008, 3, 28));
+  var factor = now < baseline ? 0.1 : 0.2;
+  if (now > baseline)
+    factor += Math.floor((now - baseline) / 6048e5) * 0.1;
+  return Math.min(factor, 1.0) * max / 1e3;
+}
+
 function townHallView() {
   var g = { context: $("PopulationGraph") };
   var growth = $("SatisfactionOverview");
@@ -2094,6 +2134,7 @@ function townHallView() {
     clickTo($X('.//div[@class="cat wine"]', growth), "tavern");
   if (buildingLevel("museum"))
     clickTo($X('.//div[@class="cat culture"]', growth), "museum");
+  var c = $X('id("CityOverview")//li[@class="corruption"]//*[contains(.,"%")][1]');
 
   if ($X('.//div[@class="capital"]', growth))
     config.setServer("capital", cityID());
@@ -2831,12 +2872,12 @@ function showHousingOccupancy(opts) {
   var txt = $("value_inhabitants").firstChild;
   var text = txt.nodeValue.replace(/\s/g, "\xA0");
   var pop = projectPopulation(opts);
+  //console.log(pop.toSource());
   var time = ":∞";
   if (pop.upgradeIn)
     time = ":" + secsToDHMS(pop.upgradeIn, 0);
   else //if (pop.asymptotic > pop.maximum)
     time = "/" + sign(pop.maximum - pop.current);
-  //console.log(pop.toSource());
   txt.nodeValue = text.replace(new RegExp("[:)/].*$"), time +")");
 
   var townSize = $X('id("information")//ul/li[@class="citylevel"]');
@@ -2881,6 +2922,8 @@ function projectPopulation(opts) {
   //console.log(wellDigging, holiday, tavern, wine, museum, culture, happy);
 
   var population = opts && opts.population || getPopulation();
+  happy -= Math.ceil(corruption() * population);
+  //console.log("corruption: "+corruption()+" => -"+ Math.ceil(corruption() * population));
   var initialGrowth = getGrowth(population);
   var growthSignSame = initialGrowth > 0 ? function plus(p) { return p > 0; } :
                                           function minus(p) { return p < 0; };
@@ -3190,8 +3233,8 @@ function cityNames() {
   return pluck(get("citynames"), "textContent");
 }
 
-function isCapital() {
-  var city = cityID();
+function isCapital(city) {
+  city = city || cityID();
   var capital = config.getServer("capital", 0);
   if (capital)
     return city == capital;

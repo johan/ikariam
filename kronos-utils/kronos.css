@@ -16,7 +16,7 @@
   vertical-align: top;
   margin-left: 3px;
 }
-.ellipsis.price:hover {
+.ellipsis.buyable:hover {
   text-decoration: underline;
   cursor: pointer;
 }
