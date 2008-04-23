@@ -11,6 +11,16 @@
   position: relative;
 }
 
+.ellipsis.price {
+  position: static;
+  vertical-align: top;
+  margin-left: 3px;
+}
+.ellipsis.price:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 
 /* Fixes the shadow on the ugly tooltips */
 #WzTtShDwR, #WzTtShDwB {

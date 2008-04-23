@@ -28,6 +28,7 @@ shoppingList: "Shopping list: click a resource icon to buy that in your port",
       points: "points", // research points (in current research link tooltip)
    countdown: "Proceeding to next queue item in ", // 10..., 9..., 8... 7...
    countdone: "And off we go -- initiating build sequence!",
+  clickToBuy: "Click to price to purchase as much of the goods as you want.",
 },
 
 sv: { // Swedish strings also maintained by myself:
@@ -57,6 +58,7 @@ shoppingList: "Inköpslista",
       points: "poäng",
    countdown: "Fortsätter med nästa köprojekt om ", // 10..., 9..., 8... 7...
    countdone: "Håll i er; nu börjar vi bygga igen!",
+  clickToBuy: "Klicka här för att köpa så mycket av handelsvaran du vill ha.",
 },
 
 fr: { // French version maintained by Kissy

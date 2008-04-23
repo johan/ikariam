@@ -1251,8 +1251,10 @@ function urlTo(what, id, opts) {
     case "safehouse":	case "tavern":	case "workshop-army":
       return building();
 
-    case "library":
-      return urlTo("academy").replace("academy", "researchOverview");
+    case "library":	what = "researchOverview"; // fall-through:
+    case "changeResearch":                         // fall-through:
+    case "researchOverview":
+      			return urlTo("academy").replace("academy", what);
 
     case "city":	return url("?view=city&id="+ (id || c));
     case "building":	return url("?view=buildingDetail&buildingId="+ id);
@@ -1637,13 +1639,36 @@ function buildingGroundView() {
   var buts = $x('//p[@class="cannotbuild"]').map(addEnqueueButton);
 }
 
+function resourceFromImage(img) {
+  var type = /icon_([a-z]+).gif$/.exec(isString(img) ? img : img.src);
+  if (type)
+    return { wood: "w", wine: "W", marble: "M", glass: "C", sulfur: "S",
+          citizen: "p", gold: "g", time: "t" }[type[1]];
+}
+
 function sumPrices(table, c1, c2) {
-  function price(tr) {
+  function buyAll(e) {
+    var form = $X('.//form', e.target);
+    if (form) form.submit();
+  }
+
+  function buySome(e) {
+    var form = $X('.//form', e.target);
+    var amount = $X('input[@name="cargo_tradegood1"]', form);
+    var count = prompt("Buy how much? (0 or cancel to abort)", amount.value);
+    if (!count || !(count = integer(count))) return;
+    $X('input[@name="transporters"]', form).value = Math.ceil(count / 300);
+    amount.value = count;
+
+    form.submit();
+  }
+
+  function price(tr, i) {
     var prefixes = { G:1e9, M:1e6, k:1e3 };
     var td = $x('td', tr);
     if (td.length <= Math.max(c1, c2)) return;
-    var n = number(td[c1]);
-    var p = number(td[c2]);
+    var n = integer(td[c1]), count = n;
+    var p = integer(td[c2]), ships = Math.ceil(count / 300);
     if (isNaN(n) || isNaN(p)) return;
     n *= p;
     for (var e in prefixes)
@@ -1656,10 +1681,33 @@ function sumPrices(table, c1, c2) {
         n += e;
         break;
       }
-    node({ tag: "span", className: "ellipsis", text: n+"", append: td[c1],
-         style: { position: "static", verticalAlign: "top", marginLeft: "3px" }
-        });
+    var sum = node({ tag: "span", className: "ellipsis price", append: td[c1],
+                     text: n+"" });
+    var a = $X('a[contains(@href,"view=takeOffer")]', td.pop());
+    if (a) {
+      var type = { W:1, M:2, C:3, S:4 }[resourceFromImage($X('img', td[2]))];
+      var vars = urlParse(null, a.search);
+      delete vars.view; delete vars.resource;
+      vars.action = "transportOperations";
+      vars.function = "takeSellOffer";
+      vars.oldView = urlParse("view");
+      vars.avatar2Name = players[i];
+      vars.city2Name = cities[i];
+      vars["tradegood"+ type +"Price"] = p;
+      vars.cargo_tradegood1 = count;
+      vars.transporters = ships;
+
+      var form = <form method="post" action="/index.php"
+                       target="_blank" style="display: none"/>;
+      for (p in vars)
+        form.* += <input type="hidden" name={p} value={vars[p]}/>;
+      node({ tag: form, prepend: sum });
+      //dblClickTo(sum, buyAll);
+      clickTo(sum, buySome);
+      sum.title = lang.clickToBuy;
+    }
   }
+
   function link(a) {
     var id = urlParse("destinationCityId", a.search);
     var city = $X('../preceding-sibling::td[last()]', a), name, player, junk;
@@ -1670,9 +1718,13 @@ function sumPrices(table, c1, c2) {
       (<a href={urlTo("message", id)}>{player}</a>)
     </>.toXMLString();
     pillageLink(id, { before: a });
+    cities.push(name);
+    players.push(player);
   }
-  $x('tbody/tr[td]', table).forEach(price);
+
+  var players = [], cities = [];
   $x('tbody/tr/td/a[contains(@href,"view=takeOffer")]', table).forEach(link);
+  $x('tbody/tr[td]', table).forEach(price);
 }
 
 function pillageLink(id, opts) {
@@ -1701,7 +1753,7 @@ function evenShips(nodes) {
   }
   function fillNextEvenShip(e) {
     var input = e.target;
-    var value = number(input);
+    var value = integer(input);
     var count = reduce(sum, nodes, 0);
     var remainder = count % 300;
     if (remainder) {
