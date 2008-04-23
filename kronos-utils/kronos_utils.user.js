@@ -929,6 +929,7 @@ function levelBat() { // Ajout d'un du level sur les batiments.
                        costs[b].length - 1);
       a.title = a.title.replace(/\d+/, l);
       annotateBuilding(li, l);
+      e.preventDefault();
       hoverHouse({ target: hovering });
     }, false);
   }
