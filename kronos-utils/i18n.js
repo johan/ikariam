@@ -144,6 +144,9 @@ shoppingList: "Nákupní seznam: klikni na surovinu pro nakup v portu",
   travelTime: "Čas cestování",
    startTime: "Čas startu",
       points: "body",
+ unavailable: "Nedostatek surovin pro stavbu ve frontě",
+   countdown: "Pokračuji na další budovu ve frontě za ",
+   countdone: "Inicializuji stavební sekvenci!",
 },
 
 pl: { // Polish translation maintained by drivex:
