@@ -2863,6 +2863,7 @@ function showSafeWarehouseLevels() {
     node({ tag: "span", className: "ellipsis", text: n, append: div });
   }
   var level = config.getCity(["l", buildingIDs.warehouse], 0);
+  if (isUndefined(level)) return;
   var wood = buildingCapacity("warehouse", "wood", level);
   var rest = buildingCapacity("warehouse", "rest", level);
   $x('id("cityResources")/ul/li/*[@class="tooltip"]').map(showSafeLevel);
