@@ -191,6 +191,37 @@ shoppingList: "Resurse necesare pentru a indeplini constructia",
  readlibrary: "Kronos are nevoie sa cerceteze libraria.Faci asta acum?",
 },
 
+it: { // Italia language strings maintained by Uomo Merendina. :-)
+    language: "Italiano",
+    finished: " Finito: ",
+    execTime: "Tempo di esecuzione",
+ researching: "Attuale Ricerca",
+    showLoot: "Visualizza Bottino",
+       shown: "Mostrato", 
+      hidden: "Nascosto",
+       empty: "Vuoto: ",
+        full: "Pieno: ",
+      months: ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu",
+               "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
+ startExpand: "; iniziare l'ampliamento prima di ",
+     enqueue: "Accoda",
+  prependToQ: "Shift click per spostare all'inizio della coda",
+  leftByThen: "Risorse mancanti ",
+shoppingList: "Lista della Spesa: click sull'icona di una risorsa per " +
+                "comperarla al porto",
+ unavailable: "Risorse insufficienti al momento dell'ampliamento (anche con " +
+                "i trasferimenti)",
+   popupInfo: "Click per le Proprietá dell'edificio, usare lo scroll wheel " +
+                "per mostrare i livelli",
+ notShownNow: "Nota: attualmente non mostrato nella sottostante vista " +
+                "principale.",
+ readlibrary: "Kronos necessita di leggere lo stato delle ricerche. " +
+                "Vuoi farlo ora?",
+  travelTime: "Tempo di viaggio",
+   startTime: "Inizio",
+      points: "punti",
+},
+
 // Need updating by natives:
 es: { language: "Espagnol" },
 pt: { language: "Portuguès" },
