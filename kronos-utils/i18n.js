@@ -125,7 +125,7 @@ shoppingList: "Einkaufsliste",
    countdown: "Nächster Auftrag der Queue in ",
    countdone: "Und los geht's -- Initiiere Aufbau Sequenz!",
   clickToBuy: "Klicke hier, um die benötigten Waren zu kaufen.",
-stillRemains: "Noch übrig:",
+stillRemains: "Bis dahin fehlen noch:",
 },
 
 cs: { // Czech translation maintained by Sisel:
