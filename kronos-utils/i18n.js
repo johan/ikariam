@@ -93,6 +93,7 @@ shoppingList: "Liste d'achat: Click sur une icone de Ressource pour " +
    countdown: "Lance l'élément suivant dans la queue dans ",
    countdone: "Et c'est parti -- démarrage des constructions",
   clickToBuy: "Clique sur le prix autant de ressources que tu veux.",
+stillRemains: "Restes:",
 },
 
 de: { // German version maintained by pusteblume and AbrahamLincoln:
@@ -124,6 +125,7 @@ shoppingList: "Einkaufsliste",
    countdown: "Nächster Auftrag der Queue in ",
    countdone: "Und los geht's -- Initiiere Aufbau Sequenz!",
   clickToBuy: "Klicke hier, um die benötigten Waren zu kaufen.",
+stillRemains: "Noch übrig:",
 },
 
 cs: { // Czech translation maintained by Sisel:
@@ -153,6 +155,7 @@ shoppingList: "Nákupní seznam: klikni na surovinu pro nakup v portu",
    countdown: "Pokračuji na další budovu ve frontě za ",
    countdone: "Inicializuji stavební sekvenci!",
   clickToBuy: "Klikni na cenu pro nakup libovolného množství zboží.",
+stillRemains: "Stále zůstává:",
 },
 
 pl: { // Polish translation maintained by drivex:
@@ -203,6 +206,8 @@ shoppingList: "Resurse necesare pentru a indeplini constructia",
       points: "puncte",
    countdown: "Inaintam la urmatoarea cladire din lista in ",
    countdone: "Si acum incepem ...",
+  clickToBuy: "Apasa sa cumperi atat cat vrei.",
+stillRemains: "Inca raman:",
 },
 
 it: { // Italia language strings maintained by Uomo Merendina. :-)
@@ -225,7 +230,7 @@ shoppingList: "Lista della Spesa: click sull'icona di una risorsa per " +
                 "comperarla al porto",
  unavailable: "Risorse insufficienti al momento dell'ampliamento (anche con " +
                 "i trasferimenti)",
-   popupInfo: "Click per le Proprietá dell'edificio, usare lo scroll wheel " +
+   popupInfo: "Click per le Proprietà dell'edificio, usare lo scroll wheel " +
                 "per mostrare i livelli",
  notShownNow: "Nota: attualmente non mostrato nella sottostante vista " +
                 "principale.",
@@ -234,6 +239,10 @@ shoppingList: "Lista della Spesa: click sull'icona di una risorsa per " +
   travelTime: "Tempo di viaggio",
    startTime: "Inizio",
       points: "punti",
+   countdown: "Attivazione del prossimo elemento in coda tra ",
+   countdone: "E adesso si comincia -- Inzio della sequenza di costruzione!",
+  clickToBuy: "Clicca per comperare tutti i beni che desideri.",
+stillRemains: "Rimangono ancora:",
 },
 
 // Need updating by natives:
