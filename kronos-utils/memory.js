@@ -63,8 +63,8 @@ reports: {
 var none = { v: 1, capital: 0, treaties: [], spies: {}, players: {},
              cities: {}, islands: {}, techs: {}, battles: {} };
 
-var data = eval(GM_getValue("config", none));
-var server = eval(GM_getValue(location.host, none));
+var data = eval(GM_getValue("config", {}) || {});
+var server = eval(GM_getValue(location.host, none) || none);
 
 function saveConfig() {
   GM_setValue("config", uneval(data));
@@ -111,7 +111,7 @@ var config = (function() {
       scope = scope[name];
     }
     if ("?!" == value) console.log(save.join("-"), scope);
-    //console.log(save, value, scope);
+    // console.log(save, i == path.length, value, scope);
     return scope;
   }
 
@@ -202,7 +202,7 @@ function upgradeConfig0() {
   function makeNWO() {
     var obj = { v: 1 };
     for (var name in nwo)
-      obj[name] = name == "treaties" ? [] : {};
+      obj[name] = name == "treaties" ? [] : name == "capital" ? 0 : {};
     return obj;
   }
   var ns = {};
