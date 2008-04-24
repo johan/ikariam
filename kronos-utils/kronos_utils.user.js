@@ -492,6 +492,7 @@ function diplomacyAdvisorView() {
   function span(td) { td.setAttribute("colspan", "8"); }
   function showIslandInfo(a) {
     var td = a.parentNode, x, y, t, id = urlParse("id", a.search);
+    if ("#" == a.getAttribute("href")) id = 0;
     var t = /\[(\d+):(\d+)\]$/.exec(trim(a.textContent || "")) || "";
     if (t) {
       [t, x, y] = t;
@@ -499,8 +500,8 @@ function diplomacyAdvisorView() {
       t = t && secsToDHMS(t);
     }
     node({ tag: "td", className: "tt", text: t, before: td });
-    var r = config.getIsle("r", "x", id||0);
-    var R = config.getIsle("R", "",  id||0);
+    var r = id ? config.getIsle("r", "x", id) : "x";
+    var R = id ? config.getIsle("R", "",  id) : "";
     node({ tag: "td", className: "tradegood " + r, title: R, after: td });
   }
 
@@ -515,6 +516,21 @@ function diplomacyAdvisorView() {
 }
 
 function militaryAdvisorCombatReportsView() {
+  function read(e) {
+    if ((e.keyCode||e.charCode) != "-".charCodeAt()) return;
+    removeEventListener("keypress", read, false);
+    proceed();
+  }
+
+  function proceed() {
+    var a = my.unknowns.pop();
+    if (a) {
+      setTimeout(wget, Math.random()*3e3, a.href, proceed, true, false);
+      a.style.opacity = "0.5";
+    }
+    console.log(my.unknowns.length + 1);
+  }
+
   function parseDate(t) {
     var Y, M, D, h, m;
     if ((t = t && trim(t.textContent).split(/\D+/))) {
@@ -523,6 +539,7 @@ function militaryAdvisorCombatReportsView() {
       return (new Date(Y, M - 1, D, h, m)).getTime();
     }
   }
+
   function fileReport(tr, n) {
     var a = $X('td[contains(@class,"subject")]/a', tr);
     var w = $X('contains(../@class,"won")', a);
@@ -538,6 +555,8 @@ function militaryAdvisorCombatReportsView() {
     rows[n] = copy(allreps[r]);
     rows[n].tr = tr;
   }
+
+  var my = militaryAdvisorCombatReportsView; my.unknowns = [];
   var table = $X('id("finishedReports")/table[@class="operations"]');
   if (!table) return;
   var history = config.getServer("battles", { won: 0, lost: 0 });
@@ -554,6 +573,7 @@ function militaryAdvisorCombatReportsView() {
     var a = $X('.//a', reports[i]);
     var r = allreps[repId[i]];
 
+    if (!r.c) my.unknowns.push(a);
     var recent = r.t > Date.now() - (25 * 36e5);
     // we won, we don't know what city, it's the past 24h (+ DST safety margin)
     if (r.w && !r.c && recent) {
@@ -576,6 +596,8 @@ function militaryAdvisorCombatReportsView() {
   var loot = node({ tag: "a", text: lang.showLoot,
                     style: { marginLeft: "8px" }, append: header });
   clickTo(loot, function() { rm(loot); makeLootTable(table, rows); });
+  if (my.unknowns.length)
+    addEventListener("keypress", read, false);
 
   config.setServer("battles", history);
   config.setServer("cities", city);

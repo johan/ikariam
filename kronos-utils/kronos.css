@@ -11,16 +11,10 @@
   position: relative;
 }
 
-.ellipsis.price {
-  position: static;
-  vertical-align: top;
-  margin-left: 3px;
+/* Port view breaks its own tear-down resource costs: */
+#port #container #mainview .contentBox01h .content ul.resources li {
+  padding-left: 32px;
 }
-.ellipsis.buyable:hover {
-  text-decoration: underline;
-  cursor: pointer;
-}
-
 
 /* Fixes the shadow on the ugly tooltips */
 #WzTtShDwR, #WzTtShDwB {
@@ -179,6 +173,17 @@
   margin-left: 1px;
   position: absolute;
   font-size: 10px;
+}
+
+/* and the ones we add in port view: */
+.ellipsis.price {
+  position: static;
+  vertical-align: top;
+  margin-left: 3px;
+}
+.ellipsis.buyable:hover {
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* Our island quick links */
