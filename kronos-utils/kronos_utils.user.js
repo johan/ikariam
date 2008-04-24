@@ -76,6 +76,7 @@ function init() {
       militaryAdvisorCombatReportsView(); break;
     case "militaryAdvisorMilitaryMovements":
       militaryAdvisorMilitaryMovementsView(); break;
+    case "tradeAdvisor": tradeAdvisorView(); break;
     case "researchAdvisor": researchAdvisorView(); break;
     case "diplomacyAdvisor": diplomacyAdvisorView(); break;
     case "plunder": plunderView(); break;
@@ -455,6 +456,10 @@ function safeMarkAll(cmd) {
   }
 }
 
+function tradeAdvisorView() {
+  pruneTodayDates('id("inboxCity")/tbody/tr/td[@class="date"]');
+}
+
 function researchAdvisorView() {
   function learnTech(a) {
     var name = a.textContent.match(/['"]([^'"]+)['"]/);
@@ -733,14 +738,14 @@ function buildingLevel(b, otherwise, saved, city) {
   if (!saved && "city" == urlParse("view")) {
     var div = $("position" + buildingPosition(b));
     var a = $X('a[@title]', div);
-    if (a && !integer(a.title))
-      a = null; // a ghost house we set up to visualize the queue
+    if (a && isUndefined(integer(a.title)))
+      a = undefined; // a ghost house we set up to visualize the queue
   }
-  if (saved || !a)
-    b = config.getCity(["l", b], "?", city);
+  if (saved || isUndefined(a))
+    b = config.getCity(["l", b], undefined, city);
   else
-    b = number(a.title);
-  return "?" == b ? otherwise : b;
+    b = integer(a.title);
+  return isUndefined(b) ? otherwise : b;
 }
 
 function buildingLevels() {
@@ -1228,11 +1233,11 @@ function urlTo(what, id, opts) {
   function building() {
     var cid = id || c;
     var bid = buildingID(what);
-    if ("-" != buildingLevel(bid, "-", cid)) {
+    var l = buildingLevel(bid, undefined, null, cid);
+    if (isDefined(l)) {
       var p = buildingPosition(bid, "", cid);
       return url("?view="+ what +"&id="+ cid +"&position="+ p);
     }
-    console.warn("building ID unknown: ", id, what, cid);
     return "";
   }
   var c = cityID(), i = islandID();
@@ -1882,11 +1887,17 @@ function dontSubmitZero(but, nodes) {
   nodes.forEach(improveForm);
 }
 
-// would ideally treat the horrid tooltips as above, but they're dynamic. X-|
-function merchantNavyView() {
+// drop dates that are today and just makes things unreadable:
+function pruneTodayDates(xpath) {
   function dropDate(td) {
     td.textContent = td.textContent.replace(date, "");
   }
+  var date = trim($("servertime").textContent.replace(/\s.*/, ""));
+  $x(xpath + '[contains(.,"'+ date +'")]').forEach(dropDate);
+}
+
+// would ideally treat the horrid tooltips as above, but they're dynamic. X-|
+function merchantNavyView() {
   function monkeypatch(html) {
     var args = [].slice.call(arguments);
     var scan = node({ html: html });
@@ -1898,10 +1909,7 @@ function merchantNavyView() {
   var ugh = unsafeWindow.Tip;
   unsafeWindow.Tip = monkeypatch; // fixes up the tooltips a bit
 
-  // drop dates that are today and just makes things unreadable:
-  var date = trim($('servertime').textContent.replace(/\s.*/, ""));
-  $x('id("mainview")//table[@class="table01"]//td[contains(.,"'+ date +'")]').
-    forEach(dropDate);
+  pruneTodayDates('id("mainview")//table[@class="table01"]//td');
 }
 
 
@@ -3079,7 +3087,7 @@ function projectCompletion(id, className, loc) {
 
 function tavernView() {
   function amount() {
-    return number(wine.options[wine.selectedIndex]) || 0;
+    return integer(wine.options[wine.selectedIndex]) || 0;
   }
   function makeGrowthrate() {
     var style = {

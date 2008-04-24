@@ -121,7 +121,8 @@ function number(n) {
       n = n.value;
     else if (n.textContent)
       n = n.textContent;
-  return parseFloat(n.replace(/[^\d.-]+/g, ""));
+  n = n.replace(/[^\d.-]+/g, "");
+  return n ? parseFloat(n) : undefined;
 }
 
 function integer(n) {
@@ -131,7 +132,8 @@ function integer(n) {
       n = n.value;
     else if (n.textContent)
       n = n.textContent;
-  return parseInt(n.replace(/[^\d-]+/g, ""), 10);
+  n = n.replace(/[^\d-]+/g, "");
+  return n ? parseInt(n, 10) : undefined;
 }
 
 function sign(n) {
