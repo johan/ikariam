@@ -68,7 +68,7 @@ function init() {
     case "buildingGround": buildingGroundView(); break;
     case "branchOffice": branchOfficeView(); break;
     case "researchOverview": researchOverviewView(); break;
-    case "colonize": scrollWheelable(); colonizeView(); break;
+    case "colonize": colonizeView(); break;
     case "merchantNavy": merchantNavyView(); break;
     case "militaryAdvisorReportView":
       militaryAdvisorReportViewView(); break;
@@ -1782,19 +1782,25 @@ function evenShips(nodes) {
   function sum(a, b) {
     return integer(a || 0) + integer(b || 0);
   }
+
   function fillNextEvenShip(e) {
     var input = e.target;
     var value = integer(input);
     var count = reduce(sum, nodes, 0);
-    var remainder = count % 300;
+    var remainder = (count + baseline) % 300;
     if (remainder) {
       input.value = value + (300 - remainder);
       e.stopPropagation();
     }
   }
+
   function listen(input) {
     input.addEventListener("dblclick", fillNextEvenShip, false);
   }
+
+  var baseline = $("sendSummary") || 0;
+  if (baseline)
+    baseline = 300 - integer(baseline.textContent.split("/")[1]) % 300;
   if (stringOrUndefined(nodes))
     nodes = $x(nodes || '//input[@type="text" and @name]');
   nodes.forEach(listen);
@@ -2496,6 +2502,9 @@ function colonizeView() {
   function annotate(what, time) {
     what.innerHTML += " ("+ time +")";
   }
+  evenShips();
+  scrollWheelable();
+
   css("#container .resources li { white-space: nowrap; }");
 
   var have = currentResources();
