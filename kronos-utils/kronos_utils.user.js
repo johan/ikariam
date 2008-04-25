@@ -2148,7 +2148,7 @@ function cityView() {
   levelBat();
 }
 
-function corruption(city) {
+function corruption(city, fullpct) {
   var colonies = cityIDs().length - 1;
   var building = "palace" + (isCapital(city) ? "" : "Colony");
   var governor = buildingLevel(building, 0, city);
@@ -2157,7 +2157,8 @@ function corruption(city) {
   var factor = now < baseline ? 0.1 : 0.2;
   if (now > baseline)
     factor += Math.floor((now - baseline) / 6048e5) * 0.1;
-  return Math.min(factor, 1.0) * max / 1e3;
+  //console.log("Max corr: " + max + ", factor: "+ factor);
+  return fullpct ? max : Math.min(factor, 1.0) * max / 100;
 }
 
 function townHallView() {
@@ -2962,8 +2963,9 @@ function projectPopulation(opts) {
   //console.log(wellDigging, holiday, tavern, wine, museum, culture, happy);
 
   var population = opts && opts.population || getPopulation();
-  happy -= Math.ceil(corruption() * population);
-  //console.log("corruption: "+corruption()+" => -"+ Math.ceil(corruption() * population));
+  var corr = corruption();
+  happy -= Math.ceil(corr * population);
+  console.log("corruption: "+corr+" => -"+ Math.ceil(corr * population));
   var initialGrowth = getGrowth(population);
   var growthSignSame = initialGrowth > 0 ? function plus(p) { return p > 0; } :
                                           function minus(p) { return p < 0; };
