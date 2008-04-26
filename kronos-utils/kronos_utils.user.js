@@ -70,6 +70,7 @@ function init() {
     case "branchOffice": branchOfficeView(); break;
     case "researchOverview": researchOverviewView(); break;
     case "colonize": colonizeView(); break;
+    case "blockade": blockadeView(); break;
     case "deployment": deploymentView(); break;
     case "merchantNavy": merchantNavyView(); break;
     case "militaryAdvisorReportView":
@@ -2510,6 +2511,10 @@ function visualResources(what, opt) {
   return what.replace(/\$([a-z]{4,6})/g, replace);
 }
 
+function blockadeView() {
+  scrollWheelable();
+}
+
 function deploymentView() {
   scrollWheelable();
 }
@@ -2856,16 +2861,21 @@ function showUnitLevels(specs) {
   $x('id("units")/li[div[@class="unitinfo"]]').forEach(augmentUnit);
 }
 
+function projectQueue() {
+  var u = $x('id("unitConstructionList")//div[starts-with(@id,"queueEntry")]');
+  u.forEach(projectCompletion);
+}
+
 function shipyardView() {
   dontSubmitZero();
   showUnitLevels(ships);
+  projectQueue();
 }
 
 function barracksView() {
   dontSubmitZero();
   showUnitLevels(troops);
-  var u = $x('id("unitConstructionList")//div[starts-with(@id,"queueEntry")]');
-  u.forEach(projectCompletion);
+  projectQueue();
 }
 
 function unitStatsFromImage(img) {
