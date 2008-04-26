@@ -163,6 +163,13 @@ var nonIslands = { 3:1,    8:1,   10:1,   12:1,   14:1,   21:3,  138:1,  191:12,
 5071:1, 5185:2, 5189:1, 5255:2, 5296:2, 5322:1, 5530:1, 5548:1, 5550:1, 5552:1,
 5554:1, 5578:1, 5580:2, 5654:8, 5669:4, 5697:2, 5701:2, 5709:2, 5722:-5721 };
 
+// Given only slingers, swordsmen, phalanxes, archers, rams, ram ships, ballista
+// ships, flamethrowers, catapult ships, and a generals score of less than 2,000
+// it should not be possible to have a navy with any of these generals scores:
+var noShips = [0,   80,  158,  160,  238,  240,  316,  318,  320,  396,  398,
+ 400,  464,  474,  476,  478,  480,  544,  554,  556,  558,  560,  608,  622,
+ 624,  634,  636,  638,  640,  688,  702,  704,  718,  720,  766,  768,  782,
+ 798,  800,  862,  878,  880,  924,  958,  960];
 
 /*
 

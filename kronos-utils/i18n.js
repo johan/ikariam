@@ -30,6 +30,7 @@ shoppingList: "Shopping list: click a resource icon to buy that in your port",
    countdone: "And off we go -- initiating build sequence!",
   clickToBuy: "Click to price to purchase as much of the goods as you want.",
 stillRemains: "Still remains:", // donations left until the resource upgrades
+    cfgTitle: "Kronos Utils Options", // Kronos Options menu title heading
 },
 
 sv: { // Swedish strings also maintained by myself:
@@ -61,6 +62,7 @@ shoppingList: "Inköpslista",
    countdone: "Håll i er; nu börjar vi bygga igen!",
   clickToBuy: "Klicka här för att köpa så mycket av handelsvaran du vill ha.",
 stillRemains: "Återstår:",
+    cfgTitle: "Kronos Utils-inställningar",
 },
 
 fr: { // French version maintained by Kissy

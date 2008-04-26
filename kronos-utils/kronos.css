@@ -64,6 +64,11 @@
 
 /**** Our own hacks ****/
 
+#island #container #mainview #islandfeatures .wine {
+  left: 165px;
+  top: 150px;
+}
+
 /* don't overflow the upgrade pane when we add a whole date + timestamp: */
 #container #resUpgrade.upgrading .time { font-weight:normal; white-space:pre; }
 #container #resUpgrade.upgrading .time#upgradeCountDown { font-weight: bold; }

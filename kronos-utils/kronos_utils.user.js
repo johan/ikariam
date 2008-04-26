@@ -69,6 +69,7 @@ function init() {
     case "branchOffice": branchOfficeView(); break;
     case "researchOverview": researchOverviewView(); break;
     case "colonize": colonizeView(); break;
+    case "deployment": deploymentView(); break;
     case "merchantNavy": merchantNavyView(); break;
     case "militaryAdvisorReportView":
       militaryAdvisorReportViewView(); break;
@@ -1289,6 +1290,12 @@ function urlTo(what, id, opts) {
     case "pillage":	return url("?view=plunder&destinationCityId="+ id);
     case "transport":	return url("?view=transport&destinationCityId="+ id);
 
+    case "tradeAdvisor":
+    case "militaryAdvisorCombatReports":
+    case "researchAdvisor":
+    case "diplomacyAdvisor":
+      return url("?view="+ what +"&oldView=city&id="+ c);
+
     case "message":
       var from = opts && opts.from || cityID();
       return url("?view=sendMessage&with="+ from +"&destinationCityId="+ id +
@@ -2498,6 +2505,9 @@ function visualResources(what, opt) {
   return what.replace(/\$([a-z]{4,6})/g, replace);
 }
 
+function deploymentView() {
+  scrollWheelable();
+}
 
 function colonizeView() {
   function annotate(what, time) {
@@ -2965,7 +2975,7 @@ function projectPopulation(opts) {
   var population = opts && opts.population || getPopulation();
   var corr = corruption();
   happy -= Math.ceil(corr * population);
-  console.log("corruption: "+corr+" => -"+ Math.ceil(corr * population));
+  //console.log("corruption: "+corr+" => -"+ Math.ceil(corr * population));
   var initialGrowth = getGrowth(population);
   var growthSignSame = initialGrowth > 0 ? function plus(p) { return p > 0; } :
                                           function minus(p) { return p < 0; };
@@ -3208,7 +3218,7 @@ function panelInfo() { // Ajoute un element en plus dans le menu.
     if (done) done = resolveTime((done - Date.now()) / 1e3, 1);
 
     var a = node({ prepend: tags.kronos, tag: <>
-<a id="researching" href={urlTo("academy")}>
+<a id="researching" href={urlTo("academy") || urlTo("researchAdvisor")}>
   {done ? done + " \u2014" : lang.researching + ":"} {research}
 </a><br/></> }).researching;
 
