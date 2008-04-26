@@ -30,7 +30,18 @@ shoppingList: "Shopping list: click a resource icon to buy that in your port",
    countdone: "And off we go -- initiating build sequence!",
   clickToBuy: "Click to price to purchase as much of the goods as you want.",
 stillRemains: "Still remains:", // donations left until the resource upgrades
-    cfgTitle: "Kronos Utils Options", // Kronos Options menu title heading
+      title$: "Kronos Utils Configuration", // Kronos options menu header title
+    general$: "General",
+   cityview$: "City View",
+ kronosMenu$: "Show the Kronos menu",
+ haveEnough$: "Border colour for buildings you have enough resources " +
+    "to upgrade",
+  notEnough$: "Border colour for buildings you do not have enough resources " +
+    "to upgrade",
+      White$: "White",
+       Gray$: "Gray",
+      Green$: "Green",
+        Red$: "Red",
 },
 
 sv: { // Swedish strings also maintained by myself:
@@ -62,7 +73,15 @@ shoppingList: "Inköpslista",
    countdone: "Håll i er; nu börjar vi bygga igen!",
   clickToBuy: "Klicka här för att köpa så mycket av handelsvaran du vill ha.",
 stillRemains: "Återstår:",
-    cfgTitle: "Kronos Utils-inställningar",
+      title$: "Kronos Utils-inställningar",
+   cityview$: "Stadsöversikten",
+ kronosMenu$: "Visa Kronos-menyn",
+ haveEnough$: "Bordfärg för byggnader du har material nog att uppgradera",
+  notEnough$: "Bordfärg för byggnader du inte har material nog att uppgradera",
+      White$: "Vit",
+       Gray$: "Grå",
+      Green$: "Grön",
+        Red$: "Röd",
 },
 
 fr: { // French version maintained by Kissy

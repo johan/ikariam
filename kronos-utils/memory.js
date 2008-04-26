@@ -68,7 +68,7 @@ var server = eval(GM_getValue(location.host, none) || none);
 
 function saveConfig() {
   GM_setValue("config", uneval(data));
-  console.log("config ", uneval(data));
+  //console.log("config ", uneval(data));
 }
 function saveServer() {
   GM_setValue(location.host, uneval(server).replace(/ \(void 0\)/g, ""));
@@ -77,6 +77,7 @@ function saveServer() {
 
 var config = (function() {
   function get(name, value) {
+    if (arguments.length < 2) value = optionDefault(name);
     return data.hasOwnProperty(name) ? data[name] : value;
   }
 
@@ -182,6 +183,7 @@ var config = (function() {
       value = data[id];
       delete data[id];
     }
+    expensive(saveConfig)();
     return value;
   }
 

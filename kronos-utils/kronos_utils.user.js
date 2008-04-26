@@ -3,7 +3,7 @@
 // @namespace      Kronos
 // @description    Tons of UI upgrades and features for Ikariam.
 // @include        http://ikariam.tld/
-// @include        http://*.ikariam.*
+// @include        http://s*.ikariam.tld/*
 // @exclude        http://board.ikariam.*/
 // @exclude        http://*.ikariam.*/index.php?view=renameCity*
 // @require        http://ecmanaut.googlecode.com/svn/trunk/lib/gm/wget.js
@@ -12,6 +12,7 @@
 // @require        i18n.js
 // @require        gamedata.js
 // @require        support.js
+// @require        config.js
 // @require        memory.js
 // ==/UserScript==
 
@@ -85,6 +86,7 @@ function init() {
     case "Espionage":
     case "safehouseReports": safehouseReportsView(); break;
     case "academy": academyView(); break;
+    case "options": optionsView(); break;
   }
 
   var upgradeDiv = $("upgradeCountDown");
@@ -103,6 +105,7 @@ function init() {
   if ({ city: 1, island: 1 }[view])
     unsafeWindow.friends = config.getServer("treaties", []);
 
+  if (!config.get("kronosMenu")) return title();
   var langChoice = panelInfo();
   title();
   langChoice.title = lang.execTime +": "+ (Date.now() - DEBUT) +"ms";
@@ -887,7 +890,9 @@ function annotateBuilding(li, level) {
   var div = node({ className: "rounded", text: level, append: li });
   if (haveEnoughToUpgrade(a, level)) {
     div.style.backgroundColor = "#FEFCE8";
-    div.style.borderColor = "#B1AB89";
+    div.style.borderColor = config.get("haveEnough");
+  } else {
+    div.style.borderColor = config.get("notEnough");
   }
   clickTo(div, a.href);
   div.style.visibility = "visible";
