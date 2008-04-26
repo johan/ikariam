@@ -115,6 +115,18 @@ shoppingList: "Liste d'achat: Click sur une icone de Ressource pour " +
    countdone: "Et c'est parti -- démarrage des constructions",
   clickToBuy: "Clique sur le prix autant de ressources que tu veux.",
 stillRemains: "Restes:",
+      title$: "Configuration de Kronos Utils",
+    general$: "Général",
+   cityview$: "Vue de la ville",
+ kronosMenu$: "Afficher le menu Kronos",
+ haveEnough$: "Couleur des bordures des bâtiments si vous avez assez de " +
+    "ressources pour l'améliorer",
+  notEnough$: "Couleur des bordures des bâtiments si vous n'avez assez de " +
+    "ressources pour l'améliorer",
+      White$: "Blanc",
+       Gray$: "Gris",
+      Green$: "Vert",
+        Red$: "Rouge",
 },
 
 de: { // German version maintained by pusteblume and AbrahamLincoln:
@@ -299,9 +311,11 @@ function getLanguage() {
   }
   if (config.get("language") == "sp") config.set("language", "es");
   var id = config.get("language", guess());
-  var lang = langs[id], lack = {}, eng = langs.en, incomplete = 0;
+  var lang = copy(langs[id]), lack = {}, eng = langs.en, incomplete = 0;
+  var user = unsafeWindow["kronos_"+id] || {};
+  for (var usr in user) lang[usr] = user[usr];
   for (var str in eng)
-    if (!lang.hasOwnProperty(str) || !lang[str]) {
+    if (!lang[str]) {
       lack[str] = eng[str];
       incomplete++;
     }
@@ -312,5 +326,6 @@ function getLanguage() {
     id = config.set("language", "en");
     saveConfig();
   }
+  langs[id] = lang;
   return id;
 }
