@@ -938,9 +938,9 @@ function levelBat() { // Ajout d'un du level sur les batiments.
       if (top && li.id == "position0") top = "0";
       var div = showResourceNeeds(buildingExpansionNeeds(a), li, hovering, top);
       clickTo(div, urlTo("building", buildingID(a)));
-
       var enough = haveEnoughToUpgrade(a);
-      hovering.style.borderColor = enough ? "#B1AB89" : "#918B69";
+      hovering.style.borderColor =
+        config.get(enough ? "haveEnough" :"notEnough");
       hovering.style.backgroundColor = enough ? "#FEFCE8" : "#FDF8C1";
     } else {
       hide(hovering);
@@ -2113,9 +2113,9 @@ function stillRemains() {
   counts[1].textContent = numFormat(left);
 
   var a = $X('id("donate")/a[@onclick]');
-  var max = Math.min(left, integer(a.getAttribute("onclick")));
-  a.removeAttribute("onclick");
+  var max = Math.min(left, integer(get("wood")));
   clickTo(a, function() { $("donateWood").value = max; });
+  a.removeAttribute("onclick");
 }
 
 function resourceView() {
