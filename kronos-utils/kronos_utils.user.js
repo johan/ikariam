@@ -1269,13 +1269,21 @@ function urlTo(what, id, opts) {
     }
     return "";
   }
-  var c = cityID(), i = islandID();
+
+  if (isUndefined(opts)) opts = {};
+  var c = cityID(), i = islandID(), ci = config.getCity("i", 0, c) || i;
   if (what == "workshop")
     what = "workshop-army";
   switch (what) {
     default:		return url("?view="+ what);
-    case "wood":	return url("?view=resource&type=resource&id="+ i);
-    case "luxe":	return url("?view=tradegood&type=tradegood&id="+ i);
+    case "luxe":	return url("?action=header&function=changeCurrentCity" +
+                                   "&oldView=tradegood&view=tradegood&type=" +
+                                   "tradegood&id="+ i + (!opts.city ? "" :
+                                                        "&cityId="+ opts.city));
+    case "wood":	return url("?action=header&function=changeCurrentCity" +
+                                   "&oldView=tradegood&view=resource&type=" +
+                                   "resource&id="+ i + (!opts.city ? "" :
+                                                        "&cityId="+ opts.city));
 
     case "townhall":	case "workshop":
     case "townHall":	case "port":	case "academy":
@@ -1791,11 +1799,12 @@ function portView() {
   setTimeout(projectCompletion, 4e3, "outgoingOwnCountDown");
 }
 
+function sum(a, b) {
+  return integer(a || 0) + integer(b || 0);
+}
+
 function evenShips(nodes) {
   function goods() {
-    function sum(a, b) {
-      return integer(a || 0) + integer(b || 0);
-    }
     return reduce(sum, nodes, 0);
   }
 
@@ -1956,16 +1965,24 @@ function dontSubmitZero(but, nodes) {
 }
 
 // drop dates that are today and just makes things unreadable:
-function pruneTodayDates(xpath) {
+function pruneTodayDates(xpath, root) {
   function dropDate(td) {
     td.textContent = td.textContent.replace(date, "");
   }
   var date = trim($("servertime").textContent.replace(/\s.*/, ""));
-  $x(xpath + '[contains(.,"'+ date +'")]').forEach(dropDate);
+  $x(xpath + '[contains(.,"'+ date +'")]', root).forEach(dropDate);
 }
 
 // would ideally treat the horrid tooltips as above, but they're dynamic. X-|
 function merchantNavyView() {
+  function showResources(td) {
+    var stuff = td.getAttribute("onmouseover").match(/<img.*/) + "";
+    stuff = stuff.replace(/gold\D+[\d,.]+/g, "").match(/\d+[,.\d]*/g);
+    if (stuff)
+      node({ className: "ellipsis", text: reduce(sum, stuff, 0), append: td,
+             style: { position: "static" } });
+  }
+
   function monkeypatch(html) {
     var args = [].slice.call(arguments);
     var scan = node({ html: html });
@@ -1977,7 +1994,9 @@ function merchantNavyView() {
   var ugh = unsafeWindow.Tip;
   unsafeWindow.Tip = monkeypatch; // fixes up the tooltips a bit
 
-  pruneTodayDates('id("mainview")//table[@class="table01"]//td');
+  var table = $X('id("mainview")//table[@class="table01"]/tbody');
+  pruneTodayDates('tr/td', table);
+  $x('tr/td[@onmouseover]', table).forEach(showResources);
 }
 
 
@@ -2674,8 +2693,8 @@ function improveTopPanel() {
   if (name != "wine") // already did that
     income[name] = luxe;
 
-  // FIXME: deprecate _city_ resource type, for the city selection pane:
-  config.setCity("r", type, referenceCityID());
+  config.setCity("r", { t:Date.now(), r: currentResources(), p: reapingPace() },
+                 referenceCityID());
   config.setCity("i", islandID(), referenceCityID());
 
   for (name in income) {
@@ -2713,6 +2732,11 @@ function improveTopPanel() {
   $x('id("cityResources")/ul/li[contains("wood wine marble glass sulfur",'+
      '@class)]').forEach(tradeOnClick);
 
+  showOverview();
+  showHousingOccupancy();
+  showCityBuildCompletions();
+  showSafeWarehouseLevels();
+  // unconfuseFocus();
   if (!isMyCity()) return;
 
   var build = config.getCity("t", 0), now = Date.now();
@@ -2722,12 +2746,6 @@ function improveTopPanel() {
     node({ tag: "span", id: "done", className: "textLabel", append: a,
           text: trim(resolveTime(Math.ceil((build-now)/1e3))) });
   }
-
-  showHousingOccupancy();
-  showSafeWarehouseLevels();
-  showCityBuildCompletions();
-  showOverview();
-  // unconfuseFocus();
 }
 
 function unconfuseFocus() {
@@ -2776,6 +2794,7 @@ function toggleOverview(newValue, node) {
   if (shown) show(table); else hide(table);
 }
 
+// extended city selection panel
 function showOverview() {
   var grid = {}, res = ["w", "W", "M", "C", "S", "p"];
   var table = <table id="overview" title=" "><tr id="headers">
@@ -2790,21 +2809,35 @@ function showOverview() {
       <img src={gfx[name]} height={name == "wall" ? "30" : "20"}/>
     </th>;
 
-  var city = cityID(), p = reapingPace();
+  var city = cityID();
   for each (var id in cityIDs()) {
+    // data is { t: timestamp, r: currentResources(), p: reapingPace() } or str
+    var data = config.getCity("r", "", id), p;
+    if (!isObject(data)) {
+      data = p = {};
+    } else {
+      p = data.p;
+      var dt = (Date.now() - ((new Date(data.t)).getTime())) / 3600e3;
+      data = copy(data.r);
+      //console.log(id +": "+ Math.floor(p.w*dt) + " | "+ (data.w) +" | "+ (dt * 60));
+      for (var r in p)
+        data[r] = Math.floor((data[r] || 0) + p[r] * dt);
+    }
     var tr = <tr/>;
+    if (id == city) tr.@class = "current";
     var island = config.getCity("i", 0, id);
-    grid[id] = id == city ? currentResources() : config.getCity("r", {}, id);
+    grid[id] = data;
     for each (r in res) {
-      var v = grid[id][r] || "\xA0"; // Math.round(Math.random()*10000)
-      if (id == city)
-        if ("w" == r)
-          v = <a class="text" href={urlTo("wood")} title={sign(p[r])}>{v}</a>;
-        else if (config.getIsle("r", "", island) == r)
-          v = <a class="text" href={urlTo("luxe")} title={sign(p[r])}>{v}</a>;
-        else if ("W" == r && config.getCity("l", [], city)[buildingIDs.tavern])
-          v = <span title={sign(p.W)}>{v}</span>;
-      tr.td += <td>{v}</td>;
+      var v = data[r] || "\xA0";
+      if ("w" == r)
+        v = <a class="text" href={ urlTo("wood", undefined, { city: id }) }
+               title={sign(p[r])}>{v}</a>;
+      else if (config.getIsle("r", "", island) == r)
+        v = <a class="text" href={ urlTo("luxe", undefined, { city: id }) }
+               title={sign(p[r])}>{v}</a>;
+      else if ("W" == r && config.getCity("l", [], city)[buildingIDs.tavern])
+        v = <span title={ sign(p.W) }>{v}</span>;
+      tr.td += <td>{ v }</td>;
     }
     for each (var name in names) {
       var b = buildingIDs[name];
@@ -2842,7 +2875,7 @@ function showCityBuildCompletions() {
   for (var i = 0; i < lis.length; i++) {
     var id = ids[i];
     var url = config.getCity("u", 0, ids[i]);
-    var res = config.getCity("r", "", id);
+    var res = config.getIsle("r", "", config.getCity("i", 0, id));
     var li = lis[i];
     var t = config.getCity("t", 0, ids[i]);
     if (t && t > Date.now() && url) {
