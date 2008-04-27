@@ -789,7 +789,7 @@ function buildingLevels() {
 function buildingCapacity(b, l, warehouse) {
   b = buildingClass(b);
   var c = buildingCapacities[b];
-  c = c && c[l];
+  c = c && c[isDefined(l) ? l : buildingLevel(b)];
   return isDefined(warehouse) ? c && c[warehouse] : c;
 }
 
@@ -1792,14 +1792,17 @@ function portView() {
 }
 
 function evenShips(nodes) {
-  function sum(a, b) {
-    return integer(a || 0) + integer(b || 0);
+  function goods() {
+    function sum(a, b) {
+      return integer(a || 0) + integer(b || 0);
+    }
+    return reduce(sum, nodes, 0);
   }
 
   function fillNextEvenShip(e) {
     var input = e.target;
     var value = integer(input);
-    var count = reduce(sum, nodes, 0);
+    var count = goods();
     var remainder = (count + baseline) % 300;
     if (remainder) {
       input.value = value + (300 - remainder);
@@ -1811,12 +1814,36 @@ function evenShips(nodes) {
     input.addEventListener("dblclick", fillNextEvenShip, false);
   }
 
+  function showTime() {
+    var loading = goods() * (60 / buildingCapacity("port"));
+    var loadTime = secsToDHMS(loading);
+    var total = time + loading;
+    var there = " — " + resolveTime(total, 1);
+    to.nodeValue = to.nodeValue.replace(/( — .*)?$/, there);
+    if (loadTime)
+      t.nodeValue = loadTime +" + "+ text +" = "+ secsToDHMS(total);
+    else
+      t.nodeValue = text;
+  }
+
   var baseline = $("sendSummary") || 0;
   if (baseline)
     baseline = 300 - integer(baseline.textContent.split("/")[1]) % 300;
   if (stringOrUndefined(nodes))
     nodes = $x(nodes || '//input[@type="text" and @name]');
   nodes.forEach(listen);
+
+  var m = $("missionSummary");
+  if (m) {
+    var to = $X('.//div[@class="journeyTarget"]/text()[last()]', m);
+    var t = $X('.//div[@class="journeyTime"]/text()[last()]', m);
+    if (t && to) {
+      var text = t.nodeValue;
+      var time = parseTime(text);
+      onChange(nodes, showTime, "value", "watch");
+      showTime();
+    }
+  }
 }
 
 function scrollWheelable(nodes) {
@@ -2711,11 +2738,41 @@ function unconfuseFocus() {
   }
 }
 
-function maybeToggleOverview(e) {
-  if ("class" != e.attrName || "DOMAttrModified" != e.type)
-    return;
-  var table = maybeToggleOverview.table;
-  var shown = /expanded/.test(e.newValue);
+function onChange(nodes, cb, attribute, watch) {
+  function modified(e) {
+    //console.log([e.type, e.attrName, e.newValue].join());
+    if ("DOMAttrModified" != e.type ||
+        isDefined(attribute) && attribute != e.attrName)
+      return;
+    cb(e.newValue, e.target);
+  }
+
+  function listen(node) {
+    function changed(name, from, to) {
+      if (name == attribute)
+        setTimeout(cb, 0, to, node);
+      return to;
+    }
+    if (watch)
+      node.wrappedJSObject.watch(attribute, changed);
+    else
+      node.addEventListener("DOMAttrModified", modified, false);
+  }
+
+  if (isArray(nodes))
+    nodes.map(listen);
+  else
+    listen(nodes);
+  if (!isArray(nodes))
+    nodes.addEventListener("DOMAttrModified", modified, false);
+  else
+    for each (var node in nodes)
+      node.addEventListener("DOMAttrModified", modified, false);
+}
+
+function toggleOverview(newValue, node) {
+  var table = toggleOverview.table;
+  var shown = /expanded/.test(newValue);
   if (shown) show(table); else hide(table);
 }
 
@@ -2765,10 +2822,10 @@ function showOverview() {
   table.tr[1].@class = "first " + (table.tr[1].@class || "");
   var ids = node({ after: $("citySelect"), tag: table });
   ids.headers.style.backgroundImage = "url("+ GM_getResourceURL("woody") +")";
-  maybeToggleOverview.table = ids.overview;
+  toggleOverview.table = ids.overview;
 
   var expander = $X('id("changeCityForm")//div[contains(@class,"dropbutton")]');
-  expander.addEventListener("DOMAttrModified", maybeToggleOverview, false);
+  onChange(expander, toggleOverview, "class");
 }
 
 function showCityBuildCompletions() {
@@ -3263,7 +3320,7 @@ function referenceCityID(index) {
 }
 
 function cityID() {
-  var id = urlParse("id");
+  var id = urlParse("cityId") || urlParse("id");
   var view = urlParse("view");
   if (id)
     if (buildingIDs.hasOwnProperty(view) && !urlParse("type") ||
