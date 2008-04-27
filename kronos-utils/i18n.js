@@ -34,10 +34,8 @@ stillRemains: "Still remains:", // donations left until the resource upgrades
     general$: "General",
    cityview$: "City View",
  kronosMenu$: "Show the Kronos menu",
- haveEnough$: "Border colour for buildings you have enough resources " +
-    "to upgrade",
-  notEnough$: "Border colour for buildings you do not have enough resources " +
-    "to upgrade",
+ haveEnough$: "Border colour for buildings you have enough resources to upgrade",
+  notEnough$: "Border colour for buildings you do not have enough resources to upgrade",
       White$: "White",
        Gray$: "Gray",
       Green$: "Green",
@@ -100,12 +98,9 @@ fr: { // French version maintained by Kissy
      enqueue: "Mettre en queue",
   prependToQ: "Maj Click: Mettre en queue en première position",
   leftByThen: "Ressources restantes ",
-shoppingList: "Liste d'achat: Click sur une icone de Ressource pour " +
-                "l'acheter dans le port",
- unavailable: "Ressources indisponibles pour le temps de construction (et le " +
-                "temps de régénération)",
-   popupInfo: "Click: informations sur les bâtiments; Molette: changer le " +
-                "niveaux",
+shoppingList: "Liste d'achat: Click sur une icone de Ressource pour l'acheter dans le port",
+ unavailable: "Ressources indisponibles pour le temps de construction (et le temps de régénération)",
+   popupInfo: "Click: informations sur les bâtiments; Molette: changer le niveaux",
  notShownNow: "Note: pas encore affiché sur la vue principal.",
  readlibrary: "Kronos doit parcourir votre Bibliothèque. Le faire maintenant?",
   travelTime: "Durée du voyage",
@@ -119,10 +114,8 @@ stillRemains: "Restes:",
     general$: "Général",
    cityview$: "Vue de la ville",
  kronosMenu$: "Afficher le menu Kronos",
- haveEnough$: "Couleur des bordures des bâtiments si vous avez assez de " +
-    "ressources pour l'améliorer",
-  notEnough$: "Couleur des bordures des bâtiments si vous n'avez assez de " +
-    "ressources pour l'améliorer",
+ haveEnough$: "Couleur des bordures des bâtiments si vous avez assez de ressources pour l'améliorer",
+  notEnough$: "Couleur des bordures des bâtiments si vous n'avez assez de ressources pour l'améliorer",
       White$: "Blanc",
        Gray$: "Gris",
       Green$: "Vert",
@@ -146,10 +139,8 @@ de: { // German version maintained by pusteblume and AbrahamLincoln:
   prependToQ: "Shift Klick um es an den Anfang der Warteschleife zu platzieren",
   leftByThen: "verbliebene Ressourcen ",
 shoppingList: "Einkaufsliste",
- unavailable: "Ressourcen nicht erreichbar während der Bauzeit "+
-                "(und Regenerieungszeit)",
-   popupInfo: "Klicken um Gebäudeinfo zu erhalten, benutze das Mausrad um die "+
-                "Stufen zu sehen",
+ unavailable: "Ressourcen nicht erreichbar während der Bauzeit (und Regenerieungszeit)",
+   popupInfo: "Klicken um Gebäudeinfo zu erhalten, benutze das Mausrad um die Stufen zu sehen",
  notShownNow: "Notiz: wird zur Zeit nicht in der Hauptansicht angezeigt.",
  readlibrary: "Kronos muss Deine Bibliothek lesen. Soll das jetzt geschehen?",
   travelTime: "Reise Dauer",
@@ -159,6 +150,16 @@ shoppingList: "Einkaufsliste",
    countdone: "Und los geht's -- Initiiere Aufbau Sequenz!",
   clickToBuy: "Klicke hier, um die benötigten Waren zu kaufen.",
 stillRemains: "Bis dahin fehlen noch:",
+      title$: "Kronos Utils Konfiguration",
+    general$: "Haupt Einstellungen",
+   cityview$: "Stadt Anzeige",
+ kronosMenu$: "Zeige das Kronos Menü",
+ haveEnough$: "Rahmenfarbe für Gebäude, für die die notwendigen Materialien vorhanden sin",
+  notEnough$: "Rahmenfarbe für Gebäude, für die die notwendigen Materialien nicht vorhanden sind",
+      White$: "Weiss",
+       Gray$: "Grau",
+      Green$: "Grün",
+        Red$: "Rot",
 },
 
 cs: { // Czech translation maintained by Sisel:
@@ -208,8 +209,7 @@ pl: { // Polish translation maintained by drivex:
   leftByThen: "Surowce niedostępne ",
 shoppingList: "Pozostanie surowców",
  unavailable: "Surowce, które należy kupić by natychmiast rozpocząć budowe",
-   popupInfo: "Kliknij aby dowiedzieć się więcej lub zacznij kręcić rolką "+
-                "aby dowiedzieć się o kosztach następnych poziomów",
+   popupInfo: "Kliknij aby dowiedzieć się więcej lub zacznij kręcić rolką aby dowiedzieć się o kosztach następnych poziomów",
 },
 
 ro: { // Romanian translation maintained by n00bster:
@@ -230,8 +230,7 @@ ro: { // Romanian translation maintained by n00bster:
   leftByThen: "Resurse ramase ",
 shoppingList: "Resurse necesare pentru a indeplini constructia",
  unavailable: "Resurse indisponibile la timpul construictiei",
-   popupInfo: "Click pentru informatiile cladiri, foloseste scroolul sa "+
-                "cauti levelele",
+   popupInfo: "Click pentru informatiile cladiri, foloseste scroolul sa cauti levelele",
  notShownNow: "Nota: nu se arata in vederea generala jos.",
  readlibrary: "Kronos are nevoie sa cerceteze libraria.Faci asta acum?",
   travelTime: "Timp Calatorie",
@@ -259,16 +258,11 @@ it: { // Italia language strings maintained by Uomo Merendina. :-)
      enqueue: "Accoda",
   prependToQ: "Shift click per spostare all'inizio della coda",
   leftByThen: "Risorse mancanti ",
-shoppingList: "Lista della Spesa: click sull'icona di una risorsa per " +
-                "comperarla al porto",
- unavailable: "Risorse insufficienti al momento dell'ampliamento (anche con " +
-                "i trasferimenti)",
-   popupInfo: "Click per le Proprietà dell'edificio, usare lo scroll wheel " +
-                "per mostrare i livelli",
- notShownNow: "Nota: attualmente non mostrato nella sottostante vista " +
-                "principale.",
- readlibrary: "Kronos necessita di leggere lo stato delle ricerche. " +
-                "Vuoi farlo ora?",
+shoppingList: "Lista della Spesa: click sull'icona di una risorsa per comperarla al porto",
+ unavailable: "Risorse insufficienti al momento dell'ampliamento (anche con i trasferimenti)",
+   popupInfo: "Click per le Proprietà dell'edificio, usare lo scroll wheel per mostrare i livelli",
+ notShownNow: "Nota: attualmente non mostrato nella sottostante vista principale.",
+ readlibrary: "Kronos necessita di leggere lo stato delle ricerche. Vuoi farlo ora?",
   travelTime: "Tempo di viaggio",
    startTime: "Inizio",
       points: "punti",
