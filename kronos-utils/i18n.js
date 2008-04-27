@@ -270,6 +270,16 @@ shoppingList: "Lista della Spesa: click sull'icona di una risorsa per comperarla
    countdone: "E adesso si comincia -- Inzio della sequenza di costruzione!",
   clickToBuy: "Clicca per comperare tutti i beni che desideri.",
 stillRemains: "Rimangono ancora:",
+      title$: "Configurazione delle Kronos Utils",
+    general$: "Generale",
+   cityview$: "Vista Città",
+ kronosMenu$: "Visualizza il Kronos Menu",
+ haveEnough$: "Colore della cornice sugli edifici per i quali HAI sufficienti risorse per l'aggiornamento",
+  notEnough$: "Colore della cornice sugli edifici per i quali NON HAI sufficienti risorse per l'aggiornamento",
+      White$: "Bianco",
+       Gray$: "Grigio",
+      Green$: "Verde",
+        Red$: "Rosso",
 },
 
 // Need updating by natives:
