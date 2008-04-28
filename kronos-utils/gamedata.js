@@ -60,6 +60,7 @@ var gfx = {
       sulfur: "/skin/resources/icon_sulfur.gif",
 
      citizen: "/skin/resources/icon_citizen.gif",
+      upkeep: "/skin/resources/icon_upkeep.gif",
         gold: "/skin/resources/icon_gold.gif",
         time: "/skin/resources/icon_time.gif",
         bulb: "/skin/layout/bulb-on.gif",

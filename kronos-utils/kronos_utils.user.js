@@ -2977,11 +2977,13 @@ function unitStatsFromImage(img) {
   var name = img.src.split("/").pop();
   if (name) {
     var junk = /^(ship|y\d+)_|_(r|\d+x\d+)(?=[_.])|_faceright|\....$/g;
+    var ship = /ship_/.test(name);
     name = name.replace(junk, "");
     name = { medic: "doctor" }[name] || name;
-    for (var id in troops)
-      if (normalize(troops[id].n) == name)
-        return troops[id];
+    if (!ship)
+      for (var id in troops)
+        if (normalize(troops[id].n) == name)
+          return troops[id];
     for (var id in ships)
       if (normalize(ships[id].n) == name)
         return ships[id];
@@ -2993,8 +2995,8 @@ function workshopView() {
     var img = $X('img', td);
     var type = img && img.src.match(/_([^.]+).gif$/)[1];
     var level = { bronze: 0, silber: 1, gold: 2 }[type];
-    var opacity, stat;
-    for (var l = 0; l < 3; l++) {
+    var opacity, stat, last;
+    for (var l = 2; l >= 0; l--) {
       var l1 = base + delta * l; // \uFFEB \u27A0 #906646
       var l2 = l1 + delta;
       var stat = l1;
@@ -3006,13 +3008,17 @@ function workshopView() {
             !$X('following-sibling::td[a[@class="button"]]', td))
           stat = l2;
         node({ tag: <div>{ (stat / upkeep).toFixed(2) }
-                 <img src={gfx.gold} height="10"/> /
-                 <img src={img.src} height="10"/>
+                 <img style="margin: 0" src={gfx.gold} height="10"/> /
+                 <img style="margin: 0" src={img.src} height="10"/>
                </div>, append: $X('ancestor::tr[2]/td[1]', td) });
       }
-      node({ className: "stats", append: td, text: l1 +" \u27A1 "+ l2,
-             style: { opacity: opacity }});
+      last = node({ className: "stats", append: td, text: l1 +" \u27A1 "+ l2,
+                    style: { opacity: opacity }});
     }
+    node({ append: $X('following::ul[@class="resources"]', td), tag:
+           <li class="time" style={"background-image: url("+ gfx.upkeep +")"}>
+             { upkeep } / h
+           </li> });
   }
 
   function augment(tr) {
