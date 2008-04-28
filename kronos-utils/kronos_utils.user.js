@@ -1270,20 +1270,21 @@ function urlTo(what, id, opts) {
     return "";
   }
 
+  function resource(view) {
+    if (!opts.city)
+      return "?view="+ view +"&type="+ view +"&id=" + i;
+    return "?action=header&function=changeCurrentCity&oldView=tradegood" +
+           "&view="+ view +"&type="+ view +"&id="+ i +"&cityId="+ opts.city;
+  }
+
   if (isUndefined(opts)) opts = {};
   var c = cityID(), i = islandID(), ci = config.getCity("i", 0, c) || i;
   if (what == "workshop")
     what = "workshop-army";
   switch (what) {
     default:		return url("?view="+ what);
-    case "luxe":	return url("?action=header&function=changeCurrentCity" +
-                                   "&oldView=tradegood&view=tradegood&type=" +
-                                   "tradegood&id="+ i + (!opts.city ? "" :
-                                                        "&cityId="+ opts.city));
-    case "wood":	return url("?action=header&function=changeCurrentCity" +
-                                   "&oldView=tradegood&view=resource&type=" +
-                                   "resource&id="+ i + (!opts.city ? "" :
-                                                        "&cityId="+ opts.city));
+    case "luxe":	return url(resource("tradegood"));
+    case "wood":	return url(resource("resource"));
 
     case "townhall":	case "workshop":
     case "townHall":	case "port":	case "academy":
@@ -2861,6 +2862,7 @@ function showOverview() {
   onChange(expander, toggleOverview, "class");
 }
 
+// shows when each city is done in the city popup (and adds resource icons)
 function showCityBuildCompletions() {
   var focused = referenceCityID();
   var isles = <div style="position: absolute; top: -20px; left: 43px;"></div>;
