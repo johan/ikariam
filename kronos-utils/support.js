@@ -172,10 +172,13 @@ function node(opt) {
       var ids = {};
       for each (var n in $x('.//*[@id]', t))
         ids[n.id] = 1;
+      if (!n) ids = null;
 
       var r = document.createRange();
       r.selectNodeContents(t);
       n = r.extractContents();
+      if (n.childNodes.length == 1)
+        n = n.firstChild;
     }
     var after = attr("after");
     var before = opt.prepend ? opt.prepend.firstChild : attr("before");

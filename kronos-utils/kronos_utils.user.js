@@ -2995,7 +2995,7 @@ function workshopView() {
     var img = $X('img', td);
     var type = img && img.src.match(/_([^.]+).gif$/)[1];
     var level = { bronze: 0, silber: 1, gold: 2 }[type];
-    var opacity, stat, last;
+    var opacity, stat, last, tag;
     for (var l = 2; l >= 0; l--) {
       var l1 = base + delta * l; // \uFFEB \u27A0 #906646
       var l2 = l1 + delta;
@@ -3007,13 +3007,18 @@ function workshopView() {
         if (type == "gold" &&
             !$X('following-sibling::td[a[@class="button"]]', td))
           stat = l2;
-        node({ tag: <div>{ (stat / upkeep).toFixed(2) }
-                 <img style="margin: 0" src={gfx.gold} height="10"/> /
-                 <img style="margin: 0" src={img.src} height="10"/>
-               </div>, append: $X('ancestor::tr[2]/td[1]', td) });
       }
-      last = node({ className: "stats", append: td, text: l1 +" \u27A1 "+ l2,
-                    style: { opacity: opacity }});
+      var icon = img.src.replace(type+".gif", levels[l]+".gif");
+      tag = { tag: <div class="stats">
+        <span style={"opacity:"+ opacity}>{ (l2 / upkeep).toFixed(2) }</span>
+        <img style="margin: 0" src={gfx.gold} height="10"/>
+        <span style={"opacity:"+ opacity}>/</span>
+        <img style="margin: 0" src={icon} height="10"/>
+      </div> };
+      if (!last) tag.append = td; else tag.before = last;
+      last = node(tag);
+      node({ className: "stats", after: img, text: l1 +" \u27A1 "+ l2,
+             style: { opacity: opacity }});
     }
     node({ append: $X('following::ul[@class="resources"]', td), tag:
            <li class="time" style={"background-image: url("+ gfx.upkeep +")"}>
@@ -3030,6 +3035,7 @@ function workshopView() {
     }
   }
 
+  var levels = ["bronze", "silber", "gold"];
   $x('id("demo")//tr[td[@class="object"]]').forEach(augment);
   projectCompletion("upgradeCountdown", "done");
 }
