@@ -2989,15 +2989,29 @@ function unitStatsFromImage(img) {
 }
 
 function workshopView() {
-  function show(td, base, delta) {
+  function show(td, base, delta, upkeep) {
     var img = $X('img', td);
     var type = img && img.src.match(/_([^.]+).gif$/)[1];
     var level = { bronze: 0, silber: 1, gold: 2 }[type];
+    var opacity, stat;
     for (var l = 0; l < 3; l++) {
       var l1 = base + delta * l; // \uFFEB \u27A0 #906646
       var l2 = l1 + delta;
+      var stat = l1;
+      if (l != level) {
+        opacity = "0.5"
+      } else {
+        opacity = "1.0";
+        if (type == "gold" &&
+            !$X('following-sibling::td[a[@class="button"]]', td))
+          stat = l2;
+        node({ tag: <div>{ (stat / upkeep).toFixed(2) }
+                 <img src={gfx.gold} height="10"/> /
+                 <img src={img.src} height="10"/>
+               </div>, append: $X('ancestor::tr[2]/td[1]', td) });
+      }
       node({ className: "stats", append: td, text: l1 +" \u27A1 "+ l2,
-             style: { opacity: l == level ? "1.0" : "0.5" }});
+             style: { opacity: opacity }});
     }
   }
 
@@ -3005,8 +3019,8 @@ function workshopView() {
     var stats = unitStatsFromImage($X('td[@class="object"]/img', tr))
     if (stats) {
       var cells = $x('td/table[@class="inside"]/tbody/tr[1]/td[1]', tr);
-      show(cells[0], stats.a, stats.A);
-      show(cells[1], stats.d, stats.D);
+      show(cells[0], stats.a, stats.A, stats.u);
+      show(cells[1], stats.d, stats.D, stats.u);
     }
   }
 
