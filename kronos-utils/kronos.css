@@ -293,11 +293,85 @@ html body div#container div#container2 a.text:hover {
   top: 6px;
 }
 
-/* gets overridden with background-image: url(@resource header.png) */
-#cityNav #overview tr:first-child#headers {
-  background: #906646 url(/skin/layout/select_citynav.jpg) repeat-x;
-  /*background-color: #FFF5D8;
-  url(/skin/layout/select_citynav.jpg) no-repeat 100% 0;*/
+#cityNav #overview tr td {
+  background: url(/skin/layout/select_citynav.jpg) no-repeat -35px -96px;
+  line-height: 24px;
+  height: 24px;
+}
+
+/* current line */
+#cityNav #overview .current td:first-child {
+  padding-left: 6px;
+  background-position: 0px -122px;
+}
+#cityNav #overview .current td {
+  background-position: -35px -122px;
+}
+#cityNav #overview .current td:last-child {
+  background-position: -125px -122px;;
+}
+
+/* current and first line */
+#cityNav #overview .first.current td:first-child {
+  padding-left: 6px;
+  background-position: 0px -172px;
+}
+#cityNav #overview .first.current td {
+  background-position: -35px -172px;
+}
+#cityNav #overview .first.current td:last-child {
+  background-position: -125px -172px;
+}
+
+/* current and last line */
+#cityNav #overview .current:last-child td:first-child {
+  padding-left: 6px;
+  background-position: 0px -200px;
+}
+#cityNav #overview .current:last-child td {
+  background-position: -35px -200px;
+}
+#cityNav #overview .current:last-child td:last-child {
+  background-position: -125px -200px;
+}
+
+/* first line */
+#cityNav #overview .first td:first-child {
+  padding-top: 2px;
+  background-position: 0px -72px;
+}
+#cityNav #overview .first td {
+  padding-top: 2px;
+  background-position: -35px -72px;
+}
+#cityNav #overview .first td:last-child {
+  padding-top: 2px;
+  background-position: -125px -72px;
+}
+
+/* last line*/
+#cityNav #overview tr:last-child td:first-child {
+  padding-bottom: 2px;
+  background-position: 0px -146px;
+}
+#cityNav #overview tr:last-child td {
+  padding-bottom: 2px;
+  background-position: -35px -146px;
+}
+#cityNav #overview tr:last-child td:last-child {
+  padding-bottom: 2px;
+  background-position: -125px -146px;
+}
+
+/* common */
+#cityNav #overview tr td:first-child {
+  background-position: 0px -98px;
+}
+#cityNav #overview tr td {
+  background-position: -35px -98px;
+}
+#cityNav #overview tr td:last-child {
+  background-position: -125px -98px;
 }
 
 #cityNav #overview tr:first-child th.building {
@@ -326,6 +400,7 @@ html body div#container div#container2 a.text:hover {
   background-repeat: no-repeat;
   min-width: 44px;
   height: 24px;
+  top: 2px;
 }
 
 #cityNav #overview tr:first-child th.p {
@@ -350,77 +425,18 @@ html body div#container div#container2 a.text:hover {
 #cityNav #overview tr td:first-child {
   padding-left: 6px;
 }
+
 #cityNav #overview tr td:last-child {
   padding-right: 6px;
   min-width: 27px;
 }
 
-#cityNav #overview tr.first td:first-child {
-  background-position: -1px -72px;
-}
-#cityNav #overview tr.first td {
-  background-position: -25px -72px;
-}
-#cityNav #overview tr.first td:last-child {
-  background-position: -126px -72px;
-}
-
-#cityNav #overview tr td:first-child {
-  background-position: -1px -96px;
-}
-#cityNav #overview tr td {
-  background-position: -25px -96px;
-  /*text-align: right;*/
-}
-#cityNav #overview tr td:last-child {
-  background-position: -126px -96px;
-}
-
-#cityNav #overview tr:last-child td:first-child {
-  background-position: -1px -146px;
-}
-#cityNav #overview tr:last-child td {
-  background-position: -25px -146px;
-}
-#cityNav #overview tr:last-child td:last-child {
-  background-position: -126px -146px;
-}
-
-#cityNav #overview tr td {
-  background: url(/skin/layout/select_citynav.jpg) no-repeat -25px -96px;
-  line-height: 24px;
-  height: 24px;
-}
-#cityNav #overview tr.first td {
-  padding-top: 2px;
-}
-#cityNav #overview tr:last-child td {
-  padding-bottom: 2px;
-}
-
-
-
-#cityNav .citySelect#overview {
+#cityNav .citySelect #overview {
   z-index: 1;
   /*display: none;*/
   left: 189px;
   top: 6px;
   width: 157px;
-}
-#cityNav .citySelect#overview .optionList {
-  width: 157px;
-}
-
-#cityNav .citySelect#overview li {
-  width: 157px;
-  padding-right: 0;
-  background-position: -1px -98px;
-}
-#cityNav .citySelect#overview li.first {
-  background-position: -1px -72px;
-}
-#cityNav .citySelect#overview li.last {
-  background-position: -1px -146px;
 }
 
 
