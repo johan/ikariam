@@ -279,7 +279,7 @@ shoppingList: "Lista della Spesa: click sull'icona di una risorsa per comperarla
    countdown: "Attivazione del prossimo elemento in coda tra ",
    countdone: "E adesso si comincia -- Inzio della sequenza di costruzione!",
   clickToBuy: "Clicca per comperare tutti i beni che desideri.",
-stillRemains: "Rimangono ancora:",
+stillRemains: "Mancano ancora:",
       title$: "Configurazione delle Kronos Utils",
     general$: "Generale",
    cityview$: "Vista Città",
