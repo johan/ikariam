@@ -3370,8 +3370,7 @@ function panelInfo() { // Ajoute un element en plus dans le menu.
 }
 
 function islandID(city) {
-  return urlParse("id", ($X('id("breadcrumbs")//a[@class="island"]') ||
-                         $X('//li[@class="viewIsland"]//a')).search);
+  return urlParse("id", $X('//li[@class="viewIsland"]//a').search);
 }
 
 function referenceIslandID(city) {
