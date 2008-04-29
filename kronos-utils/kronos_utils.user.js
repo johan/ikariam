@@ -1294,6 +1294,9 @@ function urlTo(what, id, opts) {
     case "safehouse":	case "tavern":	case "workshop-army":
       return building();
 
+    case "culturegoods":
+      return urlTo("museum").replace("museum", "culturalPossessions_assign");
+
     case "library":	what = "researchOverview"; // fall-through:
     case "changeResearch":                         // fall-through:
     case "researchOverview":
@@ -2805,10 +2808,14 @@ function showOverview() {
   var names = ["townHall", "barracks", "shipyard", "port", "branchOffice",
                "tavern", "museum", "academy", "workshop", "safehouse",
                "embassy", "warehouse", "wall", "palace"];
-  for each (var name in names)
+  for each (var name in names) {
+    var img = <img src={gfx[name]} height={name == "wall" ? "30" : "20"}/>;
+    if ("museum" == name)
+      img = <a href={ urlTo("culturegoods") }>{ img }</a>;
     table.tr.* += <th title={/*lang[*/name/*]*/} class={"building " + name}>
-      <img src={gfx[name]} height={name == "wall" ? "30" : "20"}/>
+      { img }
     </th>;
+  }
 
   var city = cityID();
   for each (var id in cityIDs()) {
@@ -3138,7 +3145,7 @@ function projectPopulation(opts) {
   }
 
   var people = $("value_inhabitants");
-  var hqLevel = config.getCity("l.0", 1);
+  var hqLevel = buildingLevel("townHall");
   var nextHQUpgradeTime = parseTime(costs[0][hqLevel].t);
   var upgradingTownHall = $X('id("done")/../@href = "'+ urlTo("townHall") +'"');
 
