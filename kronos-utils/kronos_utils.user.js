@@ -2072,12 +2072,12 @@ function warehouseSpy() {
     var id = r == "w" ? "wood" : "rest";
     var safe = buildingCapacities.warehouse[id][warehouse];
     var lootable = Math.max(0, n - safe);
-    //console.log(n, r, id, safe, loot);
+    //console.log(n, r, id, safe, lootable);
     if (count) {
       node({ tag: "td", text: safe, append: tr });
       all += lootable;
     } else {
-      lootable = (lootable / all) * 20 * buildingCapacities.port[port];
+      lootable = all && (lootable / all) * 20 * buildingCapacities.port[port];
       node({ tag: "td", text: Math.floor(lootable), append: tr });
     }
   }
