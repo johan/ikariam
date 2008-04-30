@@ -1171,7 +1171,6 @@ function levelResources() {
       } else {
         config.setIsle("R", level, id);
         config.setIsle("r", rid, id);
-        console.log("island "+id+": "+rid+level);
       }
     }
   }
