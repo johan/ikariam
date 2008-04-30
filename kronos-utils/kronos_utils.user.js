@@ -789,7 +789,7 @@ function buildingLevels() {
 function buildingCapacity(b, l, warehouse) {
   b = buildingClass(b);
   var c = buildingCapacities[b];
-  c = c && c[isDefined(l) ? l : buildingLevel(b)];
+  c = c && c[isDefined(l) ? l : buildingLevel(b, 0)];
   return isDefined(warehouse) ? c && c[warehouse] : c;
 }
 
@@ -2817,7 +2817,7 @@ function showOverview() {
     </th>;
   }
 
-  var city = cityID();
+  var city = referenceCityID();
   for each (var id in cityIDs()) {
     // data is { t: timestamp, r: currentResources(), p: reapingPace() } or str
     var data = config.getCity("r", "", id), p;
