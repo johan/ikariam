@@ -1171,6 +1171,7 @@ function levelResources() {
       } else {
         config.setIsle("R", level, id);
         config.setIsle("r", rid, id);
+        console.log("island "+id+": "+rid+level);
       }
     }
   }
@@ -2200,7 +2201,7 @@ function financesView() {
 }
 
 function cityView() {
-  var id = urlParse("id");
+  var id = urlParse("id", $X('id("advCities")/a').search);
   if (id) {
     var name = mainviewCityName();
     if (name) config.setCity("n", name, id);
