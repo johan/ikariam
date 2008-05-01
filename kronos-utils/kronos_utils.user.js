@@ -23,7 +23,14 @@ else
   login();
 
 function init() {
-  upgradeConfig();
+  try { upgradeConfig(); }
+  catch(e if e instanceof ReferenceError) {
+    if (confirm("Kronos Utils requires Greasemonkey 0.8. Click OK for an " +
+                "installation tutorial."))
+      location.href = "http://corentin.jarnoux.free.fr/kronosutils/" +
+        "?topic=2.0#post_requirements";
+    return;
+  }
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
   css(GM_getResourceText("css"));
   lang = langs[getLanguage()];
@@ -3018,9 +3025,9 @@ function workshopView() {
       var icon = img.src.replace(type+".gif", levels[l]+".gif");
       tag = { tag: <div class="stats">
         <span style={"opacity:"+ opacity}>{ (l2 / upkeep).toFixed(2) }</span>
-        <img style="margin: 0" src={gfx.gold} height="10"/>
-        <span style={"opacity:"+ opacity}>/</span>
         <img style="margin: 0" src={icon} height="10"/>
+        <span style={"opacity:"+ opacity}>/</span>
+        <img style="margin: 0" src={gfx.gold} height="10"/>
       </div> };
       if (!last) tag.append = td; else tag.before = last;
       last = node(tag);
