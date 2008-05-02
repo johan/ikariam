@@ -64,7 +64,11 @@ var gfx = {
         gold: "/skin/resources/icon_gold.gif",
         time: "/skin/resources/icon_time.gif",
         bulb: "/skin/layout/bulb-on.gif",
+
       swords: "/skin/layout/icon-crossedswords.gif", // 33x27
+      attack: "/skin/layout/sword-icon-report.gif",
+      defend: "/skin/layout/shield-icon-report.gif",
+     stamina: "/skin/layout/icon-endurance2.gif",
 
      pillage: "/skin/actions/plunder.gif",
 

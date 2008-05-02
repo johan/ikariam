@@ -2725,8 +2725,7 @@ function improveTopPanel() {
   node({ id: "income", text: sign(flow.g), append: cityNav, title: " " });
 
   var ap = $("value_maxActionPoints").parentNode;
-  ap.style.top = "-49px";
-  ap.style.left = "-67px";
+  ap.id = "action-points";
   ap.addEventListener("mouseover", hilightShip, false);
   ap.addEventListener("mouseout", unhilightShip, false);
   clickTo(ap, urlTo("merchantNavy"));

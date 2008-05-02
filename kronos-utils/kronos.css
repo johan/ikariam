@@ -280,7 +280,10 @@ html body div#container div#container2 a.text:hover {
 #container #cityResources .resources .storage_full	{ color: #CC0000; }
 #container #cityResources .resources .storage_danger	{ color: #CC3300; }
 
-
+#container #cityResources #action-points {
+  top: -49px;
+  left: -67px;
+}
 
 /* city resources table */
 #cityNav #overview {
