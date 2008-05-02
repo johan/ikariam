@@ -2707,6 +2707,7 @@ function improveTopPanel() {
   config.setCity("r", { t:Date.now(), r: currentResources(), p: reapingPace() },
                  referenceCityID());
   config.setCity("i", islandID(), referenceCityID());
+  config.setIsle("r", type);
 
   for (name in income) {
     var amount = income[name];
