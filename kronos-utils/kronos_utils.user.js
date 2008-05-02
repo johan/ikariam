@@ -2294,7 +2294,7 @@ function researchOverviewView() {
     function got(node) { augment(a, parse(node, id, a), id); }
     var id = linkID(a);
     setTimeout(wget$X, Math.random() * 1000 * get.length, a.href, got,
-               'id("mainview")//div[@class="content"]/table/tbody', 0, 1);
+               './/*[@id="mainview"]//div[@class="content"]/table/tbody', 0, 1);
   }
 
   function parse(body, id) {
