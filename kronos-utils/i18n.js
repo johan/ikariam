@@ -204,7 +204,7 @@ stillRemains: "Stále zůstává:",
 
 pl: { // Polish translation maintained by drivex:
     language: "Polski",
-    finished: "Koniec o: ",
+    finished: " Koniec o: ",
     execTime: "Czas wykonania",
  researching: "Aktualne badanie",
        shown: "Pokaż",
@@ -224,7 +224,7 @@ shoppingList: "Pozostanie surowców",
 
 ro: { // Romanian translation upgraded by n00bster and Skorpishor:
     language: "Romana",
-    finished: "Se termina: ",
+    finished: " Se termina: ",
     execTime: "Timp",
  researching: "Cercetare",
     showLoot: "Arata capturi",
