@@ -202,6 +202,13 @@
   width: 13px;
 }
 
+#changeCityForm .viewIsland #islandLinks {
+  position: absolute;
+  left: 43px;
+  top: -20px;
+}
+
+
 .citySelect .optionList.expanded a.ellipsis:hover {
   text-decoration: underline;
 }
