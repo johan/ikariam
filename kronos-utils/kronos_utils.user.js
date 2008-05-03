@@ -3081,7 +3081,7 @@ function showHousingOccupancy(opts) {
   txt.nodeValue = text.replace(new RegExp("[:)/].*$"), time +")");
 
   var townSize = $X('id("information")//ul/li[@class="citylevel"]');
-  if (townSize && mainviewCityID() == referenceCityID())
+  if (townSize && mainviewIsReferenceCity())
     node({ id: "townhallfits", className: "ellipsis", append: townSize,
            text: pop.current +"/"+ pop.maximum +"; "+ sign(pop.growth) +"/h" });
   return pop;
@@ -3413,6 +3413,11 @@ function cityIDs() {
 function mainviewIslandID() {
   var city = $X('id("breadcrumbs")//a[@class="island"]');
   return city && urlParse("id", city.search);
+}
+
+function mainviewIsReferenceCity() {
+  return cityName() == mainviewCityName() &&
+         islandID() == mainviewIslandID();
 }
 
 function mainviewCityID() {
