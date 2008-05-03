@@ -3081,7 +3081,7 @@ function showHousingOccupancy(opts) {
   txt.nodeValue = text.replace(new RegExp("[:)/].*$"), time +")");
 
   var townSize = $X('id("information")//ul/li[@class="citylevel"]');
-  if (townSize)
+  if (townSize && mainviewCityID() == referenceCityID())
     node({ id: "townhallfits", className: "ellipsis", append: townSize,
            text: pop.current +"/"+ pop.maximum +"; "+ sign(pop.growth) +"/h" });
   return pop;
@@ -3442,7 +3442,7 @@ function isCapital(city) {
 }
 
 function isMyCity() {
-  return cityIDs().indexOf(cityID()) != -1;
+  return cityIDs().indexOf(mainviewCityID()) != -1;
 }
 
 
