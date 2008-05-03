@@ -2081,13 +2081,15 @@ function warehouseSpy() {
     var r = resourceFromUrl($X('td[1]/img', tr));
     var id = r == "w" ? "wood" : "rest";
     var safe = buildingCapacities.warehouse[id][warehouse];
-    var lootable = Math.min(n, Math.max(0, n - safe));
+    var lootable = Math.max(0, n - safe);
     //console.log(n, r, id, safe, lootable);
     if (count) {
       node({ tag: "td", text: safe, append: tr });
       all += lootable;
     } else {
-      lootable = all && (lootable / all) * 20 * buildingCapacities.port[port];
+      lootable = all &&
+        Math.min((lootable / all) * 20 * buildingCapacities.port[port],
+                 lootable);
       node({ tag: "td", text: Math.floor(lootable), append: tr });
     }
   }
