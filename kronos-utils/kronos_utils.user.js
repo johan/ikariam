@@ -3027,7 +3027,8 @@ function unitStatsFromImage(img) {
     var junk = /^(ship|y\d+)_|_(r|\d+x\d+)(?=[_.])|_faceright|\....$/g;
     var ship = /ship_/.test(name);
     name = name.replace(junk, "");
-    name = { medic: "doctor" }[name] || name;
+    name = { medic: "doctor", marksman: "gunsman",
+             steamgiant: "steam" }[name] || name;
     if (!ship)
       for (var id in troops)
         if (normalize(troops[id].n) == name)
