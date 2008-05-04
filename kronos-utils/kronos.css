@@ -287,6 +287,9 @@ html body div#container div#container2 a.text:hover {
 /* Get proper stacking, so names don't look silly near the marble quarry */
 #island #container #mainview ul#islandfeatures li.marble { z-index: 400; }
 
+/* Get proper stacking, so names don't hide behind the vineyard */
+#island #container #mainview ul##islandfeatures li.wine { z-index: 0; }
+
 /* As we make links of the resource pane, we need to keep the colours: */
 #container #cityResources .resources a			{ color: #542C0F; }
 #container #cityResources .resources .disabled a	{ color: #999999; }
