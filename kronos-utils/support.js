@@ -53,6 +53,16 @@ function bind(fn, self) {
   };
 }
 
+function addClass(node, className) {
+  var classes = (node.className || "").split(/\s+/g);
+  if (classes.indexOf(className) > 0) return;
+  if (classes[0] == "")
+    classes = [className];
+  else
+    classes.push(className);
+  node.className = classes.join(" ");
+}
+
 // returns a function that only runs expensive function fn after no call to it
 // has been made for n ms, or 100, if not given, or the time fn took last time,
 // if it has been run at least once and no n was given.
@@ -295,6 +305,30 @@ function secsToDHMS(t, rough, join) {
     t = -t;
   for (var unit in units) {
     var u = locale.timeunits.short[unit];
+    var n = units[unit];
+    var r = t % n;
+    if (r == t) continue;
+    if ("undefined" == typeof rough || rough--)
+      result.push(((t - r) / n) + u);
+    else {
+      result.push(Math.round(t / n) + u);
+      break;
+    }
+    t = r;
+  }
+  return minus + result.join(join || " ");
+}
+
+function time(t) {
+  var units = { day: 86400, hour: 3600, minute: 60, second: 1 };
+  t = t / 1000; // ms to s
+  if (t == Infinity) return "∞";
+  var result = [];
+  var minus = t < 0 ? "-" : "";
+  if (minus)
+    t = -t;
+  for (var unit in units) {
+    var u = unsafeWindow.LocalizationStrings.timeunits.short[unit];
     var n = units[unit];
     var r = t % n;
     if (r == t) continue;

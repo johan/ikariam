@@ -208,6 +208,12 @@
   top: -20px;
 }
 
+#container #mainview table.table01 tr.own {
+  background-color: #DEFF83;
+}
+#container #mainview table.table01 tr.own.alt {
+  background-color: #CAE877;
+}
 
 .citySelect .optionList.expanded a.ellipsis:hover {
   text-decoration: underline;

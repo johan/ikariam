@@ -2147,9 +2147,10 @@ function safehouseView() {
 }
 
 function highlightMeInTable() {
-  var tr = $x('id("mainview")/div[@class="othercities"]' +
-              '//tr[td[@class="actions"][count(*) = 0]]');
-  if (tr.length == 1) tr[0].style.background = "pink";
+  if (!mainviewOnReferenceIsland()) return;
+  function mine(tr) { addClass(tr, "own"); }
+  $x('id("mainview")/div[@class="othercities"]' +
+     '//tr[td[@class="actions"][count(*) = 0]]').forEach(mine);
 }
 
 function numFormat(n) {
@@ -3416,8 +3417,11 @@ function mainviewIslandID() {
 }
 
 function mainviewIsReferenceCity() {
-  return cityName() == mainviewCityName() &&
-         islandID() == mainviewIslandID();
+  return cityName() == mainviewCityName() && mainviewOnReferenceIsland();
+}
+
+function mainviewOnReferenceIsland() {
+  return islandID() == mainviewIslandID();
 }
 
 function mainviewCityID() {
