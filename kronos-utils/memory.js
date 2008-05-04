@@ -77,8 +77,13 @@ function saveServer() {
 
 var config = (function() {
   function get(name, value) {
-    if (arguments.length < 2) value = optionDefault(name);
-    return data.hasOwnProperty(name) ? data[name] : value;
+    try {
+      if (arguments.length < 2) value = optionDefault(name);
+      return data.hasOwnProperty(name) ? data[name] : value;
+    } catch(e) {
+      console.log("config.get("+ arguments.length +": "+ name +", "+ value);
+      throw(e);
+    }
   }
 
   function getCity(name, value, id) {
