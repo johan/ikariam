@@ -1,5 +1,53 @@
 var DEBUT = new Date();
 
+var country = location.hostname.replace(/s\d+\.|ikariam\./g, ""); // index below
+
+// The texts here are not stuff to _translate_, but texts as they appear in-game
+// on whichever servers you play on. Without these, Kronos won't be able to do a
+// few improvements to some views (merchantNavy view, for a start) as it doesn't
+// know how to read the page.
+var servers = {
+
+// arrival > end: swap places, <- buyMsnBack, pillageMsn, -Back
+// arrival = end: swap places, <- buyMsnBack, trpMsnUndo, sellMsnUndo
+
+// arrival = end: no swapping, <- buyMsn
+// arrival < end: no swapping, -> buyMsn, trpMsn, pillageMsn
+
+org: #1={ // English
+     buyMsn    : "Trade(Buy)",
+    sellMsn    : "Trade(Sell)",
+    sellMsnUndo: "Trade(Sell) (cancelled)",
+     buyMsnBack: "Trade (Return)",
+     tspMsn    : "Transport",
+     tspMsnUndo: "Transport (cancelled)", // Undo = U-turn
+ pillageMsn    : "Pillage",
+ pillageMsnBack: "Pillage (Return)",  // Back = left arrow
+},
+com: #1#, // Also English; hopefully the same (until reported otherwise)
+
+se: { // Swedish
+     buyMsn    : "",
+    sellMsn    : "",
+     tspMsn    : "Transportera",
+     tspMsnUndo: "",
+ pillageMsn    : "",
+ pillageMsnBack: "",
+     trpMsn    : "Utplacera trupper",
+     trpMsnUndo: "Utplacera trupper  (avbruten)",
+},
+
+fr: { // French
+     buyMsn    : "",
+    sellMsn    : "",
+     tspMsn    : "",
+     tspMsnUndo: "",
+ pillageMsn    : "",
+ pillageMsnBack: "",
+},
+
+};
+
 var langs = { // Indexed on ISO 639-1 language ids (since country != language)
 
 en: { // English language strings maintained by myself. :-)

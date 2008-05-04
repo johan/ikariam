@@ -185,6 +185,7 @@
   position: static;
   vertical-align: top;
   margin-left: 3px;
+  white-space: nowrap;
 }
 .ellipsis.buyable:hover {
   text-decoration: underline;
@@ -288,7 +289,7 @@ html body div#container div#container2 a.text:hover {
 #island #container #mainview ul#islandfeatures li.marble { z-index: 400; }
 
 /* Get proper stacking, so names don't hide behind the vineyard */
-#island #container #mainview ul##islandfeatures li.wine { z-index: 0; }
+#island #container #mainview ul#islandfeatures li.wine { z-index: 0; }
 
 /* As we make links of the resource pane, we need to keep the colours: */
 #container #cityResources .resources a			{ color: #542C0F; }

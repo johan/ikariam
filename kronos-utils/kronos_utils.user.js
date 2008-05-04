@@ -8,6 +8,8 @@
 // @exclude        http://*.ikariam.*/index.php?view=renameCity*
 // @require        http://ecmanaut.googlecode.com/svn/trunk/lib/gm/wget.js
 // @resource woody header.png
+// @resource right arrow-right.gif
+// @resource  left arrow-left.gif
 // @resource   css kronos.css
 // @require        i18n.js
 // @require        gamedata.js
@@ -541,15 +543,6 @@ function militaryAdvisorCombatReportsView() {
       a.style.opacity = "0.5";
     }
     console.log(my.unknowns.length + 1);
-  }
-
-  function parseDate(t) {
-    var Y, M, D, h, m;
-    if ((t = t && trim(t.textContent).split(/\D+/))) {
-      [D, M, h, m] = t.map(integer);
-      Y = (new Date).getFullYear();
-      return (new Date(Y, M - 1, D, h, m)).getTime();
-    }
   }
 
   function fileReport(tr, n) {
@@ -1986,6 +1979,34 @@ function pruneTodayDates(xpath, root) {
 
 // would ideally treat the horrid tooltips as above, but they're dynamic. X-|
 function merchantNavyView() {
+  function arrowify(tr, i) {
+    var td = $x('td', tr);
+    var mission = trim(td[3].textContent);
+    var t1 = parseDate(td[4]), c1 = td[0].firstChild;
+    var t2 = parseDate(td[5]), c2 = td[1].firstChild;
+    rm(c2.nextSibling);
+    var player = c2.nextSibling.nodeValue.replace(/(^\( *| *\)$)/g, "");
+    rm(c2.nextSibling);
+    node({ text: player, className: "ellipsis price", append: td[1] });
+    var arrow = <td class="arrow"/>;
+    var dir = right;
+    if (t2 >= t1)
+      switch (mission) {
+        case texts.buyMsnBack:
+        case texts.sellMsnUndo:
+        case texts.pillageMsn:
+        case texts.pillageMsnBack:
+        case texts.trpMsnUndo:
+          console.log("replacing row " + (i+1));
+          td[1].replaceChild(c1, c2);
+          td[0].appendChild(c2);
+          [c1, c2] = [c2, c1];
+          dir = left;
+      }
+    arrow.* += <img src={dir}/>;
+    node({ tag: arrow, after: td[0] });
+  }
+
   function showResources(td) {
     var stuff = td.getAttribute("onmouseover").match(/<img.*/) + "";
     stuff = stuff.replace(/gold\D+[\d,.]+/g, "").match(/\d+[,.\d]*/g);
@@ -2004,8 +2025,19 @@ function merchantNavyView() {
   }
   var ugh = unsafeWindow.Tip;
   unsafeWindow.Tip = monkeypatch; // fixes up the tooltips a bit
+  var left = GM_getResourceURL("left");
+  var right = GM_getResourceURL("right");
 
+  var texts = servers[country];
   var table = $X('id("mainview")//table[@class="table01"]/tbody');
+
+  if (texts) {
+    GM_addStyle(".arrow { width: 28px; height: 17px; background: pink; }\n" +
+                ".arrow .left  { background-image: url("+ left +"); }\n" +
+                ".arrow .right { background-image: url("+ right +"); }");
+    $x('tr[td]', table).forEach(arrowify);
+    node({ tag: "th", text: " ", after: $X('tr/th[1]', table) });
+  }
   pruneTodayDates('tr/td', table);
   $x('tr/td[@onmouseover]', table).forEach(showResources);
 }
