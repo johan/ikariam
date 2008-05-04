@@ -220,6 +220,19 @@
   text-decoration: underline;
 }
 
+/* in the ship movement view, don't pad the table so brutally much */
+#merchantNavy #container #mainview table.table01 td {
+  padding: 4px 0px;
+}
+#merchantNavy #container #mainview table.table01 td:first-child,
+#merchantNavy #container #mainview table.table01 th:first-child {
+  padding-left: 10px;
+}
+#merchantNavy #container #mainview table.table01 td:last-child,
+#merchantNavy #container #mainview table.table01 th:last-child {
+  padding-right: 10px;
+}
+
 
 /**** Top panel improvements ****/
 

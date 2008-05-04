@@ -1988,9 +1988,9 @@ function merchantNavyView() {
     var player = c2.nextSibling.nodeValue.replace(/(^\( *| *\)$)/g, "");
     rm(c2.nextSibling);
     node({ text: player, className: "ellipsis price", append: td[1] });
-    var arrow = <td class="arrow"/>;
+    var arrow = tr.insertCell(1);
     var dir = right;
-    if (t2 >= t1)
+    if (t1 >= t2)
       switch (mission) {
         case texts.buyMsnBack:
         case texts.sellMsnUndo:
@@ -2003,8 +2003,7 @@ function merchantNavyView() {
           [c1, c2] = [c2, c1];
           dir = left;
       }
-    arrow.* += <img src={dir}/>;
-    node({ tag: arrow, after: td[0] });
+    node({ tag: <img src={dir}/>, append: arrow });
   }
 
   function showResources(td) {
