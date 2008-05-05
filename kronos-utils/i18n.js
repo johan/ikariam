@@ -9,6 +9,7 @@ var country = location.hostname.replace(/s\d+\.|ikariam\./g, ""); // index below
 var servers = {
 
 org: #1={ // English
+// ?view=merchantNavy texts:
      buyMsn    : "Trade(Buy)",
      selMsn    : "Trade(Sell)",
      selMsnUndo: "Trade(Sell) (cancelled)",
@@ -17,6 +18,12 @@ org: #1={ // English
      tspMsnUndo: "Transport (cancelled)", // Undo = U-turn
      attMsn    : "Pillage",
      attMsnBack: "Pillage (Return)",  // Back = left arrow
+     colMsn    : "?",
+     colMsnBack: "?", // can you even abort a colonize mission?
+
+// ?view=workshop-army texts:
+  lackResources: "Insufficient Resources", // Hover tooltip over "Not available"
+   tooLowBldLvl: "Insufficient building level!", // buttons (with the reason)
 },
 com: #1#, // Also English; hopefully the same (until reported otherwise)
 
