@@ -16,6 +16,7 @@ org: #1={ // English
      buyMsnBack: "Trade (Return)",
      tspMsn    : "Transport",
      tspMsnUndo: "Transport (cancelled)", // Undo = U-turn
+     tspMsnItcp: "Transport intercepté",
      attMsn    : "Pillage",
      attMsnBack: "Pillage (Return)",  // Back = left arrow
      colMsn    : "?",
@@ -37,6 +38,23 @@ se: { // Swedish
      attMsnBack: "Plundra (återvänder)",
      trpMsn    : "Utplacera trupper",
      trpMsnUndo: "Utplacera trupper  (avbruten)",
+},
+
+fr: {
+     buyMsn    : "Commerce (Acheter)",
+     selMsn    : "Commerce (Vendre)",
+     selMsnUndo: "Commerce (Vendre) (annulé)",
+     buyMsnBack: "Trade (Retour)",
+     tspMsn    : "Transport",
+     tspMsnUndo: "Transport (annulé)",
+     tspMsnItcp: "Transport intercepté",
+     attMsn    : "Piller",
+     attMsnBack: "Piller (Retour)",
+     colMsn    : "Coloniser",
+     colMsnBack: "?",
+
+  lackResources: "Quantité insuffisante de ressources",
+   tooLowBldLvl: "Niveau de construction insuffisant !",
 },
 
 };
