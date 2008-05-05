@@ -8,16 +8,16 @@
 // @exclude        http://*.ikariam.*/index.php?view=renameCity*
 // @require        http://ecmanaut.googlecode.com/svn/trunk/lib/gm/wget.js
 // @resource woody header.png
-// @resource att-r arrow-right.gif
-// @resource att-l arrow-left.gif
-// @resource buy-r arrow-right-buy.gif
-// @resource buy-l arrow-left-buy.gif
-// @resource sel-r arrow-right-sell.gif
-// @resource sel-l arrow-left-sell.gif
-// @resource tsp-r arrow-right-tsp.gif
-// @resource tsp-l arrow-left-tsp.gif
-// @resource col-r arrow-right-col.gif
-// @resource col-l arrow-left-col.gif
+// @resource att-r arrow-right.png
+// @resource att-l arrow-left.png
+// @resource buy-r arrow-right-buy.png
+// @resource buy-l arrow-left-buy.png
+// @resource sel-r arrow-right-sell.png
+// @resource sel-l arrow-left-sell.png
+// @resource tsp-r arrow-right-tsp.png
+// @resource tsp-l arrow-left-tsp.png
+// @resource col-r arrow-right-col.png
+// @resource col-l arrow-left-col.png
 // @resource   css kronos.css
 // @require        i18n.js
 // @require        gamedata.js
@@ -75,7 +75,7 @@ function init() {
     case "island": islandView(); break;
     case "worldmap_iso": worldmap_isoView(); break;
     case "townHall": townHallView(); break;
-    case "culturalPossessions_assign": // fall-through:
+    case "culturalPossessions_assign": scrollWheelable(); // fall-through:
     case "museum": museumView(); break;
     case "fleetGarrisonEdit": // fall-through:
     case "armyGarrisonEdit": dontSubmitZero(); break;
@@ -1987,12 +1987,12 @@ function pruneTodayDates(xpath, root) {
 
 // would ideally treat the horrid tooltips as above, but they're dynamic. X-|
 function merchantNavyView() {
-  function missionType(mission, t1_vs_t2) {
+  function missionType(mission, t1_vs_t2, c1, c2) {
     var R = "right", L = "left", x = "swap";
     var data = {// arrival<end  arrival==end  arrival>end  (",  " == verified)
       colMiss: { "-1": [R   ],  "0": [R   ],  "1": [R   ] },
       colUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
-      attMiss: { "-1": [R,  ],  "0": [R   ],  "1": [L, x] },
+      attMiss: { "-1": [R,  ],  "0": [R   ],  "1": [L,  ] },
       attUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
       attBack: { "-1": [L   ],  "0": [L   ],  "1": [L, x] },
       buyMiss: { "-1": [R,  ],  "0": [L,  ],  "1": [R   ] },
@@ -2007,9 +2007,9 @@ function merchantNavyView() {
     for each (var id in missions)
       for each (var sub in ["", "Undo", "Back"])
         if (mission == texts[id+"Msn"+sub]) {
-          data = data[id+(sub||"Miss")][t1_vs_t2];
+          data = data[id+(sub||"Miss")][t1_vs_t2].concat();
           data.unshift(id);
-          console.log(data.join(" / "));
+          //console.log((t1_vs_t2+"").charAt() +" "+ id+"Msn"+(sub||"Miss") +": "+ data.join(" / ") + " [" + c1+"&"+c2 +"]");
           return data;
         }
     console.log(mission +" \\ "+ t1_vs_t2);
@@ -2021,13 +2021,14 @@ function merchantNavyView() {
     var mission = trim(td[3].textContent), msn;
     var t1 = parseDate(td[4]), c1 = td[0].firstChild;
     var t2 = parseDate(td[5]), c2 = td[1].firstChild;
+    //if(compare(t1, t2) == 1)console.log(t1, td[4].textContent);
     rm(c2.nextSibling);
     var player = c2.nextSibling.nodeValue.replace(/(^\( *| *\)$)/g, "");
     rm(c2.nextSibling);
     node({ text: player, className: "ellipsis price", append: td[1] });
 
     var direction, msn, swap;
-    [msn, direction, swap] = missionType(mission, compare(t1, t2));
+    [msn, direction, swap] = missionType(mission, compare(t1, t2), c1.nodeValue, c2.nodeValue);
     var arrow = tr.insertCell(1);
     if (swap) {
       //console.log("replacing row " + (i+1));
@@ -2035,14 +2036,15 @@ function merchantNavyView() {
       td[0].appendChild(c2);
       [c1, c2] = [c2, c1];
     }
-    node({ tag: <img src={arrows[direction][msn]}/>, append: arrow });
+    node({ tag: <img class="arrow" src={arrows[direction][msn]}/>,
+           append: arrow });
   }
 
   function getter(mission, direction) {
     return function() {
+      //console.log(mission +" + "+ direction);
       var self = arguments.callee;
       if (self.img) return self.img;
-      console.log(mission +" + "+ direction);
       return self.img = GM_getResourceURL(mission +"-"+ direction);
     };
   }

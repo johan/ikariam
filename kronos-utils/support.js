@@ -55,9 +55,13 @@ function bind(fn, self) {
 
 function parseDate(t) {
   var Y, M, D, h, m, s;
-  if ((t = t && trim(t.textContent+":00").split(/\D+/))) {
-    [D, M, h, m, s] = t.map(integer);
-    Y = (new Date).getFullYear();
+  if ((t = t && trim(t.textContent).split(/\D+/))) {
+    if (5 == t.length) {
+      [D, M, h, m, s] = t.map(integer);
+      Y = (new Date).getFullYear();
+    } else {
+      [D, M, Y, h, m, s] = t.map(integer);
+    }
     return (new Date(Y, M - 1, D, h, m, s)).getTime();
   }
 }
