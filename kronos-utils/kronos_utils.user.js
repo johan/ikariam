@@ -8,8 +8,16 @@
 // @exclude        http://*.ikariam.*/index.php?view=renameCity*
 // @require        http://ecmanaut.googlecode.com/svn/trunk/lib/gm/wget.js
 // @resource woody header.png
-// @resource right arrow-right.gif
-// @resource  left arrow-left.gif
+// @resource att-r arrow-right.gif
+// @resource att-l arrow-left.gif
+// @resource buy-r arrow-right-buy.gif
+// @resource buy-l arrow-left-buy.gif
+// @resource sel-r arrow-right-sell.gif
+// @resource sel-l arrow-left-sell.gif
+// @resource tsp-r arrow-right-tsp.gif
+// @resource tsp-l arrow-left-tsp.gif
+// @resource col-r arrow-right-col.gif
+// @resource col-l arrow-left-col.gif
 // @resource   css kronos.css
 // @require        i18n.js
 // @require        gamedata.js
@@ -1979,31 +1987,64 @@ function pruneTodayDates(xpath, root) {
 
 // would ideally treat the horrid tooltips as above, but they're dynamic. X-|
 function merchantNavyView() {
+  function missionType(mission, t1_vs_t2) {
+    var R = "right", L = "left", x = "swap";
+    var data = {// arrival<end  arrival==end  arrival>end  (",  " == verified)
+      colMiss: { "-1": [R   ],  "0": [R   ],  "1": [R   ] },
+      colUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
+      attMiss: { "-1": [R,  ],  "0": [R   ],  "1": [L, x] },
+      attUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
+      attBack: { "-1": [L   ],  "0": [L   ],  "1": [L, x] },
+      buyMiss: { "-1": [R,  ],  "0": [L,  ],  "1": [R   ] },
+      buyUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
+      buyBack: { "-1": [L   ],  "0": [L, x],  "1": [L, x] },
+      selMiss: { "-1": [R   ],  "0": [R   ],  "1": [R   ] },
+      selUndo: { "-1": [L   ],  "0": [L, x],  "1": [L   ] },
+      selBack: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
+      tspMiss: { "-1": [R,  ],  "0": [R   ],  "1": [R   ] },
+      tspUndo: { "-1": [L   ],  "0": [L, x],  "1": [L   ] },
+    };
+    for each (var id in missions)
+      for each (var sub in ["", "Undo", "Back"])
+        if (mission == texts[id+"Msn"+sub]) {
+          data = data[id+(sub||"Miss")][t1_vs_t2];
+          data.unshift(id);
+          console.log(data.join(" / "));
+          return data;
+        }
+    console.log(mission +" \\ "+ t1_vs_t2);
+    return ["att", R,];
+  }
+
   function arrowify(tr, i) {
     var td = $x('td', tr);
-    var mission = trim(td[3].textContent);
+    var mission = trim(td[3].textContent), msn;
     var t1 = parseDate(td[4]), c1 = td[0].firstChild;
     var t2 = parseDate(td[5]), c2 = td[1].firstChild;
     rm(c2.nextSibling);
     var player = c2.nextSibling.nodeValue.replace(/(^\( *| *\)$)/g, "");
     rm(c2.nextSibling);
     node({ text: player, className: "ellipsis price", append: td[1] });
+
+    var direction, msn, swap;
+    [msn, direction, swap] = missionType(mission, compare(t1, t2));
     var arrow = tr.insertCell(1);
-    var dir = right;
-    if (t1 >= t2)
-      switch (mission) {
-        case texts.buyMsnBack:
-        case texts.sellMsnUndo:
-        case texts.pillageMsn:
-        case texts.pillageMsnBack:
-        case texts.trpMsnUndo:
-          console.log("replacing row " + (i+1));
-          td[1].replaceChild(c1, c2);
-          td[0].appendChild(c2);
-          [c1, c2] = [c2, c1];
-          dir = left;
-      }
-    node({ tag: <img src={dir}/>, append: arrow });
+    if (swap) {
+      //console.log("replacing row " + (i+1));
+      td[1].replaceChild(c1, c2);
+      td[0].appendChild(c2);
+      [c1, c2] = [c2, c1];
+    }
+    node({ tag: <img src={arrows[direction][msn]}/>, append: arrow });
+  }
+
+  function getter(mission, direction) {
+    return function() {
+      var self = arguments.callee;
+      if (self.img) return self.img;
+      console.log(mission +" + "+ direction);
+      return self.img = GM_getResourceURL(mission +"-"+ direction);
+    };
   }
 
   function showResources(td) {
@@ -2022,21 +2063,24 @@ function merchantNavyView() {
     args[0] = scan.innerHTML;
     ugh.apply(this, args);
   }
+
   var ugh = unsafeWindow.Tip;
   unsafeWindow.Tip = monkeypatch; // fixes up the tooltips a bit
-  var left = GM_getResourceURL("left");
-  var right = GM_getResourceURL("right");
 
-  var texts = servers[country];
   var table = $X('id("mainview")//table[@class="table01"]/tbody');
 
+  var texts = servers[country];
   if (texts) {
-    GM_addStyle(".arrow { width: 28px; height: 17px; background: pink; }\n" +
-                ".arrow .left  { background-image: url("+ left +"); }\n" +
-                ".arrow .right { background-image: url("+ right +"); }");
+    var arrows = { left: {}, right: {} };
+    var missions = ["att", "buy", "sel", "tsp", "col"];
+    for each (var msn in missions) {
+      arrows.left.__defineGetter__(msn, getter(msn, "l"));
+      arrows.right.__defineGetter__(msn, getter(msn, "r"));
+    }
     $x('tr[td]', table).forEach(arrowify);
     node({ tag: "th", text: " ", after: $X('tr/th[1]', table) });
   }
+
   pruneTodayDates('tr/td', table);
   $x('tr/td[@onmouseover]', table).forEach(showResources);
 }

@@ -62,6 +62,10 @@ function parseDate(t) {
   }
 }
 
+function compare(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
 function addClass(node, className) {
   var classes = (node.className || "").split(/\s+/g);
   if (classes.indexOf(className) > 0) return;

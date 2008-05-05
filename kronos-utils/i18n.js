@@ -8,42 +8,28 @@ var country = location.hostname.replace(/s\d+\.|ikariam\./g, ""); // index below
 // know how to read the page.
 var servers = {
 
-// arrival > end: swap places, <- buyMsnBack, pillageMsn, -Back
-// arrival = end: swap places, <- buyMsnBack, trpMsnUndo, sellMsnUndo
-
-// arrival = end: no swapping, <- buyMsn
-// arrival < end: no swapping, -> buyMsn, trpMsn, pillageMsn
-
 org: #1={ // English
      buyMsn    : "Trade(Buy)",
-    sellMsn    : "Trade(Sell)",
-    sellMsnUndo: "Trade(Sell) (cancelled)",
+     selMsn    : "Trade(Sell)",
+     selMsnUndo: "Trade(Sell) (cancelled)",
      buyMsnBack: "Trade (Return)",
      tspMsn    : "Transport",
      tspMsnUndo: "Transport (cancelled)", // Undo = U-turn
- pillageMsn    : "Pillage",
- pillageMsnBack: "Pillage (Return)",  // Back = left arrow
+     attMsn    : "Pillage",
+     attMsnBack: "Pillage (Return)",  // Back = left arrow
 },
 com: #1#, // Also English; hopefully the same (until reported otherwise)
 
 se: { // Swedish
-     buyMsn    : "",
-    sellMsn    : "",
+     buyMsn    : "Handel(Köpa)",
+     selMsn    : "",
+     selMsnUndo: "Handel(Sälja) (avbruten)",
      tspMsn    : "Transportera",
      tspMsnUndo: "",
- pillageMsn    : "",
- pillageMsnBack: "",
+     attMsn    : "",
+     attMsnBack: "",
      trpMsn    : "Utplacera trupper",
      trpMsnUndo: "Utplacera trupper  (avbruten)",
-},
-
-fr: { // French
-     buyMsn    : "",
-    sellMsn    : "",
-     tspMsn    : "",
-     tspMsnUndo: "",
- pillageMsn    : "",
- pillageMsnBack: "",
 },
 
 };
