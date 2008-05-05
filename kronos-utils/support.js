@@ -56,10 +56,10 @@ function bind(fn, self) {
 function parseDate(t) {
   var Y, M, D, h, m, s = 0;
   if ((t = t && trim(t.textContent).split(/\D+/))) {
-    if (4 == t.length) {
+    if (4 == t.length) { // Military view
       [D, M, h, m] = t.map(integer);
       Y = (new Date).getFullYear();
-    } else {
+    } else { // merchantnavyView, for instance
       [D, M, Y, h, m, s] = t.map(integer);
     }
     return (new Date(Y, M - 1, D, h, m, s)).getTime();

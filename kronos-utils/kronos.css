@@ -233,6 +233,10 @@
   padding-right: 10px;
 }
 
+#merchantNavy .arrow {
+  vertical-align: text-top;
+}
+
 
 /**** Top panel improvements ****/
 

@@ -1992,7 +1992,7 @@ function merchantNavyView() {
     var data = {// arrival<end  arrival==end  arrival>end  (",  " == verified)
       colMiss: { "-1": [R   ],  "0": [R   ],  "1": [R   ] },
       colUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
-      attMiss: { "-1": [R,  ],  "0": [R   ],  "1": [L,  ] },
+      attMiss: { "-1": [R,  ],  "0": [R   ],  "1": [L, x] },
       attUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
       attBack: { "-1": [L   ],  "0": [L   ],  "1": [L, x] },
       buyMiss: { "-1": [R,  ],  "0": [L,  ],  "1": [R   ] },
@@ -2021,7 +2021,7 @@ function merchantNavyView() {
     var mission = trim(td[3].textContent), msn;
     var t1 = parseDate(td[4]), c1 = td[0].firstChild;
     var t2 = parseDate(td[5]), c2 = td[1].firstChild;
-    //if(compare(t1, t2) == 1)console.log(t1, td[4].textContent);
+    //if(compare(t1, t2) == 1)console.log(1, td[4].textContent, td[5].textContent, t1, t2);
     rm(c2.nextSibling);
     var player = c2.nextSibling.nodeValue.replace(/(^\( *| *\)$)/g, "");
     rm(c2.nextSibling);
