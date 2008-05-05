@@ -54,10 +54,10 @@ function bind(fn, self) {
 }
 
 function parseDate(t) {
-  var Y, M, D, h, m, s;
+  var Y, M, D, h, m, s = 0;
   if ((t = t && trim(t.textContent).split(/\D+/))) {
-    if (5 == t.length) {
-      [D, M, h, m, s] = t.map(integer);
+    if (4 == t.length) {
+      [D, M, h, m] = t.map(integer);
       Y = (new Date).getFullYear();
     } else {
       [D, M, Y, h, m, s] = t.map(integer);
