@@ -57,6 +57,23 @@ fr: {
    tooLowBldLvl: "Niveau de construction insuffisant !",
 },
 
+ru: {
+     buyMsn    : "Торговля (Покупка)",
+     selMsn    : "Торговля (Продажа)",
+     selMsnUndo: "Торговля (Покупка) (отменено)",
+     buyMsnBack: "Торговля (Обмен)",
+     tspMsn    : "Транспорт",
+     tspMsnUndo: "Транспорт (отменено)",
+     tspMsnItcp: "?", //Атака транспорта
+     attMsn    : "Набег",
+     attMsnBack: "Набег (Retour)",
+     colMsn    : "Колонизация",
+     colMsnBack: "?",
+
+  lackResources: "?", //Insufficient Resources
+   tooLowBldLvl: "?", //Insufficient building level!
+},
+
 };
 
 var langs = { // Indexed on ISO 639-1 language ids (since country != language)
