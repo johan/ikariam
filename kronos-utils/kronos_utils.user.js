@@ -1994,7 +1994,7 @@ function merchantNavyView() {
       colUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
       attMiss: { "-1": [R,  ],  "0": [R   ],  "1": [L, x] },
       attUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
-      attBack: { "-1": [L   ],  "0": [L   ],  "1": [L, x] },
+      attBack: { "-1": [L   ],  "0": [L, x],  "1": [L, x] },
       buyMiss: { "-1": [R,  ],  "0": [L,  ],  "1": [R   ] },
       buyUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
       buyBack: { "-1": [L   ],  "0": [L, x],  "1": [L, x] },
@@ -2056,9 +2056,9 @@ function merchantNavyView() {
       if (!stuff.match(goods[i]))
         goods.splice(i--, 1);
     if (1 == goods.length)
-      goods.push("only");
+      goods.unshift("only");
     else if (goods.length)
-      goods.push("lots");
+      goods.unshift("lots");
     stuff = stuff.replace(/gold\D+[\d,.]+/g, "").match(/\d+[,.\d]*/g);
     if (stuff)
       node({ className: ["ellipsis"].concat(goods).join(" "), append: td,
