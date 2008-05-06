@@ -14,6 +14,8 @@
 // @resource buy-l arrow-left-buy.png
 // @resource sel-r arrow-right-sell.png
 // @resource sel-l arrow-left-sell.png
+// @resource trp-r arrow-right-trp.png
+// @resource trp-l arrow-left-trp.png
 // @resource tsp-r arrow-right-tsp.png
 // @resource tsp-l arrow-left-tsp.png
 // @resource col-r arrow-right-col.png
@@ -1994,13 +1996,15 @@ function merchantNavyView() {
       colUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
       attMiss: { "-1": [R,  ],  "0": [R   ],  "1": [L, x] },
       attUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
-      attBack: { "-1": [L   ],  "0": [L, x],  "1": [L, x] },
+      attBack: { "-1": [L   ],  "0": [L, x],  "1": [L, x] },// 0: YOUR name :/
       buyMiss: { "-1": [R,  ],  "0": [L,  ],  "1": [R   ] },
       buyUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
       buyBack: { "-1": [L   ],  "0": [L, x],  "1": [L, x] },
       selMiss: { "-1": [R   ],  "0": [R   ],  "1": [R   ] },
       selUndo: { "-1": [L   ],  "0": [L, x],  "1": [L   ] },
       selBack: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
+      trpMiss: { "-1": [R   ],  "0": [R   ],  "1": [R   ] },
+      trpUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
       tspMiss: { "-1": [R,  ],  "0": [R,  ],  "1": [R   ] },
       tspUndo: { "-1": [L   ],  "0": [L, x],  "1": [L   ] },
     };
@@ -2013,7 +2017,7 @@ function merchantNavyView() {
           return data;
         }
     console.log(mission +" \\ "+ t1_vs_t2);
-    return ["att", R,];
+    return ["tsp", R];
   }
 
   function arrowify(tr, i) {
@@ -2052,17 +2056,40 @@ function merchantNavyView() {
   function showResources(td) {
     var stuff = td.getAttribute("onmouseover").match(/<img.*/) + "";
     var goods = "wood,wine,marble,glass,sulfur".split(",");
-    for (var i = 0; i < goods.length; i++)
-      if (!stuff.match(goods[i]))
+    var count = {};
+    for (var i = 0; i < goods.length; i++) {
+      var amount = stuff.match(goods[i] + "\\D*(\\d+)");
+      if (amount) {
+        count[goods[i]] = integer(amount[1]);
+        console.log(goods[i] +": "+ count[goods[i]]);
+      } else {
         goods.splice(i--, 1);
-    if (1 == goods.length)
-      goods.unshift("only");
-    else if (goods.length)
-      goods.unshift("lots");
+      }
+    }
+
+    if (goods.length) {
+      if (1 == goods.length)
+        goods.unshift("only");
+      else
+        goods.unshift("lots");
+
+      // goods underline
+      var props = <div class="underline"/>, total = 0, r;
+      for each (r in count) total += r;
+      for (r in count)
+        props.* += <div style={"width: "+ Math.floor(100*count[r]/total) +"%"}
+                        class={"goods " + r}> </div>;
+    }
+
     stuff = stuff.replace(/gold\D+[\d,.]+/g, "").match(/\d+[,.\d]*/g);
+    goods = ["ellipsis goods"].concat(goods).join(" ");
     if (stuff)
-      node({ className: ["ellipsis"].concat(goods).join(" "), append: td,
-             text: reduce(sum, stuff, 0), style: { position: "static" } });
+      stuff = node({ className: goods, append: td,
+                     text: reduce(sum, stuff, 0) });
+    if (props) {
+      props.@style = "width:"+ (stuff.offsetWidth - 5) + "px";
+      node({ tag: props, append: stuff });
+    }
   }
 
   function monkeypatch(html) {
@@ -2082,7 +2109,7 @@ function merchantNavyView() {
   var texts = servers[country];
   if (texts) {
     var arrows = { left: {}, right: {} };
-    var missions = ["att", "buy", "sel", "tsp", "col"];
+    var missions = ["att", "buy", "sel", "trp", "tsp", "col"];
     for each (var msn in missions) {
       arrows.left.__defineGetter__(msn, getter(msn, "l"));
       arrows.right.__defineGetter__(msn, getter(msn, "r"));

@@ -237,11 +237,36 @@
   vertical-align: text-top;
 }
 
-#merchantNavy .only.wood	{ color: #BC9D3D; }
-#merchantNavy .only.wine	{ color: #94C; }
-#merchantNavy .only.marble	{ color: #887663; }
-#merchantNavy .only.glass	{ color: #7DBFE0; }
-#merchantNavy .only.sulfur	{ color: #E1BC4D; }
+#merchantNavy .goods {
+  display: inline;
+  position: relative;
+  bottom: 1px;
+}
+
+#merchantNavy .underline {
+  position: absolute;
+  margin: 0 3px;
+  bottom: -2px;
+  left: 0;
+}
+
+#merchantNavy .underline div {
+  height: 2px;
+  float: left;
+}
+
+#merchantNavy .only.wood   { color: #BC9D3D; }
+#merchantNavy .only.wine   { color: #94C; }
+#merchantNavy .only.marble { color: #887663; }
+#merchantNavy .only.glass  { color: #7DBFE0; }
+#merchantNavy .only.sulfur { color: #E1BC4D; }
+
+#merchantNavy .underline .wood   { background-color: #BC9D3D; }
+#merchantNavy .underline .wine   { background-color: #94C; }
+#merchantNavy .underline .marble { background-color: #887663; }
+#merchantNavy .underline .glass  { background-color: #7DBFE0; }
+#merchantNavy .underline .sulfur { background-color: #E1BC4D; }
+
 
 
 /**** Top panel improvements ****/

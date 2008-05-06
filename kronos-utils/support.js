@@ -80,6 +80,11 @@ function addClass(node, className) {
   node.className = classes.join(" ");
 }
 
+function gcs(node, prop) {
+  var cs = getComputedStyle(node, "");
+  return isDefined(prop) ? cs[prop] : cs;
+}
+
 // returns a function that only runs expensive function fn after no call to it
 // has been made for n ms, or 100, if not given, or the time fn took last time,
 // if it has been run at least once and no n was given.

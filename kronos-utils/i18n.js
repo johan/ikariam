@@ -11,12 +11,14 @@ var servers = {
 org: #1={ // English
 // ?view=merchantNavy texts:
      buyMsn    : "Trade(Buy)",
+     buyMsnBack: "Trade (Return)",
      selMsn    : "Trade(Sell)",
      selMsnUndo: "Trade(Sell) (cancelled)",
-     buyMsnBack: "Trade (Return)",
      tspMsn    : "Transport",
      tspMsnUndo: "Transport (cancelled)", // Undo = U-turn
-     tspMsnItcp: "Transport intercepté",
+     tspMsnItcp: "?",
+     trpMsn    : "Deploy troops",
+     trpMsnUndo: "Deploy troops  (cancelled)",
      attMsn    : "Pillage",
      attMsnBack: "Pillage (Return)",  // Back = left arrow
      colMsn    : "?",
@@ -30,21 +32,22 @@ com: #1#, // Also English; hopefully the same (until reported otherwise)
 
 se: { // Swedish
      buyMsn    : "Handel(Köpa)",
-     selMsn    : "",
+     buyMsnBack: "Handel (Återvänder)",
+     selMsn    : "?",
      selMsnUndo: "Handel(Sälja) (avbruten)",
-     tspMsn    : "Transportera",
-     tspMsnUndo: "",
-     attMsn    : "Plundra",
-     attMsnBack: "Plundra (återvänder)",
      trpMsn    : "Utplacera trupper",
      trpMsnUndo: "Utplacera trupper  (avbruten)",
+     tspMsn    : "Transportera",
+     tspMsnUndo: "?",
+     attMsn    : "Plundra",
+     attMsnBack: "Plundra (återvänder)",
 },
 
 fr: {
      buyMsn    : "Commerce (Acheter)",
+     buyMsnBack: "Trade (Retour)",
      selMsn    : "Commerce (Vendre)",
      selMsnUndo: "Commerce (Vendre) (annulé)",
-     buyMsnBack: "Trade (Retour)",
      tspMsn    : "Transport",
      tspMsnUndo: "Transport (annulé)",
      tspMsnItcp: "Transport intercepté",
@@ -59,9 +62,9 @@ fr: {
 
 ru: {
      buyMsn    : "Торговля (Покупка)",
+     buyMsnBack: "Торговля (Обмен)",
      selMsn    : "Торговля (Продажа)",
      selMsnUndo: "Торговля (Покупка) (отменено)",
-     buyMsnBack: "Торговля (Обмен)",
      tspMsn    : "Транспорт",
      tspMsnUndo: "Транспорт (отменено)",
      tspMsnItcp: "?", //Атака транспорта
