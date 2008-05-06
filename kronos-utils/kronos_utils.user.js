@@ -2001,7 +2001,7 @@ function merchantNavyView() {
       selMiss: { "-1": [R   ],  "0": [R   ],  "1": [R   ] },
       selUndo: { "-1": [L   ],  "0": [L, x],  "1": [L   ] },
       selBack: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
-      tspMiss: { "-1": [R,  ],  "0": [R   ],  "1": [R   ] },
+      tspMiss: { "-1": [R,  ],  "0": [R,  ],  "1": [R   ] },
       tspUndo: { "-1": [L   ],  "0": [L, x],  "1": [L   ] },
     };
     for each (var id in missions)
