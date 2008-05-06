@@ -1801,8 +1801,20 @@ function pillageLink(id, opts) {
 }
 
 function branchOfficeView() {
+  function makeRadios(select) {
+    var td = select.parentNode, id = select.name;
+    for each (var opt in $x('option', select)) {
+      var radio = <input type="radio" name={select.name} value={opt.value}/>;
+      if (opt.hasAttribute("selected")) radio.@checked = true;
+      node({ tag: <label>{radio} {opt.textContent} </label>,
+             append: select.parentNode });
+    }
+    rm(select);
+  }
+
   function factor(table) {
     sumPrices(table, 1, 3);
+    $x('tbody/tr/td/select', table).forEach(makeRadios);
   }
   scrollWheelable();
   $x('id("mainview")//table[@class="tablekontor"]').forEach(factor);

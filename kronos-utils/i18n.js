@@ -21,6 +21,7 @@ org: #1={ // English
      trpMsnUndo: "Deploy troops  (cancelled)",
      attMsn    : "Pillage",
      attMsnBack: "Pillage (Return)",  // Back = left arrow
+     attMsnUndo: "Pillage  (cancelled)",
      colMsn    : "?",
      colMsnBack: "?", // can you even abort a colonize mission?
 
