@@ -2079,7 +2079,7 @@ function merchantNavyView() {
       arrows.left.__defineGetter__(msn, getter(msn, "l"));
       arrows.right.__defineGetter__(msn, getter(msn, "r"));
     }
-    $x('tr[td]', table).forEach(arrowify);
+    $x('tr[td[3]]', table).forEach(arrowify);
     node({ tag: "th", text: " ", after: $X('tr/th[1]', table) });
   }
 
