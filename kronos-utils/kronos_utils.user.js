@@ -2051,10 +2051,18 @@ function merchantNavyView() {
 
   function showResources(td) {
     var stuff = td.getAttribute("onmouseover").match(/<img.*/) + "";
+    var goods = "wood,wine,marble,glass,sulfur".split(",");
+    for (var i = 0; i < goods.length; i++)
+      if (!stuff.match(goods[i]))
+        goods.splice(i--, 1);
+    if (1 == goods.length)
+      goods.push("only");
+    else if (goods.length)
+      goods.push("lots");
     stuff = stuff.replace(/gold\D+[\d,.]+/g, "").match(/\d+[,.\d]*/g);
     if (stuff)
-      node({ className: "ellipsis", text: reduce(sum, stuff, 0), append: td,
-             style: { position: "static" } });
+      node({ className: ["ellipsis"].concat(goods).join(" "), append: td,
+             text: reduce(sum, stuff, 0), style: { position: "static" } });
   }
 
   function monkeypatch(html) {

@@ -237,6 +237,12 @@
   vertical-align: text-top;
 }
 
+#merchantNavy .only.wood	{ color: #BC9D3D; }
+#merchantNavy .only.wine	{ color: #94C; }
+#merchantNavy .only.marble	{ color: #887663; }
+#merchantNavy .only.glass	{ color: #7DBFE0; }
+#merchantNavy .only.sulfur	{ color: #E1BC4D; }
+
 
 /**** Top panel improvements ****/
 
