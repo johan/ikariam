@@ -28,7 +28,7 @@
 // @require        memory.js
 // ==/UserScript==
 
-var version = "0.5", lang, scientists;
+var version = "0.5", lang, scientists, growthDebug = 0;
 if (location.hostname.match(/^s\d+\./))
   init();
 else
@@ -2352,10 +2352,14 @@ function corruption(city, fullpct) {
   var max = governor >= colonies ? 0 : 7 * colonies - 8 * governor + 2;
   var now = new Date, baseline = new Date(Date.UTC(2008, 3, 28));
   var factor = now < baseline ? 0.1 : 0.2;
-  if (now > baseline)
-    factor += Math.floor((now - baseline) / 6048e5) * 0.1;
-  //console.log("Max corr: " + max + ", factor: "+ factor);
-  return fullpct ? max : Math.min(factor, 1.0) * max / 100;
+  var weeks = Math.floor((now - baseline) / (7*24*60*60e3));
+  if (now > baseline) factor += weeks * 0.1;
+  var corr = Math.min(factor, 1.0) * max / 100;
+  growthDebug && console.log("Max corruption (" + max + "%) * gating factor "+
+                             factor.toFixed(1) +" ("+ weeks +" whole weeks " +
+                             "from 2008-04-28) => "+ (100*corr).toFixed(2) +
+                             "% actual corruption");
+  return fullpct ? max : corr;
 }
 
 function townHallView() {
@@ -3198,7 +3202,7 @@ function showHousingOccupancy(opts) {
   var txt = $("value_inhabitants").firstChild;
   var text = txt.nodeValue.replace(/\s/g, "\xA0");
   var pop = projectPopulation(opts);
-  //console.log(pop.toSource());
+  growthDebug && console.log(pop.toSource());
   var time = ":∞";
   if (pop.upgradeIn)
     time = ":" + secsToDHMS(pop.upgradeIn, 0);
@@ -3245,12 +3249,20 @@ function projectPopulation(opts) {
   var museum = 20 * buildingLevel("museum", 0);
   var culture = 50 * config.getCity(["x", buildingIDs.museum], 0);
   var happy = 196 + wellDigging + holiday + tavern + wine + museum + culture;
-  //console.log(wellDigging, holiday, tavern, wine, museum, culture, happy);
 
   var population = opts && opts.population || getPopulation();
+  growthDebug && console.log("well digging: "+ wellDigging +", holiday: "+
+                             holiday +", tavern:"+ tavern +", wine: "+ wine +
+                             ", museum: "+ museum +", culture: "+ culture +
+                             " - population: "+ population + " => "+
+                             (happy - population) +" base happiness");
+
   var corr = corruption();
   happy -= Math.ceil(corr * population);
-  //console.log("corruption: "+corr+" => -"+ Math.ceil(corr * population));
+  growthDebug && console.log("Actual corruption rate ("+ corr.toFixed(4) +
+                             ") * population ("+ population +") => "+
+                             Math.ceil(corr * population) +
+                             " unhappy citizens from corruption");
   var initialGrowth = getGrowth(population);
   var growthSignSame = initialGrowth > 0 ? function plus(p) { return p > 0; } :
                                           function minus(p) { return p < 0; };
