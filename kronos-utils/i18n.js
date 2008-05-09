@@ -42,6 +42,7 @@ se: { // Swedish
      tspMsnUndo: "?",
      attMsn    : "Plundra",
      attMsnBack: "Plundra (återvänder)",
+     colMsn    : "Kolonisera",
 },
 
 fr: {
