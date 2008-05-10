@@ -22,7 +22,7 @@ function changeMood() {
   mood = moods[hour];
 
   var was = (document.body.className || "") + " ";
-  document.body.className = was.replace(/(Atardecer|Noche|Amanecer)?$/, mood);
+  document.body.className = was.replace(/(Atardecer|Noche|Amanecer)?/, mood);
 
   // right; fine, that far -- but when should we change the mood next time?
   var t = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
@@ -30,7 +30,7 @@ function changeMood() {
   hour = now.getHours();
 
   var dt = t - now; // time until next full hour
-  while (!hour || !moods.hasOwnProperty(hour)) {
+  while (!hour || !moods.hasOwnProperty(hour) || hour == now.getHours()) {
     dt += 60*60e3;
     hour++;
   }
