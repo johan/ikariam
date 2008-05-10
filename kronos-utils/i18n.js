@@ -6,7 +6,7 @@ var country = location.hostname.replace(/s\d+\.|ikariam\./g, ""); // index below
 // on whichever servers you play on. Without these, Kronos won't be able to do a
 // few improvements to some views (merchantNavy view, for a start) as it doesn't
 // know how to read the page.
-var servers = {
+var servers = { // Indexed on hostname TLD, if your country is sX.ikariam.TLD
 
 org: #1={ // English
 // ?view=merchantNavy texts:
@@ -23,7 +23,6 @@ org: #1={ // English
      attMsnBack: "Pillage (Return)",  // Back = left arrow
      attMsnUndo: "Pillage  (cancelled)",
      colMsn    : "?",
-     colMsnBack: "?", // can you even abort a colonize mission?
 
 // ?view=workshop-army texts:
   lackResources: "Insufficient Resources", // Hover tooltip over "Not available"
@@ -31,7 +30,7 @@ org: #1={ // English
 },
 com: #1#, // Also English; hopefully the same (until reported otherwise)
 
-se: { // Swedish
+se: { // Swedish server
      buyMsn    : "Handel(Köpa)",
      buyMsnBack: "Handel (Återvänder)",
      selMsn    : "?",
@@ -45,7 +44,7 @@ se: { // Swedish
      colMsn    : "Kolonisera",
 },
 
-fr: {
+fr: { // French server
      buyMsn    : "Commerce (Acheter)",
      buyMsnBack: "Trade (Retour)",
      selMsn    : "Commerce (Vendre)",
@@ -56,13 +55,28 @@ fr: {
      attMsn    : "Piller",
      attMsnBack: "Piller (Retour)",
      colMsn    : "Coloniser",
-     colMsnBack: "?",
 
   lackResources: "Quantité insuffisante de ressources",
    tooLowBldLvl: "Niveau de construction insuffisant !",
 },
 
-ru: {
+ro: { // Romanian server
+     buyMsn    : "Schimb (Cumpara)",
+     buyMsnBack: "Schimb (Revin)",
+     selMsn    : "Schimb (Vinde)",
+     selMsnUndo: "Schimb (Vinde) (anulata)",
+     tspMsn    : "Transport",
+     tspMsnUndo: "Transport (anulata)",
+     tspMsnItcp: "?",
+     trpMsn    : "Trimite trupe",
+     trpMsnUndo: "Trimite trupe (anulata)",
+     attMsn    : "Jefuieste",
+     attMsnBack: "Jefuirea (Revin)",
+     attMsnUndo: "Jefuirea (anulata)",
+     colMsn    : "Colonizeaza",
+},
+
+ru: { // Russian server
      buyMsn    : "Торговля (Покупка)",
      buyMsnBack: "Торговля (Обмен)",
      selMsn    : "Торговля (Продажа)",
@@ -75,13 +89,12 @@ ru: {
      attMsn    : "Набег",
      attMsnBack: "Набег (Retour)",
      colMsn    : "Колонизация",
-     colMsnBack: "?",
 
   lackResources: "?", //Insufficient Resources
    tooLowBldLvl: "?", //Insufficient building level!
 },
 
-nl: { // Dutch
+nl: { // Dutch server
      buyMsn    : "Handel(Koop)",
      buyMsnBack: "Handel (Retour)",
      selMsn    : "Handel(Verkoop)",
