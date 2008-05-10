@@ -34,6 +34,7 @@ function changeMood() {
     dt += 60*60e3;
     hour++;
   }
+  dt -= 60*60e3;
 
   setTimeout(changeMood, dt + 1e3); // let the sun have its way
 
