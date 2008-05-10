@@ -10,24 +10,35 @@
 
 // ---- Version 1.1 ----
 
-var mood = "";
+var moods = { 18: "Atardecer", 21: "Noche", 0: "Noche", 6: "Amanecer", 10: "" };
 
-switch ((new Date).getHours()) {
-  case 18: case 19: case 20:
-    mood = "Atardecer"; break;
+changeMood();
 
-  case 21: case 22: case 23:
-  case 00: case 01: case 02:
-  case 03: case 04: case 05:
-    mood = "Noche"; break;
+function changeMood() {
+  var mood, now = new Date, hour = now.getHours();
+  while (!moods.hasOwnProperty(hour)) {
+    hour--;
+  }
+  mood = moods[hour];
 
-  case 6: case 7: case 8: case 9:
-    mood = "Amanecer"; break;
-}
+  var was = (document.body.className || "") + " ";
+  document.body.className = was.replace(/(Atardecer|Noche|Amanecer)?$/, mood);
 
-if (mood) {
-  document.body.className = (document.body.className||"") +" "+ mood;
-  GM_addStyle(<><![CDATA[
+  // right; fine, that far -- but when should we change the mood next time?
+  var t = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
+                   now.getHours() + 1); // next full hour, possibly tomorrow
+  hour = now.getHours();
+
+  var dt = t - now; // time until next full hour
+  while (!hour || !moods.hasOwnProperty(hour)) {
+    dt += 60*60e3;
+    hour++;
+  }
+
+  setTimeout(changeMood, dt + 1e3); // let the sun have its way
+
+  changeMood.done = changeMood.done || 0; // already added CSS?
+  if (!changeMood.done++) GM_addStyle(<><![CDATA[
 
 /*---------- NOCHE -----------*/
 
