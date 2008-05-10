@@ -41,6 +41,14 @@ function changeMood() {
   changeMood.done = changeMood.done || 0; // already added CSS?
   if (!changeMood.done++) GM_addStyle(<><![CDATA[
 
+/* add a .transition/#transition tag just after everything we re-colour -- make
+   it the same dimensions as the original, turn the first into position:absolute
+   and make the transition imageslowly fade from opacity:0.0 to 1.0 the final
+   hour before a mood change from one state to the next. Not yet implemented. */
+#city #mainview #locations, /* for forthcoming smooth fade between moods */
+#city #mainview #transition { position: absolute; width: 720px; height: 440px; }
+#city #mainview .transition { position: absolute; /* width/height per elem */ }
+
 /*---------- NOCHE -----------*/
 
 
