@@ -3186,10 +3186,45 @@ function workshopView() {
   projectCompletion("upgradeCountdown", "done");
 }
 
+function lootable(res, port, warehouse) {
+  var all = 0, safe = buildingCapacities.warehouse;
+  if (isUndefined(port))	   port = buildingLevel("port");
+  if (isUndefined(warehouse)) warehouse = buildingLevel("warehouse");
+  var loot = {};
+  for (var r in res) {
+    if (!/^[wWMCS]$/.test(r)) continue;
+    loot[r] = Math.max(0, res[r] - safe[r == "w" ? "wood" : "rest"][warehouse]);
+    all += loot[r];
+  }
+  var load = 20 * buildingCapacities.port[port];
+  for (var r in loot)
+    loot[r] = Math.min(loot[r], Math.round((loot[r] / all) * load));
+  return loot;
+}
+
 function showSafeWarehouseLevels() {
   function showSafeLevel(div) {
-    var n = "wood" == div.parentNode.className ? wood : rest;
-    node({ tag: "span", className: "ellipsis", text: n, append: div });
+    function percent(amt) {
+      return Math.floor(100 * amt / space);
+    }
+    var space = integer(div);
+    var type = div.parentNode.className;
+    var good = resourceIDs[type], have, left, loot;
+    var safe = "wood" == type ? wood : rest;
+    node({ tag: "span", className: "ellipsis", text: safe, append: div });
+    type = "goods " + type;
+
+    have = currentResources();
+    safe = Math.min(safe, have[good]);
+    loot = lootable(have)[good];
+    left = Math.max(0, have[good] - loot - safe);
+    //console.log([good, have[good], safe, rest, loot].join(" "));
+
+    [safe, left, loot] = [safe, left, loot].map(percent);
+    node({ after: div, tag: <div class="underline">
+      <div class={"safe " + type} style={"width: "+safe+"%;"}> </div>
+      <div class={"left " + type} style={"width: "+left+"%;"}> </div>
+      <div class={"loot " + type} style={"width: "+loot+"%;"}> </div></div> });
   }
   var level = config.getCity(["l", buildingIDs.warehouse], 0);
   if (isUndefined(level)) return;

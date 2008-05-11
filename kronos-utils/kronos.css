@@ -237,22 +237,43 @@
   vertical-align: text-top;
 }
 
+#container #container2 #cityResources .underline {
+  position: relative;
+  width: 57px; /* kissy wide menu should override to 75px */
+  top: -6px;
+}
+
+#container #container2 #cityResources li.marble {
+  background-position: 4px 3px;
+}
+#container #container2 #cityResources li.glass {
+  background-position: 4px 4px;
+}
+#container #container2 #cityResources li.sulfur {
+  background-position: 2px 3px;
+}
+
+.underline {
+  left: 0;
+}
+
+#merchantNavy #mainview .underline {
+  position: absolute;
+  margin: 0 3px;
+  bottom: -2px;
+}
+
+#container #container2 .underline div {
+  background-image: none;
+  height: 2px;
+  float: left;
+  left: 0;
+}
+
 #merchantNavy .goods {
   display: inline;
   position: relative;
   bottom: 1px;
-}
-
-#merchantNavy .underline {
-  position: absolute;
-  margin: 0 3px;
-  bottom: -2px;
-  left: 0;
-}
-
-#merchantNavy .underline div {
-  height: 2px;
-  float: left;
 }
 
 #merchantNavy .only.wood   { color: #BC9D3D; }
@@ -261,12 +282,13 @@
 #merchantNavy .only.glass  { color: #7DBFE0; }
 #merchantNavy .only.sulfur { color: #E1BC4D; }
 
-#merchantNavy .underline .wood   { background-color: #BC9D3D; }
-#merchantNavy .underline .wine   { background-color: #94C; }
-#merchantNavy .underline .marble { background-color: #887663; }
-#merchantNavy .underline .glass  { background-color: #7DBFE0; }
-#merchantNavy .underline .sulfur { background-color: #E1BC4D; }
-
+.underline .goods.wood   { background-color: #BC9D3D; }
+.underline .goods.wine   { background-color: #94C; }
+.underline .goods.marble { background-color: #887663; }
+.underline .goods.glass  { background-color: #7DBFE0; }
+.underline .goods.sulfur { background-color: #E1BC4D; }
+.underline .goods.safe   { background-color: green; }
+.underline .goods.loot   { background-color: pink; }
 
 
 /**** Top panel improvements ****/
