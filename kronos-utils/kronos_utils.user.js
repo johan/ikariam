@@ -3370,7 +3370,7 @@ function projectPopulation(opts) {
   if (warn) {
     if (time < 15 * 60 + nextHQUpgradeTime && !upgradingTownHall)
       people.className = "storage_danger";
-    if (population == maximumPopulation)
+    if (currentPopulation == maximumPopulation)
       people.className = "storage_full";
     else
       people.className = "";
