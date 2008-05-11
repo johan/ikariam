@@ -137,6 +137,7 @@ var troops = {
   311: {n:"Doctor",p:6,w:640,C:361,b:"1h 2m",u:244,m:11,o:12,a:4,d:28,A:0,D:0,s:14,c:"Human",v:20,x:"Healer"},
   310: {n:"Cook",p:4,w:520,W:103,b:"38m",u:138,m:8,o:8,a:6,d:26,A:0,D:0,s:16,c:"Human",v:20,x:"Regeneration"}
 };
+for (var id in troops) troops[id].id = id;
 
 
 // sea units:
@@ -150,6 +151,7 @@ var ships = {
   216: {n:"Paddle Wheel Ram",p:12,w:513,S:167,b:"4h 8m",u:114,m:10,o:13,a:100,d:90,A:20,D:18,s:13,c:"Steamship",v:8,x:"Assault"},
   212: {n:"Diving Boat",p:16,w:493,C:378,b:"5h 5m",u:126,m:15,o:16,a:110,d:155,A:20,D:30,s:10,c:"Steamship",v:2,x:"Resistance"}
 };
+for (var id in ships) ships[id].id = id;
 
 
 // islands (or the lack of them, to be precise):

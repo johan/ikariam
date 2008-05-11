@@ -270,7 +270,7 @@
   left: 0;
 }
 
-#merchantNavy .goods {
+#merchantNavy #mainview .goods {
   display: inline;
   position: relative;
   bottom: 1px;
@@ -290,6 +290,31 @@
 .underline .goods.safe   { background-color: green; }
 .underline .goods.loot   { background-color: pink; }
 
+
+/* plunder/blockade view */
+
+#militaryscore {
+  width: 66px;
+  float: right;
+  margin-top: 1px;
+  margin-right: 34px;
+  text-align: center;
+}
+
+div.cost {
+  float: right;
+  margin-right: 70px;
+  width: 84px;
+}
+
+div.cost div {
+  background-position: 0 4px;
+  background-repeat: no-repeat;
+  padding-left: 20px;
+}
+
+#offense { background-image: url(/skin/layout/sword-icon-report.gif); }
+#defense { background-image: url(/skin/layout/shield-icon-report.gif); }
 
 /**** Top panel improvements ****/
 

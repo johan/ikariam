@@ -645,7 +645,42 @@ function militaryAdvisorReportViewView() {
   //console.log(reports[r].toSource());
 }
 
-function plunderView() {
+function blockadeView() {
+  plunderView("fleet");
+}
+
+function plunderView(where) {
+  function updateMilitaryScores() {
+    function cost(input) {
+      var n = integer(input.value);
+      var id = integer(input.id);
+      var type = input.id.split("_")[1]; // army | fleet
+      var unit = (type == "army" ? troops : ships)[id];
+      score += n * (2*unit.w + 4*(unit.C||0) + 16*(unit.S||0) + 4*(unit.S||0));
+      var level = config.getServer;
+      offense += n * (unit.a + level("techs.units."+ id +".a", 0) * unit.A);
+      defense += n * (unit.d + level("techs.units."+ id +".d", 0) * unit.D);
+    }
+    var offense = 0, defense = 0, score = 0;
+    $x('//input[@type="text" and starts-with(@id,"cargo_")]').forEach(cost);
+    $("militaryscore").textContent = score;
+    if (!od) return;
+    $("offense").innerHTML = offense;
+    $("defense").innerHTML = defense;
+  }
+
+  if (config.getServer("techs.units."+ (where == "fleet" ? 210 : 301), 0)) {
+    node({ tag: <div class="cost"><div id="offense">0</div></div>,
+       prepend: $X('id("upkeepPerHour")/..') });
+    node({ tag: <div class="cost"><div id="defense">0</div></div>,
+       prepend: $X('id("estimatedTotalCosts")/..') });
+    var od = true;
+  }
+  node({ tag: <div id="militaryscore">0</div>,
+       after: $X('(//input[starts-with(@id,"cargo_")])[last()]') });
+  onChange($x('//input[@type="text" and starts-with(@id,"cargo_")]'),
+           updateMilitaryScores, "value", "watch");
+
   scrollWheelable();
   dontSubmitZero(2, 'id("selectArmy")//input[@type="submit"]');
 }
@@ -1296,7 +1331,7 @@ function urlTo(what, id, opts) {
     case "luxe":	return url(resource("tradegood"));
     case "wood":	return url(resource("resource"));
 
-    case "townhall":	case "workshop":
+    case "townhall":	case "workshop":case "workshop-fleet":
     case "townHall":	case "port":	case "academy":
     case "shipyard":	case "wall":	case "warehouse":
     case "barracks":	case "museum":	case "branchOffice":
@@ -1881,7 +1916,7 @@ function evenShips(nodes) {
   }
 }
 
-function scrollWheelable(nodes) {
+function scrollWheelable(nodes, cb) {
   function getCount(node) {
     return $X('preceding-sibling::input[@type="text"] |' +
               'self::input[@type="text"]', node);
@@ -1920,6 +1955,7 @@ function scrollWheelable(nodes) {
     }
     node.value = time ? secsToDHMS(value) : value;
     click(node);
+    cb && setTimeout(cb, 0);
   }
   function groksArrows(event) {
     var sign = {};
@@ -2073,7 +2109,7 @@ function merchantNavyView() {
       var amount = stuff.match(goods[i] + "\\D*(\\d+)");
       if (amount) {
         count[goods[i]] = integer(amount[1]);
-        console.log(goods[i] +": "+ count[goods[i]]);
+        //console.log(goods[i] +": "+ count[goods[i]]);
       } else {
         goods.splice(i--, 1);
       }
@@ -2699,10 +2735,6 @@ function visualResources(what, opt) {
   return what.replace(/\$([a-z]{4,6})/g, replace);
 }
 
-function blockadeView() {
-  scrollWheelable();
-}
-
 function deploymentView() {
   scrollWheelable();
 }
@@ -2918,7 +2950,6 @@ function onChange(nodes, cb, attribute, watch) {
     else
       node.addEventListener("DOMAttrModified", modified, false);
   }
-
   if (isArray(nodes))
     nodes.map(listen);
   else
@@ -3137,7 +3168,7 @@ function unitStatsFromImage(img) {
 }
 
 function workshopView() {
-  function show(td, base, delta, upkeep) {
+  function show(td, base, delta, upkeep, unit, ad) {
     var img = $X('img', td);
     var type = img && img.src.match(/_([^.]+).gif$/)[1];
     var level = { bronze: 0, silber: 1, gold: 2 }[type];
@@ -3151,8 +3182,11 @@ function workshopView() {
       } else {
         opacity = "1.0";
         if (type == "gold" &&
-            !$X('following-sibling::td[a[@class="button"]]', td))
+            !$X('following-sibling::td[a[contains(@class,"button")]]', td)) {
           stat = l2;
+          config.setServer(["techs", "units", unit, ad], 3);
+        } else
+          config.setServer(["techs", "units", unit, ad], l);
       }
       var icon = img.src.replace(type+".gif", levels[l]+".gif");
       tag = { tag: <div class="stats">
@@ -3176,8 +3210,8 @@ function workshopView() {
     var stats = unitStatsFromImage($X('td[@class="object"]/img', tr))
     if (stats) {
       var cells = $x('td/table[@class="inside"]/tbody/tr[1]/td[1]', tr);
-      show(cells[0], stats.a, stats.A, stats.u);
-      show(cells[1], stats.d, stats.D, stats.u);
+      show(cells[0], stats.a, stats.A, stats.u, stats.id, "a");
+      show(cells[1], stats.d, stats.D, stats.u, stats.id, "d");
     }
   }
 

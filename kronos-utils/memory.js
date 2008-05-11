@@ -6,6 +6,9 @@ s10.org: {
            n: "Helping hands",
            t: 1207648486127
          },
+         .units: {
+           <id>: level (0 == none -> 3 == gold)
+         },
          .points: { count: research points, at: sample timestamp },
          .info: {
            <id>: {
