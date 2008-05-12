@@ -59,7 +59,7 @@ function changeMood() {
 #city.Noche #container .phase3 {    background-image:url(http://usuarios.lycos.es/ikastat/Noche/city_phase2.jpg);}
 #city.Noche #container .phase4,
 #city.Noche #container .phase5,
-#city.Noche #container .phase6 {    background-image:url(http://usuarios.lycos.es/ikastat/Noche/city_phase3.jpg);});}
+#city.Noche #container .phase6 {    background-image:url(http://usuarios.lycos.es/ikastat/Noche/city_phase3.jpg);}
 #city.Noche #container .phase7,
 #city.Noche #container .phase8,
 #city.Noche #container .phase9 {    background-image:url(http://usuarios.lycos.es/ikastat/Noche/city_phase4.jpg);}
@@ -262,7 +262,7 @@ function changeMood() {
 #city.Amanecer #container .phase3 {    background-image:url(http://usuarios.lycos.es/ikastat/Amanecer/city_phase2.jpg);}
 #city.Amanecer #container .phase4,
 #city.Amanecer #container .phase5,
-#city.Amanecer #container .phase6 {    background-image:url(http://usuarios.lycos.es/ikastat/Amanecer/city_phase3.jpg);});}
+#city.Amanecer #container .phase6 {    background-image:url(http://usuarios.lycos.es/ikastat/Amanecer/city_phase3.jpg);}
 #city.Amanecer #container .phase7,
 #city.Amanecer #container .phase8,
 #city.Amanecer #container .phase9 {    background-image:url(http://usuarios.lycos.es/ikastat/Amanecer/city_phase4.jpg);}
@@ -317,7 +317,7 @@ function changeMood() {
 #city.Atardecer #container .phase3 {    background-image:url(http://usuarios.lycos.es/ikastat/Atardecer/city_phase2.jpg);}
 #city.Atardecer #container .phase4,
 #city.Atardecer #container .phase5,
-#city.Atardecer #container .phase6 {    background-image:url(http://usuarios.lycos.es/ikastat/Atardecer/city_phase3.jpg);});}
+#city.Atardecer #container .phase6 {    background-image:url(http://usuarios.lycos.es/ikastat/Atardecer/city_phase3.jpg);}
 #city.Atardecer #container .phase7,
 #city.Atardecer #container .phase8,
 #city.Atardecer #container .phase9 {    background-image:url(http://usuarios.lycos.es/ikastat/Atardecer/city_phase4.jpg);}
