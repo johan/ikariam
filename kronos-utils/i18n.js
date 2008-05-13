@@ -88,7 +88,7 @@ ru: { // Russian server
      tspMsnItcp: "?", //Атака транспорта
      attMsn    : "Набег",
      attMsnBack: "Набег (Retour)",
-     colMsn    : "Колонизация",
+     colMsn    : "Колонизировать",
 
   lackResources: "?", //Insufficient Resources
    tooLowBldLvl: "?", //Insufficient building level!
