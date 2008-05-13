@@ -24,6 +24,7 @@ function changeMood() {
   var was = (document.body.className || "") + " ";
   document.body.className = was.replace(/(Atardecer|Noche|Amanecer)?/, mood);
 
+/*
   // right; fine, that far -- but when should we change the mood next time?
   var t = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
                    now.getHours() + 1); // next full hour, possibly tomorrow
@@ -37,6 +38,7 @@ function changeMood() {
   dt -= 60*60e3;
 
   setTimeout(changeMood, dt + 1e3); // let the sun have its way
+*/
 
   changeMood.done = changeMood.done || 0; // already added CSS?
   if (!changeMood.done++) GM_addStyle(<><![CDATA[
@@ -193,6 +195,7 @@ function changeMood() {
 #island.Noche #container #mainview #cities .level22 div.allyCityImg,
 #island.Noche #container #mainview #cities .level23 div.allyCityImg,
 #island.Noche #container #mainview #cities .level24 div.allyCityImg {background:url(http://usuarios.lycos.es/ikastat/Noche/Isla_Noche/ciudades_noche/city_8_green.gif) no-repeat 2px 4px;}
+#island.Noche #container #mainview #cities .city .buildCityImg { display:block; position:absolute; left:0; bottom:0; background-image:url(http://usuarios.lycos.es/ikastat/Noche/Isla_Noche/ciudades_noche/city_constr.gif); width:64px; height:63px;}
 
 /*---maravillas----*/
 
