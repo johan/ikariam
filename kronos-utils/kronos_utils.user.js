@@ -65,7 +65,6 @@ function init() {
     case "tavern": tavernView(); break;
     case "resource":  // fall-through:
     case "tradegood": resourceView(); // fall-through:
-    case "deployment": // fall-through:
     case "takeOffer": scrollWheelable(); break;
     case "transport": scrollWheelable(); evenShips(); break;
     case "loginAvatar":// &function=login
@@ -643,6 +642,10 @@ function militaryAdvisorReportViewView() {
   config.setServer("battles.reports", reports);
   //console.log(cities.toSource());
   //console.log(reports[r].toSource());
+}
+
+function deploymentView() {
+  plunderView("army");
 }
 
 function blockadeView() {
@@ -2735,10 +2738,6 @@ function visualResources(what, opt) {
   return what.replace(/\$([a-z]{4,6})/g, replace);
 }
 
-function deploymentView() {
-  scrollWheelable();
-}
-
 function colonizeView() {
   function annotate(what, time) {
     what.innerHTML += " ("+ time +")";
@@ -3155,7 +3154,7 @@ function unitStatsFromImage(img) {
     var junk = /^(ship|y\d+)_|_(r|\d+x\d+)(?=[_.])|_faceright|\....$/g;
     var ship = /ship_/.test(name);
     name = name.replace(junk, "");
-    name = { medic: "doctor", marksman: "gunsman",
+    name = { medic: "doctor", marksman: "gunsman", steamboat: "paddle",
              steamgiant: "steam" }[name] || name;
     if (!ship)
       for (var id in troops)
