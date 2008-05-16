@@ -87,7 +87,7 @@ ru: { // Russian server
      tspMsnUndo: "Транспорт (отменено)",
      tspMsnItcp: "?", //Атака транспорта
      attMsn    : "Набег",
-     attMsnBack: "Набег (Retour)",
+     attMsnBack: "Набег (Возвращение)",
      colMsn    : "Колонизировать",
 
   lackResources: "?", //Insufficient Resources
