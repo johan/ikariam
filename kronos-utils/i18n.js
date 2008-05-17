@@ -108,6 +108,25 @@ nl: { // Dutch server
      colMsn    : "Koloniseren",
 },
 
+cs: { // Swiss server
+     buyMsn    : "Obchod (Koupit)",
+     buyMsnBack: "Obchod (Návrat)",
+     selMsn    : "Obchod (Prodat)",
+     selMsnUndo: "Obchod (Prodat) (Zrušeno)",
+     tspMsn    : "Přeprava",
+     tspMsnUndo: "Přeprava (Zrušeno)",
+     tspMsnItcp: "?",
+     trpMsn    : "Rozmístit vojáky",
+     trpMsnUndo: "Rozmístit vojáky (Zrušeno)",
+     attMsn    : "Drancovat",
+     attMsnBack: "Drancovat (Návrat)",
+     attMsnUndo: "Drancovat (Zrušeno)",
+     colMsn    : "?",
+
+  lackResources: "Nedostatek surovin",
+   tooLowBldLvl: "Nedostačujicí level budovy!",
+},
+
 };
 
 var langs = { // Indexed on ISO 639-1 language ids (since country != language)
