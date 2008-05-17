@@ -108,7 +108,7 @@ nl: { // Dutch server
      colMsn    : "Koloniseren",
 },
 
-cs: { // Swiss server
+cz: { // Czech server
      buyMsn    : "Obchod (Koupit)",
      buyMsnBack: "Obchod (Návrat)",
      selMsn    : "Obchod (Prodat)",
