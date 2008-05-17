@@ -1,0 +1,81 @@
+<html><head>
+<style>
+#map {
+  overflow: hidden;
+}
+
+#map > a:hover {
+  z-index: 1;
+  opacity: 0.5;
+  outline: 1px solid #000;
+}
+
+#map > *.z   { clear: left; }
+#map > *     { position: relative; float: left; }
+#map > * *   { position: absolute; top: 0; left: 0; opacity: 0.4; }
+#map > * *.W { background-color: #94C; }
+#map > * *.M { background-color: #334; }
+#map > * *.C { background-color: #7DBFE0; }
+#map > * *.S { background-color: #E1BC4D; }
+
+#map > *, #map > * div {
+  width: 20px;
+  height: 20px;
+  display: block;
+  background-image: url(minimap.png);
+  background-repeat: no-repeat;
+}
+
+#map > a.i0   { background-position:   0px   0px; }
+#map > a.i1   { background-position:   0px -20px; }
+#map > a.i2   { background-position:   0px -40px; }
+#map > a.i3   { background-position:   0px -60px; }
+#map > a.i4   { background-position:   0px -80px; }
+#map > a.i5   { background-position:   0px -100px; }
+#map > a.i6   { background-position:   0px -120px; }
+#map > a.i7   { background-position:   0px -140px; }
+#map > a.i8   { background-position:   0px -160px; }
+#map > a.i9   { background-position:   0px -180px; }
+#map > div    { background-position:   0px -200px; }
+#map > a.i0 * { background-position: -20px   0px; }
+#map > a.i1 * { background-position: -20px -20px; }
+#map > a.i2 * { background-position: -20px -40px; }
+#map > a.i3 * { background-position: -20px -60px; }
+#map > a.i4 * { background-position: -20px -80px; }
+#map > a.i5 * { background-position: -20px -100px; }
+#map > a.i6 * { background-position: -20px -120px; }
+#map > a.i7 * { background-position: -20px -140px; }
+#map > a.i8 * { background-position: -20px -160px; }
+#map > a.i9 * { background-position: -20px -180px; }
+</style>
+<script>
+function $(id) { return document.getElementById(id); }
+
+var X = 10, Y = 10;
+
+function init() {
+  var map = $("map"), i, c, I, R;
+  console.time("draw");
+  var m = document.createDocumentFragment();
+  for (var y = 0; y < Y; y++) for (var x = 0; x < X; x++) {
+    i = Math.random() > 0.4;
+    I = document.createElement(i ? "a" : "div");
+    c = !x ? "z " : "";
+    if (i) {
+      c += "i"+ Math.floor(Math.random() * 10);
+      R = document.createElement("div");
+      R.className = "WMCS".charAt(Math.floor(Math.random()*4));
+      I.appendChild(R);
+    }
+    I.className = c;
+    m.appendChild(I);
+  }
+  map.appendChild(m);
+  console.timeEnd("draw");
+}
+</script>
+</head><body onload="init()">
+
+<div id="map"></div>
+
+</body></html>
