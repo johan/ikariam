@@ -46,6 +46,10 @@ function init() {
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
   css(GM_getResourceText("css"));
   lang = langs[getLanguage()];
+  if (location.hash) {
+    var id = location.hash.match(/^#keep:(.*)/);
+    if (id) keep(id[1]);
+  }
 
   var view = urlParse("view");
   var action = urlParse("action");
@@ -190,6 +194,7 @@ function gotoCity(url, id) {
     var index = referenceCityID("index");
     city.selectedIndex = index;
     id = ids[index];
+    propt(cityNames()[index], id);
   }
   var form = city.form;
   if (isDefined(url)) form.action = url;
@@ -2045,7 +2050,7 @@ function merchantNavyView() {
     var data = {// arrival<end  arrival==end  arrival>end  (",  " == verified)
       colMiss: { "-1": [R   ],  "0": [R   ],  "1": [R   ] },
       colUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
-      attMiss: { "-1": [R,  ],  "0": [R   ],  "1": [L, x] },
+      attMiss: { "-1": [R,  ],  "0": [L,  ],  "1": [L, x] },
       attUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
       attBack: { "-1": [L   ],  "0": [L, x],  "1": [L, x] },// 0: YOUR name :/
       buyMiss: { "-1": [R,  ],  "0": [L,  ],  "1": [R   ] },
@@ -2891,6 +2896,8 @@ function improveTopPanel() {
   ap.addEventListener("mouseover", hilightShip, false);
   ap.addEventListener("mouseout", unhilightShip, false);
   clickTo(ap, urlTo("merchantNavy"));
+  dblClickTo($X('id("advMilitary")/a'),
+             url("?view=militaryAdvisorMilitaryMovements"), null, true);
 
   $x('id("cityResources")/ul[@class="resources"]/li/div[@class="tooltip"]').
     forEach(function(tooltip) {
@@ -2902,6 +2909,8 @@ function improveTopPanel() {
   clickTo(cityNav, urlTo("townHall"), 'self::*[@id="cityNav" or @id="income"]');
   linkTo("luxe", $X('id("value_'+ luxuryType("name") +'")'));
   linkTo("wood", $X('id("value_wood")'));
+  //dblClickTo(resourceOverview, $X('id("value_wood")'));
+  //dblClickTo(resourceOverview, $X('id("value_'+ luxuryType("name") +'")'));
   $x('id("cityResources")/ul/li[contains("wood wine marble glass sulfur",'+
      '@class)]').forEach(tradeOnClick);
 
@@ -2919,6 +2928,32 @@ function improveTopPanel() {
     node({ tag: "span", id: "done", className: "textLabel", append: a,
           text: trim(resolveTime(Math.ceil((build-now)/1e3))) });
   }
+}
+
+function keep(node) {
+  if (isString(node)) node = $(node);
+  if (!node) return;
+  var p = node.parentNode;
+  if (p) keep(p); else return;
+  while (node.nextSibling)
+    p.removeChild(node.nextSibling);
+  if (node != document.body)
+    while (node.previousSibling)
+      p.removeChild(node.previousSibling);
+}
+
+function resourceOverview() {
+  function loaded(dom, url) {
+    ;
+  }
+  function load(id) {
+    var w = urlTo("wood", undefined, { city: id }) + "#keep:setWorkers";
+    var r = urlTo("luxe", undefined, { city: id }) + "#keep:setWorkers";
+    wget(w, loaded, "GM");
+  }
+  var cities = cityIDs();
+  var left = cities.length * 2;
+  cities.forEach(load);
 }
 
 function unconfuseFocus() {
