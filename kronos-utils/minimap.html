@@ -62,7 +62,7 @@ var o = urlParse(), resIDs = [, "W", "M", "C", "S"], wonders = [,
   "Temple of Poseidon (Boat)", "Colossus"
 ];
 var W = o.w || 15, H = o.h || 15, Y = o.y || 50, X = o.x || 50, S = o.s;
-var R = o.hasOwnProperty("r") ? parseInt(o.r) : 3;
+var R = o.hasOwnProperty("r") ? parseInt(o.r) : 3, T = o.t;
 
 var Ikariam = {
   islandData:	function(d) { map = d; },
@@ -103,7 +103,7 @@ function init() {
     if (/^s\d+\.ikariam\./.test(host))
       S = host;
   }
-  if (S) $("server").href = "http://"+ S +"/";
+  if (S) host = "http://"+ S;
 
   var M = $("map");
   M.style.width =  (20 * W) +"px";
@@ -155,8 +155,9 @@ function init() {
         r.style.opacity = i.p + "";
       }
       I.title = i.n +" ["+ (x0+x+1) +":"+ (y0+y+1) +
-        "] ("+ r[i.r] +", "+ wonders[i.w] +")";
-      if (S) I.href = "/index.php?view=island&id="+ i.i;
+        "] ("+ resIDs[i.r] +", "+ wonders[i.w] +")";
+      if (S) I.href = host + "/index.php?view=island&id="+ i.i;
+      if (T) I.target = T;
     }
     I.className = c;
     m.appendChild(I);
