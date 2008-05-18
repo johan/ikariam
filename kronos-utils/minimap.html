@@ -75,7 +75,24 @@ function urlParse(param, url) {
   return param ? keys[param] : keys;
 }
 
+function paint(id, colour, pct) {
+  var i;
+  if (parseInt(id, 10) == id) {
+    i = isles[id];
+  } else {
+    var m = id.split(":");
+    var x = m[0], y = m[1];
+    i = map[y][x];
+  }
+  if (!i) return;
+  i.c = colour;
+  i.p = pct;
+}
+
 function init() {
+  var i, x, y, c, I, R, x0 = X - Math.ceil(W / 2), y0 = Y - Math.ceil(H / 2);
+
+  try {
   if (!S) {
     var host = (document.referrer||"").match(/^[^:]*:\/*([^/]+)/);
     host = host && host[1];
@@ -83,16 +100,30 @@ function init() {
       S = host;
   }
   if (S) $("server").href = "http://"+ S +"/";
+
   var M = $("map");
   M.style.width =  (20 * W) +"px";
   M.style.height = (20 * H) +"px";
-  var i, x, y, c, I, R, x0 = X - Math.ceil(W / 2), y0 = Y - Math.ceil(H / 2);
+
   for (i = 0; i < isles.length; i++) {
     if (!(I = isles[i])) continue;
     y = I[0]-1;
     x = I[1]-1;
-    map[y][x].i = i;
+    isles[i] = map[y][x];
+    isles[i].i = i;
   }
+
+  for (c in o) {
+    m = c.match(/([.\d]+)%([#0-9a-z]+)/i);
+    if (!m) continue;
+    var p = parseFloat(m[1]) / 100;
+    var C = o[c].split(",");
+    c = m[2];
+    for (i = 0; i < C.length; i++) {
+      paint(C[i], c, p);
+    }
+  }
+
   //console.time("draw");
   var m = document.createDocumentFragment();
   for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
@@ -104,6 +135,10 @@ function init() {
       R = document.createElement("div");
       R.className = r[i.r] +" w"+ i.w;
       I.appendChild(R);
+      if (i.c) {
+        R.style.backgroundColor = i.c;
+        R.style.opacity = i.p + "";
+      }
       I.title = i.n +" ["+ (x0+x+1) +":"+ (y0+y+1) +
         "] ("+ r[i.r] +", "+w[i.w] +")";
       if (S) I.href = "/index.php?view=island&id="+ i.i;
@@ -112,6 +147,7 @@ function init() {
     m.appendChild(I);
   }
   M.appendChild(m);
+  }catch(e){alert(e);}
   //console.timeEnd("draw");
 }
 </script>
