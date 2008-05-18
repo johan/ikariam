@@ -127,6 +127,8 @@ function init() {
       m = c.split("/");
       p = parseFloat(m[1] || "50") / 100;
       c = m[0];
+      if (/^([0-9A-F]{3}){1,2}$/i.test(c))
+        c = "#"+ c;
     }
     if (!m) continue;
     coords = coords.split(",");
