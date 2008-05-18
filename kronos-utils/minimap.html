@@ -94,7 +94,7 @@ function paint(id, colour, pct) {
 }
 
 function init() {
-  var i, x, y, c, I, r, x0 = X - Math.ceil(W / 2), y0 = Y - Math.ceil(H / 2);
+  var i, x, y, c, I, r, p, x0 = X - Math.ceil(W / 2), y0 = Y - Math.ceil(H / 2);
 
   try {
   if (!S) {
@@ -119,13 +119,19 @@ function init() {
   }
 
   for (c in o) {
-    m = c.match(/([.\d]+)%([#0-9a-z]+)/i);
+    var coords = o[c];
+    if ((m = c.match(/([.\d]+)%([#0-9a-z]+)/i))) {
+      p = parseFloat(m[1]) / 100;
+      c = m[2];
+    } else if (c.length > 1) {
+      m = c.split("/");
+      p = parseFloat(m[1] || "50") / 100;
+      c = m[0];
+    }
     if (!m) continue;
-    var p = parseFloat(m[1]) / 100;
-    var C = o[c].split(",");
-    c = m[2];
-    for (i = 0; i < C.length; i++) {
-      paint(C[i], c, p);
+    coords = coords.split(",");
+    for (i = 0; i < coords.length; i++) {
+      paint(coords[i], c, p);
     }
   }
 
