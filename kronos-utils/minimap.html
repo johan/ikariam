@@ -1,4 +1,11 @@
 <html><head>
+<style id="resources">
+#map > * *.W { background-color: #94C; }
+#map > * *.M { background-color: #334; }
+#map > * *.C { background-color: #7DBFE0; }
+#map > * *.S { background-color: #E1BC4D; }
+</style>
+
 <style>
 body { overflow: auto; margin: 0; padding: 0; }
 #map { overflow: hidden; }
@@ -13,10 +20,6 @@ body { overflow: auto; margin: 0; padding: 0; }
 #map > *     { position: relative; float: left; }
 #map > *.b   { opacity: 0.9; }
 #map > * *   { position: absolute; top: 0; left: 0; opacity: 0.4; }
-#map > * *.W { background-color: #94C; }
-#map > * *.M { background-color: #334; }
-#map > * *.C { background-color: #7DBFE0; }
-#map > * *.S { background-color: #E1BC4D; }
 
 #map > *, #map > * div {
   width: 20px;
@@ -52,13 +55,14 @@ body { overflow: auto; margin: 0; padding: 0; }
 function $(id) { return document.getElementById(id); }
 
 var map = {}, isles = {};
-var o = urlParse(), r = [, "W", "M", "C", "S"], w = [,
+var o = urlParse(), resIDs = [, "W", "M", "C", "S"], wonders = [,
   "Garden of Dionysus (Wine)", "Temple of Gaia (Marble)",
   "Temple of Athene (Crystal)", "Hephaistos' Forge (Sulphur)",
   "Temple of Hermes (Wings)", "Ares' Stronghold (Helmet)",
   "Temple of Poseidon (Boat)", "Colossus"
 ];
 var W = o.w || 15, H = o.h || 15, Y = o.y || 50, X = o.x || 50, S = o.s;
+var R = o.hasOwnProperty("r") ? parseInt(o.r) : 3;
 
 var Ikariam = {
   islandData:	function(d) { map = d; },
@@ -82,7 +86,7 @@ function paint(id, colour, pct) {
   } else {
     var m = id.split(":");
     var x = m[0], y = m[1];
-    i = map[y][x];
+    i = map[--y][--x];
   }
   if (!i) return;
   i.c = colour;
@@ -90,7 +94,7 @@ function paint(id, colour, pct) {
 }
 
 function init() {
-  var i, x, y, c, I, R, x0 = X - Math.ceil(W / 2), y0 = Y - Math.ceil(H / 2);
+  var i, x, y, c, I, r, x0 = X - Math.ceil(W / 2), y0 = Y - Math.ceil(H / 2);
 
   try {
   if (!S) {
@@ -104,6 +108,7 @@ function init() {
   var M = $("map");
   M.style.width =  (20 * W) +"px";
   M.style.height = (20 * H) +"px";
+  if (!(R & 1)) $("resources").disabled = true;
 
   for (i = 0; i < isles.length; i++) {
     if (!(I = isles[i])) continue;
@@ -131,16 +136,18 @@ function init() {
     I = document.createElement(i ? "a" : "div");
     c = !x ? "z " : "";
     if (i) {
-      c += "i"+ map.t[y0+y][x0+x] + (i.w < 5 ? " b" : "");
-      R = document.createElement("div");
-      R.className = r[i.r] +" w"+ i.w;
-      I.appendChild(R);
+      c += "i"+ map.t[y0+y][x0+x];
+      if ((R & 2) && (i.w < 5)) // +10% mining bonus?
+        c += " b";
+      r = document.createElement("div");
+      r.className = resIDs[i.r] +" w"+ i.w;
+      I.appendChild(r);
       if (i.c) {
-        R.style.backgroundColor = i.c;
-        R.style.opacity = i.p + "";
+        r.style.backgroundColor = i.c;
+        r.style.opacity = i.p + "";
       }
       I.title = i.n +" ["+ (x0+x+1) +":"+ (y0+y+1) +
-        "] ("+ r[i.r] +", "+w[i.w] +")";
+        "] ("+ r[i.r] +", "+ wonders[i.w] +")";
       if (S) I.href = "/index.php?view=island&id="+ i.i;
     }
     I.className = c;
@@ -150,6 +157,7 @@ function init() {
   }catch(e){alert(e);}
   //console.timeEnd("draw");
 }
+
 </script>
 <script src="ikariam-islandData.js"></script>
 <script src="ikariam-islandTypes.js"></script>
