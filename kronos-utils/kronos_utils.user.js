@@ -1415,9 +1415,11 @@ function changeQueue(e) {
   } else if (!e.altKey) {
     return;
   } else if ((a = $X('parent::li[parent::ul[@id="locations"]]/a', clicked))) {
+    // to use alt-click script instead, uncomment these // return;
     addToQueue(buildingID(a), e.shiftKey);
     setTimeout(processQueue, 10);
   } else if ((a = $X('ancestor-or-self::a[@href="#upgrade"]', clicked))) {
+    // to use alt-click script instead, uncomment these // return;
     addToQueue(buildingID(urlParse("view")));
     setTimeout(processQueue, 10);
   } else if ((a = $X('ancestor-or-self::a[starts-with(@rel,"i")]', clicked))) {
@@ -2162,7 +2164,6 @@ function merchantNavyView() {
 
   var table = $X('id("mainview")//table[@class="table01"]/tbody');
 
-  var texts = servers[country];
   if (texts) {
     var arrows = { left: {}, right: {} };
     var missions = ["att", "buy", "sel", "trp", "tsp", "col"];
@@ -2306,7 +2307,7 @@ function warehouseSpy() {
 function safehouseReportsView() {
   var mission = $X('normalize-space(id("mainview")//tr[1]/td[2])');
   //console.log("safehouse: "+ mission);
-  if ("Spy out warehouse" == mission)
+  if (texts.spyWarehouse == mission)
     warehouseSpy();
 }
 
@@ -3051,14 +3052,27 @@ function showOverview() {
       tr.td += <td>{ v }</td>;
     }
     for each (var name in names) {
-      var b = buildingIDs[name];
+      if ("palace" == name) name = "palaceColony";
+      var b = buildingIDs[name], a;
       var l = config.getCity(["l", b], undefined, id);
       if ("palace" == name && isUndefined(l)) {
         name = "palaceColony";
+        b = buildingIDs[name];
         l = config.getCity(["l", buildingIDs[name]], undefined, id);
       }
-      var a = isUndefined(l) ? "\xA0"
-                             : <a href={urlTo(name, id)} title={name}>{l}</a>;
+      if (isUndefined(l)) {
+        a = "\xA0";
+      } else {
+        a = <a href={urlTo(name, id)} title={name}>{l}</a>;
+        var t = config.getCity("t", 0, id);
+        var u = config.getCity("u", 0, id);
+        if (t && t > Date.now() && u)
+          u = urlParse("view", u);
+        else
+          u = null;
+        if (u == name)
+          a.@class = "being-upgraded";
+      }
       tr.td += <td class="building">{a}</td>;
     }
     table.* += tr;

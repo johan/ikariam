@@ -267,6 +267,7 @@
   background-image: none;
   height: 2px;
   float: left;
+  width: 0;
   left: 0;
 }
 
@@ -555,6 +556,10 @@ html body div#container div#container2 a.text:hover {
   width: 157px;
 }
 
+/* current building is being upgraded */
+#cityNav #overview a.being-upgraded {
+  font-weight: bold;
+}
 
 
 /**** Loot view ****/

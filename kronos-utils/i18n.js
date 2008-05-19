@@ -27,6 +27,9 @@ org: #1={ // English
 // ?view=workshop-army texts:
   lackResources: "Insufficient Resources", // Hover tooltip over "Not available"
    tooLowBldLvl: "Insufficient building level!", // buttons (with the reason)
+
+// ?view=safehouse texts:
+   spyWarehouse: "Spy out warehouse",
 },
 com: #1#, // Also English; hopefully the same (until reported otherwise)
 
@@ -42,6 +45,8 @@ se: { // Swedish server
      attMsn    : "Plundra",
      attMsnBack: "Plundra (återvänder)",
      colMsn    : "Kolonisera",
+
+   spyWarehouse: "Spionera på lagerlokalen",
 },
 
 fr: { // French server
@@ -128,6 +133,9 @@ cz: { // Czech server
 },
 
 };
+
+var texts = servers[country] || {};
+
 
 var langs = { // Indexed on ISO 639-1 language ids (since country != language)
 
