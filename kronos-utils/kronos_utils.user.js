@@ -1415,11 +1415,11 @@ function changeQueue(e) {
   } else if (!e.altKey) {
     return;
   } else if ((a = $X('parent::li[parent::ul[@id="locations"]]/a', clicked))) {
-    // to use alt-click script instead, uncomment these // return;
+    if (config.get("noQ")) return;
     addToQueue(buildingID(a), e.shiftKey);
     setTimeout(processQueue, 10);
   } else if ((a = $X('ancestor-or-self::a[@href="#upgrade"]', clicked))) {
-    // to use alt-click script instead, uncomment these // return;
+    if (config.get("noQ")) return;
     addToQueue(buildingID(urlParse("view")));
     setTimeout(processQueue, 10);
   } else if ((a = $X('ancestor-or-self::a[starts-with(@rel,"i")]', clicked))) {
@@ -2259,49 +2259,59 @@ function warehouseSpy() {
       lootable = all &&
         Math.min((lootable / all) * 20 * buildingCapacities.port[port],
                  lootable);
+      loot += lootable;
       node({ tag: "td", text: Math.floor(lootable), append: tr });
     }
   }
 
   var body = $X('id("resources")/tbody');
-  if (body) {
-    var found;
-    var nameTD = $X('id("mainview")//tr[2]/td[2]');
-    var cityName = nameTD.textContent;
-    var allCities = config.getServer("cities");
-    for (var id in allCities) {
-      var city = allCities[id];
-      if (city.n != cityName) continue;
-      if (city.l) {
-        found = true;
-        var a = <><a href={urlTo("city", id)}>{cityName}</a> (</>;
-        var isle = config.getCity("i", id);
-        if (isle) {
-          isle = urlTo("island", {city: id, island: isle});
-          a += <><a href={isle}>island</a> </>;
-        }
-        a += <><a href={urlTo("pillage", id)}>pillage</a>)</>;
-        nameTD.innerHTML = a.toXMLString();
-        break;
+  if (!body) return;
+
+  var found, loot = 0;
+  var nameTD = $X('id("mainview")//tr[2]/td[2]');
+  var cityName = nameTD.textContent;
+  var allCities = config.getServer("cities");
+  for (var id in allCities) {
+    var city = allCities[id];
+    if (city.n != cityName) continue;
+    if (city.l) {
+      found = true;
+      var a = <><a href={urlTo("city", id)}>{cityName}</a> (</>;
+      var isle = config.getCity("i", id);
+      if (isle) {
+        isle = urlTo("island", {city: id, island: isle});
+        a += <><a href={isle}>island</a> </>;
       }
+      a += <><a href={urlTo("pillage", id)}>pillage</a>)</>;
+      nameTD.innerHTML = a.toXMLString();
+      break;
     }
-    var guess = found && buildingLevel("port", 0, "save", id) || 0;
-    var port = prompt("Port level? (0 for no port)", guess);
-    if (port === null || !isNumber(port = integer(port))) return;
-    var warehouse = prompt("Warehouse level? (0 for no warehouse)", found &&
-                           buildingLevel("warehouse", 0, "save", id) || 0);
-    if (warehouse === null || !isNumber(warehouse = integer(warehouse))) return;
-    if (isUndefined(warehouse)) return;
-    port = integer(port);
-    warehouse = integer(warehouse);
-    var head = $X('tr[1]', body);
-    node({ tag: "th", className: "count", text: "Safe", append: head });
-    node({ tag: "th", className: "count", text: "Loot", append: head });
-    var rows = $x('tr[td]', body);
-    var all = 0, count;
-    count = 1; rows.forEach(steal);
-    count = 0; rows.forEach(steal);
   }
+  var guess = found && buildingLevel("port", 0, "save", id) || 0;
+  var port = prompt("Port level? (0 for no port)", guess);
+  if (port === null || !isNumber(port = integer(port))) return;
+  var warehouse = prompt("Warehouse level? (0 for no warehouse)", found &&
+                         buildingLevel("warehouse", 0, "save", id) || 0);
+  if (warehouse === null || !isNumber(warehouse = integer(warehouse))) return;
+  if (isUndefined(warehouse)) return;
+  port = integer(port);
+  warehouse = integer(warehouse);
+  var head = $X('tr[1]', body);
+  node({ tag: "th", className: "count", text: "Safe", append: head });
+  node({ tag: "th", className: "count", text: "Loot", append: head });
+  var rows = $x('tr[td]', body);
+  var all = 0, count;
+  count = 1; rows.forEach(steal);
+  count = 0; rows.forEach(steal);
+
+  head = $X('id("mainview")//tr[1]');
+  var boats = head.insertCell(2);
+  boats.setAttribute("rowspan", "4");
+  boats.className = "boats";
+  node({ tag: <div>
+           <div class="loot">{ Math.ceil(loot/300) }</div>
+           <div class="all">({ Math.ceil(all/300) })</div>
+         </div>, append: boats });
 }
 
 function safehouseReportsView() {

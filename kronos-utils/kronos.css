@@ -562,6 +562,32 @@ html body div#container div#container2 a.text:hover {
 }
 
 
+/**** Warehouse spy report view ***/
+
+#safehouseReports #mainview td.boats {
+  position: relative;
+}
+
+#safehouseReports #mainview td.boats > div {
+  background: url(/skin/layout/btn_transports.jpg) no-repeat scroll 0 0;
+  position: absolute;
+  width: 108px;
+  height: 53px;
+  top:  4px;
+  left: 400px;
+  font-weight: bold;
+  text-align: center;
+}
+
+#safehouseReports #mainview td.boats div div.loot {
+  font-size:   18px;
+  margin-top:  9px;
+  margin-left: 64px;
+}
+#safehouseReports #mainview td.boats div div.all {
+  margin-left: 64px;
+}
+
 /**** Loot view ****/
 
 #mainview #loot-report td.subject {
