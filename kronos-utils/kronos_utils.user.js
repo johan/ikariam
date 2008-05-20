@@ -2959,7 +2959,9 @@ function advisorLocations() {
       now = list.indexOf(now) + dir;
       now = list[(now + list.length) % list.length];
       var resource = /^(wood|wine|marble|crystal|sulfur)$/.test(now);
-    } while (!resource && isUndefined(config.getCity(["p", buildingIDs[now]])));
+    } while (!(resource ||
+               (now == culture) ||
+               isDefined(config.getCity(["p", buildingIDs[now]]))));
     event.stopPropagation();
     event.preventDefault();
     if (!now) // advisor again
@@ -2970,13 +2972,17 @@ function advisorLocations() {
     a.href = urlTo(now);
   }
 
-  var urls = {}, places = {
+  var urls = {}, culture = false, places = {
     advCities: "townHall,port,warehouse,palace,wood,marble".split(","),
     advMilitary: "barracks,shipyard,wall,wood,sulfur".split(","),
-    advResearch: "academy,workshop-army,safehouse,wood,crystal".split(","),
+    advResearch: "academy,workshop-army,workshop-fleet,safehouse,wood,crystal".split(","),
     advDiplomacy: "embassy,tavern,museum,branchOffice,wood,wine".split(",")
   };
   if (!isCapital()) places.advCities[3] = "palaceColony";
+  for each (var id in cityIDs())
+    if (config.getCity(["p", buildingIDs.museum], false, id))
+      culture = "culturegoods";
+  if (culture) places.advDiplomacy.splice(-3, 0, culture);
 
   for (var adv in places) {
     var a = $X('id("'+ adv +'")/a');
