@@ -194,7 +194,6 @@ function gotoCity(url, id) {
     var index = referenceCityID("index");
     city.selectedIndex = index;
     id = ids[index];
-    propt(cityNames()[index], id);
   }
   var form = city.form;
   if (isDefined(url)) form.action = url;
