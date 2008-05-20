@@ -2928,6 +2928,7 @@ function improveTopPanel() {
   showHousingOccupancy();
   showCityBuildCompletions();
   showSafeWarehouseLevels();
+  advisorLocations();
   // unconfuseFocus();
   if (!isMyCity()) return;
 
@@ -2937,6 +2938,51 @@ function improveTopPanel() {
     var a = node({ tag: "a", href: config.getCity("u"), append: time });
     node({ tag: "span", id: "done", className: "textLabel", append: a,
           text: trim(resolveTime(Math.ceil((build-now)/1e3))) });
+  }
+}
+
+// make advisors scrollwheelable to go elsewhere quickly and easily
+function advisorLocations() {
+  function revert(e) {
+    var node = e.target;
+    node.href = urls[node.parentNode.id];
+    node.style.backgroundImage = "";
+  }
+
+  function onScrollWheel(event) {
+    var a = event.target;
+    var id = a.parentNode.id;
+    var dir = event.detail > 0 ? -1 : 1;
+    var list = [""].concat(places[id]);
+    var now = (a.style.backgroundImage || "").replace(/^.*\/|\..*$/g, "");
+    do {
+      now = list.indexOf(now) + dir;
+      now = list[(now + list.length) % list.length];
+      var resource = /^(wood|wine|marble|crystal|sulfur)$/.test(now);
+    } while (!resource && isUndefined(config.getCity(["p", buildingIDs[now]])));
+    event.stopPropagation();
+    event.preventDefault();
+    if (!now) // advisor again
+      return revert(event);
+    a.style.background = "url(http://ecmanaut.googlecode.com/svn/trunk/sites/" +
+      "ikariam.org/kronos-utils/gfx/places/"+ now + ".png) no-repeat 0 0";
+    if (resource && now != "wood") now = "luxe";
+    a.href = urlTo(now);
+  }
+
+  var urls = {}, places = {
+    advCities: "townHall,port,warehouse,palace,wood,marble".split(","),
+    advMilitary: "barracks,shipyard,wall,wood,sulfur".split(","),
+    advResearch: "academy,workshop-army,safehouse,wood,crystal".split(","),
+    advDiplomacy: "embassy,tavern,museum,branchOffice,wood,wine".split(",")
+  };
+  if (!isCapital()) places.advCities[3] = "palaceColony";
+
+  for (var adv in places) {
+    var a = $X('id("'+ adv +'")/a');
+    urls[adv] = a.href;
+    a.addEventListener("DOMMouseScroll", onScrollWheel, false);
+    a.addEventListener("mouseout", revert, false);
   }
 }
 
