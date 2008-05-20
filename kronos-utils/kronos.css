@@ -290,6 +290,7 @@
 .underline .goods.sulfur { background-color: #E1BC4D; }
 .underline .goods.safe   { background-color: green; }
 .underline .goods.loot   { background-color: pink; }
+.underline .goods.last   { opacity: 0.3; }
 
 
 /* plunder/blockade view */

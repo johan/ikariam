@@ -3280,8 +3280,8 @@ function workshopView() {
 
 function lootable(res, port, warehouse) {
   var all = 0, safe = buildingCapacities.warehouse;
-  if (isUndefined(port))	   port = buildingLevel("port");
-  if (isUndefined(warehouse)) warehouse = buildingLevel("warehouse");
+  if (isUndefined(port))	   port = buildingLevel("port") || 0;
+  if (isUndefined(warehouse)) warehouse = buildingLevel("warehouse") || 0;
   var loot = {};
   for (var r in res) {
     if (!/^[wWMCS]$/.test(r)) continue;
@@ -3313,10 +3313,12 @@ function showSafeWarehouseLevels() {
     //console.log([good, have[good], safe, rest, loot].join(" "));
 
     [safe, left, loot] = [safe, left, loot].map(percent);
+    var last = 100 - safe - left - loot;
     node({ after: div, tag: <div class="underline">
       <div class={"safe " + type} style={"width: "+safe+"%;"}> </div>
       <div class={"left " + type} style={"width: "+left+"%;"}> </div>
-      <div class={"loot " + type} style={"width: "+loot+"%;"}> </div></div> });
+      <div class={"loot " + type} style={"width: "+loot+"%;"}> </div>
+      <div class={"last " + type} style={"width: "+last+"%;"}> </div></div> });
   }
   var level = config.getCity(["l", buildingIDs.warehouse], 0);
   if (isUndefined(level)) return;
