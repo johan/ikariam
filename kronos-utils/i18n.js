@@ -132,6 +132,23 @@ cz: { // Czech server
    tooLowBldLvl: "Nedostačujicí level budovy!",
 },
 
+ro: { // Romanian server
+     buyMsn    : "Schimb (Cumpara)",
+     buyMsnBack: "Schimb (Revin)",
+     selMsn    : "Schimb (Vinde)",
+     selMsnUndo: "Schimb (Vinde) (anulata)",
+     tspMsn    : "Transport",
+     tspMsnUndo: "Transport (anulata)",
+     tspMsnItcp: "?",
+     trpMsn    : "Trimite trupe",
+     trpMsnUndo: "Trimite trupe (anulata)",
+     attMsn    : "Jefuieste",
+     attMsnBack: "Jefuirea (Revin)",
+     attMsnUndo: "Jefuieste (anulata)",
+     colMsn    : "Colonizeaza",
+     colMsnBack: "?",
+},
+
 };
 
 var texts = servers[country] || {};
