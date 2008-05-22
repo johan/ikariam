@@ -448,7 +448,7 @@ function makeLootTable(table, reports) {
   scrollWheelable(filters);
   filters.forEach(listen);
 
-  var yesterday = Date.now() - (25 * 36e5);
+  var yesterday = Date.now() - (24 * 36e5);
   for (var i = 0; r = reports[i]; i++) {
     var recent = r.t > yesterday;
     if (recent && r.w && r.c)
@@ -2286,11 +2286,11 @@ function warehouseSpy() {
       break;
     }
   }
-  var guess = found && buildingLevel("port", 0, "save", id) || 0;
-  var port = prompt("Port level? (0 for no port)", guess);
+  var guess = found && buildingLevel("port", 0, "save", id);
+  var port = isDefined(guess) ? guess : prompt("Port level? (0 for no port)", guess || 0);
   if (port === null || !isNumber(port = integer(port))) return;
-  var warehouse = prompt("Warehouse level? (0 for no warehouse)", found &&
-                         buildingLevel("warehouse", 0, "save", id) || 0);
+  guess = found && buildingLevel("warehouse", 0, "save", id);
+  var warehouse = isDefined(guess) ? guess : prompt("Warehouse level? (0 for no warehouse)", guess || 0);
   if (warehouse === null || !isNumber(warehouse = integer(warehouse))) return;
   if (isUndefined(warehouse)) return;
   port = integer(port);
