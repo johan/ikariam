@@ -149,6 +149,10 @@ ro: { // Romanian server
      colMsnBack: "?",
 },
 
+"com.pt": { // Portuguese server
+   spyWarehouse: "Espiar armazém",
+},
+
 };
 
 var shash = integer(location.hostname);
@@ -600,7 +604,7 @@ shoppingList: "Indkøbsliste: klik på en ressource for at købe det i din havn"
  notShownNow: "Note: vises ikke for nuværende i hovedvinduet nedenunder.",
  readlibrary: "Kronos har brug for at gennemlæse dit bibliotek. Gør det nu?",
   travelTime: "Rejsetid", 
-   startTime: "Start tid", 
+   startTime: "Starttid",
       points: "point", 
    countdown: "Fortsætter til næste kø enhed om ", 
    countdone: "Så kører vi -- initierer bygge sekvens!",
@@ -608,7 +612,7 @@ shoppingList: "Indkøbsliste: klik på en ressource for at købe det i din havn"
 stillRemains: "Mangler endnu:", 
       title$: "Kronos Utilility Konfiguration", 
     general$: "General",
-   cityview$: "By oversigt",
+   cityview$: "Byoversigt",
  kronosMenu$: "Vis Kronos menuen",
  haveEnough$: "Kantfarve for bygninger du har nok ressourcer til at opgradere",
   notEnough$: "Kantfarve for bygninger du IKKE har nok ressourcer til at opgradere",
@@ -618,8 +622,45 @@ stillRemains: "Mangler endnu:",
         Red$: "Rød",
 },
 
-// Needs updating by natives:
-pt: { language: "Portuguès" },
+pt: { // Portuguese translation by anónimo:
+    language: "Português",
+    finished: " termina às",
+    execTime: "Tempo de construção",
+ researching: "Pesquisando",
+    showLoot: "Informação detalhada do roubo",
+       shown: "Mostrar",
+      hidden: "Ocultar",
+       empty: "vazio: ",
+        full: "cheio: ",
+      months: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+               "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
+ startExpand: "; Começar expanção antes de ",
+     enqueue: "Meter em fila de construção",
+  prependToQ: "Shift click para meter no princípio da fila de construção",
+  leftByThen: "Recursos restantes",
+shoppingList: "Lista de compras: clica no ícone do recurso para o comprares no teu porto",
+ unavailable: "Recursos indisponíveis no tempo de construção (e tempo de renovação) ",
+   popupInfo: "Clica para informação dos edifícios, usa o scroll para ver os níveis",
+ notShownNow: "Nota: Actualmente não mostra na vista principal de baixo.",
+ readlibrary: "Kronos necessita ler a tua biblioteca. Fazer agora?",
+  travelTime: "Tempo de viagem",
+   startTime: "Hora de início",
+      points: "pontos",
+   countdown: "Prosseguindo com o próximo edífio na fila de construção",
+   countdone: "Já está – A iniciar a sequência de construção!",
+  clickToBuy: "Clica no preço para comprares os bens que queres.",
+stillRemains: "Ainda são necessários:",
+      title$: "Configuração do Kronos Utils",
+    general$: "General",
+   cityview$: "Vista da cidade ",
+ kronosMenu$: "Mostra o menu de Kronos ",
+ haveEnough$: "A cor na borda dos edifícios mostra que tens recursos suficientes para os expandires",
+  notEnough$: "A cor na borda dos edifícios mostra que não tens recursos suficientes para os expandires",
+      White$: "Branco",
+       Gray$: "Cinzento",
+      Green$: "Verde",
+        Red$: "Vermelho",
+},
 
 };
 
