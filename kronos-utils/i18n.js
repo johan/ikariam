@@ -153,6 +153,10 @@ ro: { // Romanian server
    spyWarehouse: "Espiar armazém",
 },
 
+net: { // Turkish server
+   spyWarehouse: "Depo* something",
+},
+
 };
 
 var shash = integer(location.hostname);
@@ -660,6 +664,46 @@ stillRemains: "Ainda são necessários:",
        Gray$: "Cinzento",
       Green$: "Verde",
         Red$: "Vermelho",
+},
+
+tr: { // Turkish translation maintained by Kingbeam
+    language: "Turkish",
+    finished: " Bitiş Tarihi: ",
+    execTime: "Uygulama Zamanı",
+ researching: "ara",
+    showLoot: "Yağma Sonucunu Göster",
+       shown: "görünüşte",
+      hidden: "gizli",
+       empty: "boş: ",
+        full: "Dolu: ",
+      months: ["Oca", "Şub", "Mar", "Nis", "May", "Haz",
+               "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"],
+ startExpand: "; Bu Zamandan Önce Binayı Geliştir:  ",
+     enqueue: "Ekle",
+  prependToQ: "En Başa Eklemek için Shift-click",
+  leftByThen: "kalan kaynaklar ",
+shoppingList: "Alışveriş Listesi",
+ unavailable: "İnşa Süresi İçin Yetersiz Kaynak (ve tekrar biriktirme süresi için)",
+   popupInfo: "Bina Bilgisi için Tıklat, Seviyeler için Fare Tekerleğini Kullan",
+ notShownNow: "Not: Şu an Ana Görünümde görülmüyor",
+ readlibrary: "Kronosun kütüphanenizi Okuması gerek. Hemen Okusunmu?",
+  travelTime: "Seyahat Süresi",
+   startTime: "Başlangıç",
+      points: "puan",
+   countdown: "Sıradaki diğer işlem geçiliyor",
+   countdone: "Ve Bitti -- Yapım Sıra Listesi Başlatılıyor!",
+  clickToBuy: "İstediğiniz Kadar Mal Satın Alabilmek için Fiyata Tıklayın",
+stillRemains: "Yeni Seviye İçin Gereken Miktar:",
+      title$: "Kronos Utils Konfügirasyonu",
+    general$: "General",
+   cityview$: "Şehire Bakış",
+ kronosMenu$: "Kronos Menüsünü Göster",
+ haveEnough$: "Kaynak nedeniyle Seviye Atlaması Mümkün Binanın Çerçeve Rengi",
+  notEnough$: "Kaynak nedeniyle Seviye Atlaması Mümkün Olmayan Binanın Çerçeve Rengi",
+      White$: "Beyaz",
+       Gray$: "Gri",
+      Green$: "Yeşil",
+        Red$: "Kırmızı",
 },
 
 };
