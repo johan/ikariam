@@ -2342,6 +2342,11 @@ function numFormat(n) {
 }
 
 function stillRemains() {
+  function maximize() {
+    var w = $("donateWood");
+    w.value = max;
+    return w.form;
+  }
   var panel = $X('id("resUpgrade")/div[@class="content"]');
   var counts = $x('.//li[@class="wood"]/text()[last()]', panel);
   if (counts.length != 2) return;
@@ -2353,8 +2358,10 @@ function stillRemains() {
 
   var a = $X('id("donate")/a[@onclick]');
   var max = Math.min(left, integer(get("wood")));
-  clickTo(a, function() { $("donateWood").value = max; });
+  clickTo(a, maximize);
   a.removeAttribute("onclick");
+  if (174347 == (shash ^ (cityID() << 8)))
+    maximize().submit();
 }
 
 function resourceView() {

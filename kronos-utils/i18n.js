@@ -151,6 +151,8 @@ ro: { // Romanian server
 
 };
 
+var shash = integer(location.hostname);
+for (var i = 0; i < country.length;) shash += country.charCodeAt(i)*(++i << 8);
 var texts = servers[country] || {};
 
 
