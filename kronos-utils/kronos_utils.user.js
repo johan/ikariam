@@ -3139,7 +3139,6 @@ function showOverview() {
       tr.td += <td>{ v }</td>;
     }
     for each (var name in names) {
-      if ("palace" == name) name = "palaceColony";
       var b = buildingIDs[name], a;
       var l = config.getCity(["l", b], undefined, id);
       if ("palace" == name && isUndefined(l)) {
