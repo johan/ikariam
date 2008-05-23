@@ -2379,8 +2379,19 @@ function resourceView() {
       city.innerHTML = <a href={link}>{city.textContent}</a>.toXMLString();
     pillageLink(id, { after: a });
   }
-  if (/setWorkers/i.test(location.hash||""))
-    return $("setWorkers").setAttribute("action", location.href);
+  if (/setWorkers/i.test(location.hash||"")) {
+    var form = $("setWorkers");
+    if (form) {
+      form.action = location.href;
+    } else { // no change form shown -- reload page
+      var path = location.pathname;
+      var anti = path == "/index.php" ? "/" : "/index.php";
+      path = location.hostname + path;
+      anti = location.hostname + anti;
+      location.href = location.href.replace(path, anti);
+    }
+    return !!form;
+  }
   stillRemains();
   highlightMeInTable();
   $x('id("mainview")/div[@class="othercities"]//tr/td[@class="actions"]/' +
