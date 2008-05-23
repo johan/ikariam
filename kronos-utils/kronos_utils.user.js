@@ -2425,15 +2425,34 @@ function corruption(city, fullpct) {
 
 function townHallView() {
   var g = { context: $("PopulationGraph") };
-  var growth = $("SatisfactionOverview");
   linkTo("wood", 'div[@class="woodworkers"]/span[@class="production"]', 0, g);
   linkTo("luxe", 'div[@class="specialworkers"]/span[@class="production"]', 0,g);
   linkTo("academy", 'div[@class="scientists"]/span[@class="production"]', 0, g);
-  if (buildingLevel("tavern"))
-    clickTo($X('.//div[@class="cat wine"]', growth), "tavern");
-  if (buildingLevel("museum"))
-    clickTo($X('.//div[@class="cat culture"]', growth), "museum");
-  var c = $X('id("CityOverview")//li[@class="corruption"]//*[contains(.,"%")][1]');
+
+  var value, city = mainviewCityID();
+  var science = $X('div[@class="scientists"]//span[@class="count"]', g.context);
+  if (science)
+    config.setCity(["x", buildingIDs.academy], integer(science), city);
+
+  var growth = $("SatisfactionOverview");
+  var tavern = $X('.//div[@class="cat wine"]', growth);
+  if (tavern) {
+    clickTo(tavern, "tavern");
+    value = integer($X('div[@class="tavern"]/span[@class="value"]', tavern));
+    config.setCity(["l", buildingIDs.tavern], value / 12, city);
+    value = integer($X('div[@class="serving"]/span[@class="value"]', tavern));
+    value = buildingCapacities.tavern[value / 80];
+    config.setCity(["x", buildingIDs.tavern], value, city);
+  }
+  var museum = $X('.//div[@class="cat culture"]', growth);
+  if (museum) {
+    clickTo(museum, "museum");
+    value = integer($X('div[@class="museum"]/span[@class="value"]', museum));
+    config.setCity(["l", buildingIDs.museum], value / 20, city);
+    value = integer($X('div[@class="treaties"]/span[@class="value"]', museum));
+    config.setCity(["x", buildingIDs.museum], value / 50, city);
+  }
+  //var c = $X('id("CityOverview")//li[@class="corruption"]//*[contains(.,"%")][1]');
 
   if ($X('.//div[@class="capital"]', growth))
     config.setServer("capital", cityID());
@@ -2468,7 +2487,7 @@ function academyView() {
   updateCurrentResearch();
   var research = $("inputScientists");
   if (research)
-    config.setCity(["x", buildingIDs.academy], number(research));
+    config.setCity(["x", buildingIDs.academy], integer(research));
 }
 
 function researchOverviewView() {
