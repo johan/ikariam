@@ -114,7 +114,7 @@ function pluck(a, prop) {
 function I(i) { return i; }
 
 function rm(node) {
-  node && node.parentNode && node.parentNode.removeChild(node);
+  return node && node.parentNode && node.parentNode.removeChild(node);
 }
 
 function hide(node) {
@@ -139,7 +139,7 @@ function css(rules, disabled) {
 function urlParse(param, url) {
   if (!url) url = location.search || "";
   var keys = {};
-  url.replace(/([^=&?]+)=([^&]*)/g, function(m, key, value) {
+  url.replace(/([^=&?]+)=([^&#]*)/g, function(m, key, value) {
     keys[decodeURIComponent(key)] = decodeURIComponent(value);
   });
   return (param ? keys[param] : keys) ||

@@ -810,3 +810,23 @@ hr#vr {
   background-color: #E3AE87;
   opacity: 0.4;
 }
+
+
+/**** Resource overview ****/
+
+#mainview .city-resources {
+  position: relative;
+  min-height: 376px;
+  text-align: center;
+  line-height: 68px;
+  font-size: 32px;
+}
+
+#mainview .city-resources iframe {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  height: 188px;
+  left:  -290px;
+  border: 0;
+}

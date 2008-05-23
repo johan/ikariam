@@ -28,11 +28,12 @@
 // @require        memory.js
 // ==/UserScript==
 
-var version = "0.5", lang, scientists, growthDebug = 0;
+var kronos = this, version = "0.5", lang, scientists, growthDebug = 0;
 if (location.hostname.match(/^s\d+\./))
   init();
 else
   login();
+//unsafeWindow.kronos = kronos;
 
 function init() {
   try { upgradeConfig(); }
@@ -132,6 +133,11 @@ function init() {
   var langChoice = panelInfo();
   title();
   langChoice.title = lang.execTime +": "+ (Date.now() - DEBUT) +"ms";
+
+  if (location.hash) {
+    var fn = location.hash.match(/^#call:(.*)/);
+    if (fn && (fn = kronos[fn[1]])) setTimeout(fn, 1e3);
+  }
 }
 
 function login() {
@@ -145,7 +151,7 @@ function login() {
 }
 
 function url(query) {
-  return (location.search || "").replace(/(\?.*)?$/, query||"");
+  return (location.search || "").replace(/([#?].*)?$/, query||"");
 }
 
 function jsVariable(nameValue) {
@@ -2373,6 +2379,8 @@ function resourceView() {
       city.innerHTML = <a href={link}>{city.textContent}</a>.toXMLString();
     pillageLink(id, { after: a });
   }
+  if (/setWorkers/i.test(location.hash||""))
+    return $("setWorkers").setAttribute("action", location.href);
   stillRemains();
   highlightMeInTable();
   $x('id("mainview")/div[@class="othercities"]//tr/td[@class="actions"]/' +
@@ -3032,16 +3040,35 @@ function keep(node) {
 
 function resourceOverview() {
   function loaded(dom, url) {
-    ;
+    kronos.dom = dom; kronos.url = url;
+    var city = $("city-"+ urlParse("cityId", url));
+    var iframe = dom.defaultView.frameElement;
+    city.appendChild(rm(iframe));
+    iframe.style.visibility = "visible";
+    iframe.style.position = iframe.style.height = iframe.style.left = "";
   }
-  function load(id) {
-    var w = urlTo("wood", undefined, { city: id }) + "#keep:setWorkers";
-    var r = urlTo("luxe", undefined, { city: id }) + "#keep:setWorkers";
+  function load(id, n) {
+    var b = location.href.replace(/[?#].*/, "");
+    node({ tag: <li class="city-resources"
+                    id={"city-"+ id}>{ cityNames()[n] }</li>, append: ul });
+    var r = b + urlTo("luxe", undefined, { city: id }) + "#keep:setWorkers";
+    var w = b + urlTo("wood", undefined, { city: id }) + "#keep:setWorkers";
+    wget(r, loaded, "GM");
     wget(w, loaded, "GM");
   }
   var cities = cityIDs();
   var left = cities.length * 2;
+  var info = <><div class="buildingDescription">
+    <h1>Resource overview</h1>
+    <!--p>All resources of all your cities in the whole world:</p-->
+  </div>
+  <ul id="cities"></ul></>;
+  var main = $("mainview");
+  main.innerHTML = "";
+  var ul = node({ tag: info, append: main }).cities;
   cities.forEach(load);
+  $x('id("container2")/*[contains(@class,"dynamic")][not(*[@id="kronos"])]').
+    map(rm);
 }
 
 function unconfuseFocus() {
@@ -3781,7 +3808,8 @@ function cityName() {
 }
 
 function cityNames() {
-  return pluck(get("citynames"), "textContent");
+  return cityNames.names = cityNames.names ||
+    pluck(get("citynames"), "textContent");
 }
 
 function isCapital(city) {
