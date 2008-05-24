@@ -72,6 +72,8 @@ var gfx = {
 
      pillage: "/skin/actions/plunder.gif",
 
+       world: "/skin/layout/icon-world.gif",
+
     townHall: "/skin/img/city/building_townhall.gif",
         port: "/skin/img/city/building_port.gif",
      academy: "/skin/img/city/building_academy.gif",

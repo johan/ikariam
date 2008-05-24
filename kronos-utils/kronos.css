@@ -830,3 +830,24 @@ hr#vr {
   left:  -272px;
   border: 0;
 }
+
+
+/**** island view minimap ****/
+#breadcrumbs .mini-icon:active { opacity: 1.0; }
+#breadcrumbs .mini-icon:hover  { opacity: 0.7; }
+#breadcrumbs .mini-icon {
+  position: absolute;
+  opacity: 0.5;
+  right: -2px;
+  top: -2px;
+}
+
+#breadcrumbs #miniMap {
+  visibility: hidden;
+  position: absolute;
+  border-width: 0;
+  width:   140px;
+  height:  140px;
+  bottom: -140px;
+  left: 0;
+}

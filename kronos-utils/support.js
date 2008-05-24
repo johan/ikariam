@@ -197,6 +197,8 @@ function node(opt) {
     var tag = attr("tag") || "div";
     if (isString(tag))
       n = document.createElement(tag);
+    else if (!tag.toXMLString)
+      n = tag;
     else {
       var t = document.createElement("div");
       t.innerHTML = tag.toXMLString();

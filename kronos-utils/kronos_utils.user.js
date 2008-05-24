@@ -29,6 +29,7 @@
 // ==/UserScript==
 
 var kronos = this, version = "0.5", lang, scientists, growthDebug = 0;
+var base = "http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/";
 if (location.hostname.match(/^s\d+\./))
   init();
 else
@@ -884,7 +885,7 @@ function buildingExtraInfo(div, id, name, level) {
     div.style.width = "auto";
   }
 
-  if (-1 == cityIDs().indexOf(cityID()) && "wall" != name) return;
+  if ("wall" != name && !isMyCity()) return;
   var originalLevel = buildingLevel(id, 0, "saved");
 
   switch (name) {
@@ -1128,6 +1129,27 @@ function prevIsland(id) {
   return --id > 0 ? id : 5721;
 }
 
+function showMinimap(i) {
+  function createMinimap() {
+    return node({ tag: <iframe id="miniMap" src={ u }/>, append: b }).miniMap;
+  }
+
+  function toggleMinimap() {
+    var m = $("miniMap") || createMinimap();
+    m.style.visibility = m.style.visibility ? "" : "visible";
+  }
+
+  var me = cityIDs().map(referenceIslandID).join(",");
+  var u = base +"minimap.html?s="+ location.hostname +"&t=_top&w=7&h=7&c="+
+    i +"&r=0&red="+ me +"&white="+ i;
+
+  var b = $("breadcrumbs");
+  node({ tag: <a class="mini-icon" id="minimapIcon" target="minimap" href={ u }>
+      <img src={ gfx.world }/>
+    </a>, append: b });
+  clickTo($("minimapIcon"), toggleMinimap);
+}
+
 function islandView() {
   function nextprev(event) {
     var n = event.charCode || event.keyCode;
@@ -1181,6 +1203,7 @@ function islandView() {
 
   showSpies();
 
+  showMinimap(island);
   if (island)
     addEventListener("keypress", nextprev, false);
 }
@@ -3053,8 +3076,12 @@ function resourceOverview() {
   function loaded(dom, url) {
     kronos.dom = dom; kronos.url = url;
     var city = $("city-"+ urlParse("cityId", url));
-    var iframe = dom.defaultView.frameElement;
-    city.appendChild(rm(iframe));
+    var iframe = rm(dom.defaultView.frameElement);
+    var isWood = urlParse("view", url) == "resource";
+    if (isWood)
+      node({ tag: iframe, after: city.firstChild });
+    else
+      node({ tag: iframe, append: city });
     iframe.style.visibility = "visible";
     iframe.style.position = iframe.style.height = iframe.style.left = "";
   }
@@ -3765,7 +3792,7 @@ function islandID(city) {
 
 function referenceIslandID(city) {
   city = city || referenceCityID();
-  return config.getCity("i", city);
+  return config.getCity("i", 0, city);
 }
 
 function referenceCityID(index) {
