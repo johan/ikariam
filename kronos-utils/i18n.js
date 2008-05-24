@@ -628,7 +628,7 @@ stillRemains: "Mangler endnu:",
 
 pt: { // Portuguese translation by anónimo:
     language: "Português",
-    finished: " termina às",
+    finished: " termina às ",
     execTime: "Tempo de construção",
  researching: "Pesquisando",
     showLoot: "Informação detalhada do roubo",
@@ -639,7 +639,7 @@ pt: { // Portuguese translation by anónimo:
       months: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
                "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
  startExpand: "; Começar expanção antes de ",
-     enqueue: "Meter em fila de construção",
+     enqueue: "Meter em fila",
   prependToQ: "Shift click para meter no princípio da fila de construção",
   leftByThen: "Recursos restantes",
 shoppingList: "Lista de compras: clica no ícone do recurso para o comprares no teu porto",
