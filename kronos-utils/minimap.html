@@ -62,7 +62,7 @@ var o = urlParse(), resIDs = [, "W", "M", "C", "S"], wonders = [,
   "Temple of Poseidon (Boat)", "Colossus"
 ];
 var W = o.w || 15, H = o.h || 15, Y = o.y || 50, X = o.x || 50, S = o.s;
-var R = o.hasOwnProperty("r") ? parseInt(o.r) : 3, T = o.t;
+var C = o.c, R = o.hasOwnProperty("r") ? parseInt(o.r) : 3, T = o.t;
 
 var Ikariam = {
   islandData:	function(d) { map = d; },
@@ -94,7 +94,18 @@ function paint(id, colour, pct) {
 }
 
 function init() {
-  var i, x, y, c, I, r, p, x0 = X - Math.ceil(W / 2), y0 = Y - Math.ceil(H / 2);
+  for (var i = 1, c; i < isles.length; i++) {
+    if (!(c = isles[i])) continue;
+    y = c[0]-1;
+    x = c[1]-1;
+    isles[i] = map[y][x];
+    isles[i].i = i;
+    if (i == C) {
+      X = x; Y = y;
+    }
+  }
+
+  var x, y, I, r, p, x0 = X - Math.ceil(W / 2), y0 = Y - Math.ceil(H / 2);
 
   try {
   if (!S) {
@@ -109,14 +120,6 @@ function init() {
   M.style.width =  (20 * W) +"px";
   M.style.height = (20 * H) +"px";
   if (!(R & 1)) $("resources").disabled = true;
-
-  for (i = 0; i < isles.length; i++) {
-    if (!(I = isles[i])) continue;
-    y = I[0]-1;
-    x = I[1]-1;
-    isles[i] = map[y][x];
-    isles[i].i = i;
-  }
 
   for (c in o) {
     var coords = o[c];
