@@ -885,7 +885,7 @@ function buildingExtraInfo(div, id, name, level) {
     div.style.width = "auto";
   }
 
-  if ("wall" != name && !isMyCity()) return;
+  if (("wall" != name) && !isMyCity()) return;
   var originalLevel = buildingLevel(id, 0, "saved");
 
   switch (name) {
@@ -3499,10 +3499,11 @@ function getMaxPopulation(townHallLevel) {
   if (isUndefined(townHallLevel))
     townHallLevel = buildingLevel("townHall", 1);
   var maxPopulation = buildingCapacity("townHall", townHallLevel);
-  if (config.getServer("techs.2080"))
-    maxPopulation += 50; // Holiday bonus
-  if (config.getServer("techs.3010") && isCapital())
-    maxPopulation += 50; // Well Digging bonus (capital city only)
+  maxPopulation += 50 * config.getServer("techs.2080", 0); // Holiday
+  if (isCapital()) {
+    maxPopulation += 50 * config.getServer("techs.3010", 0); // Well Digging
+    maxPopulation += 200 * config.getServer("techs.2120", 0); // Utopia
+  }
   return maxPopulation;
 }
 
@@ -3510,20 +3511,23 @@ function projectPopulation(opts) {
   function getGrowth(population) {
     return (happy - Math.floor(population)) / 50;
   }
-  var wellDigging = isCapital() && config.getServer("techs.3010") ? 50 : 0;
-  var holiday = config.getServer("techs.2080") ? 25 : 0;
+  var wellDigging = 50 * isCapital() * config.getServer("techs.3010");
+  var holiday = 25 * config.getServer("techs.2080", 0);
   var tavern = 12 * buildingLevel("tavern", 0);
   var wineLevel = opts && opts.hasOwnProperty("wine") ? opts.wine :
     config.getCity(["x", buildingIDs.tavern], 0);
   var wine = 80 * buildingCapacities.tavern.indexOf(wineLevel);
   var museum = 20 * buildingLevel("museum", 0);
   var culture = 50 * config.getCity(["x", buildingIDs.museum], 0);
-  var happy = 196 + wellDigging + holiday + tavern + wine + museum + culture;
+  var utopia = config.getServer("techs.2120", 0); // +200 happy in capital city
+  var happy = 196 + wellDigging + holiday + tavern + wine + museum + culture +
+    (200 * utopia * isCapital());
 
   var population = opts && opts.population || getPopulation();
   growthDebug && console.log("well digging: "+ wellDigging +", holiday: "+
                              holiday +", tavern:"+ tavern +", wine: "+ wine +
                              ", museum: "+ museum +", culture: "+ culture +
+                             ", utopia: "+ (200 * utopia * isCapital()) +
                              " - population: "+ population + " => "+
                              (happy - population) +" base happiness");
 
@@ -3721,7 +3725,8 @@ function title(detail) {
   if (!detail)
     detail = $X('id("breadcrumbs")/*[last()]');
   if (detail)
-    document.title = (server ? server + " " : "") + detail.textContent + host;
+    document.title = ((server ? server + " " : "") +
+                      detail.textContent + host).replace(/\s+/g, " ");
 }
 
 function clickResourceToSell() {
