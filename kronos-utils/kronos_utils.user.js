@@ -34,7 +34,7 @@ if (location.hostname.match(/^s\d+\./))
   init();
 else
   login();
-//unsafeWindow.kronos = kronos;
+if (config.get("debug")) unsafeWindow.kronos = kronos;
 
 function init() {
   try { upgradeConfig(); }
@@ -3838,7 +3838,8 @@ function mainviewOnReferenceIsland() {
 
 function mainviewCityID() {
   var city = $X('id("breadcrumbs")/a[@class="city"]');
-  if (city) return number(urlParse("id", city.search));
+  if (city) return integer(urlParse("id", city.search));
+  return integer(urlParse("id", $X('id("advCities")/a').search));
 }
 
 function mainviewCityName() {
@@ -3878,7 +3879,3 @@ function hideshow(node, nodes) {
   nodes = nodes || [node];
   nodes.forEach(listen);
 }
-
-//unsafeWindow.g = config;
-//unsafeWindow.data = data;
-//unsafeWindow.s = server;
