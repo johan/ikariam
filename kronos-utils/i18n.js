@@ -1,171 +1,5 @@
 var DEBUT = new Date();
 
-var country = location.hostname.replace(/s\d+\.|ikariam\./g, ""); // index below
-
-// The texts here are not stuff to _translate_, but texts as they appear in-game
-// on whichever servers you play on. Without these, Kronos won't be able to do a
-// few improvements to some views (merchantNavy view, for a start) as it doesn't
-// know how to read the page.
-var servers = { // Indexed on hostname TLD, if your country is sX.ikariam.TLD
-
-org: #1={ // English
-// ?view=merchantNavy texts:
-     buyMsn    : "Trade(Buy)",
-     buyMsnBack: "Trade (Return)",
-     selMsn    : "Trade(Sell)",
-     selMsnUndo: "Trade(Sell) (cancelled)",
-     tspMsn    : "Transport",
-     tspMsnUndo: "Transport (cancelled)", // Undo = U-turn
-     tspMsnItcp: "?",
-     trpMsn    : "Deploy troops",
-     trpMsnUndo: "Deploy troops  (cancelled)",
-     attMsn    : "Pillage",
-     attMsnBack: "Pillage (Return)",  // Back = left arrow
-     attMsnUndo: "Pillage  (cancelled)",
-     colMsn    : "?",
-
-// ?view=workshop-army texts:
-  lackResources: "Insufficient Resources", // Hover tooltip over "Not available"
-   tooLowBldLvl: "Insufficient building level!", // buttons (with the reason)
-
-// ?view=safehouse texts:
-   spyWarehouse: "Spy out warehouse",
-},
-com: #1#, // Also English; hopefully the same (until reported otherwise)
-
-se: { // Swedish server
-     buyMsn    : "Handel(Köpa)",
-     buyMsnBack: "Handel (Återvänder)",
-     selMsn    : "?",
-     selMsnUndo: "Handel(Sälja) (avbruten)",
-     trpMsn    : "Utplacera trupper",
-     trpMsnUndo: "Utplacera trupper  (avbruten)",
-     tspMsn    : "Transportera",
-     tspMsnUndo: "?",
-     attMsn    : "Plundra",
-     attMsnBack: "Plundra (återvänder)",
-     colMsn    : "Kolonisera",
-
-   spyWarehouse: "Spionera på lagerlokalen",
-},
-
-fr: { // French server
-     buyMsn    : "Commerce (Acheter)",
-     buyMsnBack: "Trade (Retour)",
-     selMsn    : "Commerce (Vendre)",
-     selMsnUndo: "Commerce (Vendre) (annulé)",
-     tspMsn    : "Transport",
-     tspMsnUndo: "Transport (annulé)",
-     tspMsnItcp: "Transport intercepté",
-     attMsn    : "Piller",
-     attMsnBack: "Piller (Retour)",
-     colMsn    : "Coloniser",
-
-  lackResources: "Quantité insuffisante de ressources",
-   tooLowBldLvl: "Niveau de construction insuffisant !",
-
-   spyWarehouse: "Espionner l´entrepôt",
-},
-
-ro: { // Romanian server
-     buyMsn    : "Schimb (Cumpara)",
-     buyMsnBack: "Schimb (Revin)",
-     selMsn    : "Schimb (Vinde)",
-     selMsnUndo: "Schimb (Vinde) (anulata)",
-     tspMsn    : "Transport",
-     tspMsnUndo: "Transport (anulata)",
-     tspMsnItcp: "?",
-     trpMsn    : "Trimite trupe",
-     trpMsnUndo: "Trimite trupe (anulata)",
-     attMsn    : "Jefuieste",
-     attMsnBack: "Jefuirea (Revin)",
-     attMsnUndo: "Jefuirea (anulata)",
-     colMsn    : "Colonizeaza",
-},
-
-ru: { // Russian server
-     buyMsn    : "Торговля (Покупка)",
-     buyMsnBack: "Торговля (Обмен)",
-     selMsn    : "Торговля (Продажа)",
-     selMsnUndo: "Торговля (Покупка) (отменено)",
-     trpMsn    : "Разместить войска",
-     trpMsnUndo: "Разместить войска (отменено)",
-     tspMsn    : "Транспорт",
-     tspMsnUndo: "Транспорт (отменено)",
-     tspMsnItcp: "?", //Атака транспорта
-     attMsn    : "Набег",
-     attMsnBack: "Набег (Возвращение)",
-     colMsn    : "Колонизировать",
-
-  lackResources: "?", //Insufficient Resources
-   tooLowBldLvl: "?", //Insufficient building level!
-},
-
-nl: { // Dutch server
-     buyMsn    : "Handel(Koop)",
-     buyMsnBack: "Handel (Retour)",
-     selMsn    : "Handel(Verkoop)",
-     selMsnUndo: "Handel(Verkoop) (geannuleerd)",
-     trpMsn    : "Stationeer troepen",
-     trpMsnUndo: "Stationeer troepen (geannuleerd)",
-     tspMsn    : "Transport",
-     tspMsnUndo: "Transport (geannuleerd)",
-     attMsn    : "Plunderen",
-     attMsnBack: "Plunderen (retour)",
-     colMsn    : "Koloniseren",
-},
-
-cz: { // Czech server
-     buyMsn    : "Obchod (Koupit)",
-     buyMsnBack: "Obchod (Návrat)",
-     selMsn    : "Obchod (Prodat)",
-     selMsnUndo: "Obchod (Prodat) (Zrušeno)",
-     tspMsn    : "Přeprava",
-     tspMsnUndo: "Přeprava (Zrušeno)",
-     tspMsnItcp: "?",
-     trpMsn    : "Rozmístit vojáky",
-     trpMsnUndo: "Rozmístit vojáky (Zrušeno)",
-     attMsn    : "Drancovat",
-     attMsnBack: "Drancovat (Návrat)",
-     attMsnUndo: "Drancovat (Zrušeno)",
-     colMsn    : "?",
-
-  lackResources: "Nedostatek surovin",
-   tooLowBldLvl: "Nedostačujicí level budovy!",
-},
-
-ro: { // Romanian server
-     buyMsn    : "Schimb (Cumpara)",
-     buyMsnBack: "Schimb (Revin)",
-     selMsn    : "Schimb (Vinde)",
-     selMsnUndo: "Schimb (Vinde) (anulata)",
-     tspMsn    : "Transport",
-     tspMsnUndo: "Transport (anulata)",
-     tspMsnItcp: "?",
-     trpMsn    : "Trimite trupe",
-     trpMsnUndo: "Trimite trupe (anulata)",
-     attMsn    : "Jefuieste",
-     attMsnBack: "Jefuirea (Revin)",
-     attMsnUndo: "Jefuieste (anulata)",
-     colMsn    : "Colonizeaza",
-     colMsnBack: "?",
-},
-
-"com.pt": { // Portuguese server
-   spyWarehouse: "Espiar armazém",
-},
-
-net: { // Turkish server
-   spyWarehouse: "Depo* something",
-},
-
-};
-
-var shash = integer(location.hostname);
-for (var i = 0; i < country.length;) shash += country.charCodeAt(i)*(++i << 8);
-var texts = servers[country] || {};
-
-
 var langs = { // Indexed on ISO 639-1 language ids (since country != language)
 
 en: { // English language strings maintained by myself. :-)
@@ -749,6 +583,173 @@ stillRemains: "Pozostanie:",
 },
 
 };
+
+
+var country = location.hostname.replace(/s\d+\.|ikariam\./g, ""); // index below
+
+// The texts here are not stuff to _translate_, but texts as they appear in-game
+// on whichever servers you play on. Without these, Kronos won't be able to do a
+// few improvements to some views (merchantNavy view, for a start) as it doesn't
+// know how to read the page.
+var servers = { // Indexed on hostname TLD, if your country is sX.ikariam.TLD
+
+org: #1={ // English
+// ?view=merchantNavy texts:
+     buyMsn    : "Trade(Buy)",
+     buyMsnBack: "Trade (Return)",
+     selMsn    : "Trade(Sell)",
+     selMsnUndo: "Trade(Sell) (cancelled)",
+     tspMsn    : "Transport",
+     tspMsnUndo: "Transport (cancelled)", // Undo = U-turn
+     tspMsnItcp: "?",
+     trpMsn    : "Deploy troops",
+     trpMsnUndo: "Deploy troops  (cancelled)",
+     attMsn    : "Pillage",
+     attMsnBack: "Pillage (Return)",  // Back = left arrow
+     attMsnUndo: "Pillage  (cancelled)",
+     colMsn    : "?",
+
+// ?view=workshop-army texts:
+  lackResources: "Insufficient Resources", // Hover tooltip over "Not available"
+   tooLowBldLvl: "Insufficient building level!", // buttons (with the reason)
+
+// ?view=safehouse texts:
+   spyWarehouse: "Spy out warehouse",
+},
+com: #1#, // Also English; hopefully the same (until reported otherwise)
+
+se: { // Swedish server
+     buyMsn    : "Handel(Köpa)",
+     buyMsnBack: "Handel (Återvänder)",
+     selMsn    : "?",
+     selMsnUndo: "Handel(Sälja) (avbruten)",
+     trpMsn    : "Utplacera trupper",
+     trpMsnUndo: "Utplacera trupper  (avbruten)",
+     tspMsn    : "Transportera",
+     tspMsnUndo: "?",
+     attMsn    : "Plundra",
+     attMsnBack: "Plundra (återvänder)",
+     colMsn    : "Kolonisera",
+
+   spyWarehouse: "Spionera på lagerlokalen",
+},
+
+fr: { // French server
+     buyMsn    : "Commerce (Acheter)",
+     buyMsnBack: "Trade (Retour)",
+     selMsn    : "Commerce (Vendre)",
+     selMsnUndo: "Commerce (Vendre) (annulé)",
+     tspMsn    : "Transport",
+     tspMsnUndo: "Transport (annulé)",
+     tspMsnItcp: "Transport intercepté",
+     attMsn    : "Piller",
+     attMsnBack: "Piller (Retour)",
+     colMsn    : "Coloniser",
+
+  lackResources: "Quantité insuffisante de ressources",
+   tooLowBldLvl: "Niveau de construction insuffisant !",
+
+   spyWarehouse: "Espionner l´entrepôt",
+},
+
+ro: { // Romanian server
+     buyMsn    : "Schimb (Cumpara)",
+     buyMsnBack: "Schimb (Revin)",
+     selMsn    : "Schimb (Vinde)",
+     selMsnUndo: "Schimb (Vinde) (anulata)",
+     tspMsn    : "Transport",
+     tspMsnUndo: "Transport (anulata)",
+     tspMsnItcp: "?",
+     trpMsn    : "Trimite trupe",
+     trpMsnUndo: "Trimite trupe (anulata)",
+     attMsn    : "Jefuieste",
+     attMsnBack: "Jefuirea (Revin)",
+     attMsnUndo: "Jefuirea (anulata)",
+     colMsn    : "Colonizeaza",
+},
+
+ru: { // Russian server
+     buyMsn    : "Торговля (Покупка)",
+     buyMsnBack: "Торговля (Обмен)",
+     selMsn    : "Торговля (Продажа)",
+     selMsnUndo: "Торговля (Покупка) (отменено)",
+     trpMsn    : "Разместить войска",
+     trpMsnUndo: "Разместить войска (отменено)",
+     tspMsn    : "Транспорт",
+     tspMsnUndo: "Транспорт (отменено)",
+     tspMsnItcp: "?", //Атака транспорта
+     attMsn    : "Набег",
+     attMsnBack: "Набег (Возвращение)",
+     colMsn    : "Колонизировать",
+
+  lackResources: "?", //Insufficient Resources
+   tooLowBldLvl: "?", //Insufficient building level!
+},
+
+nl: { // Dutch server
+     buyMsn    : "Handel(Koop)",
+     buyMsnBack: "Handel (Retour)",
+     selMsn    : "Handel(Verkoop)",
+     selMsnUndo: "Handel(Verkoop) (geannuleerd)",
+     trpMsn    : "Stationeer troepen",
+     trpMsnUndo: "Stationeer troepen (geannuleerd)",
+     tspMsn    : "Transport",
+     tspMsnUndo: "Transport (geannuleerd)",
+     attMsn    : "Plunderen",
+     attMsnBack: "Plunderen (retour)",
+     colMsn    : "Koloniseren",
+},
+
+cz: { // Czech server
+     buyMsn    : "Obchod (Koupit)",
+     buyMsnBack: "Obchod (Návrat)",
+     selMsn    : "Obchod (Prodat)",
+     selMsnUndo: "Obchod (Prodat) (Zrušeno)",
+     tspMsn    : "Přeprava",
+     tspMsnUndo: "Přeprava (Zrušeno)",
+     tspMsnItcp: "?",
+     trpMsn    : "Rozmístit vojáky",
+     trpMsnUndo: "Rozmístit vojáky (Zrušeno)",
+     attMsn    : "Drancovat",
+     attMsnBack: "Drancovat (Návrat)",
+     attMsnUndo: "Drancovat (Zrušeno)",
+     colMsn    : "?",
+
+  lackResources: "Nedostatek surovin",
+   tooLowBldLvl: "Nedostačujicí level budovy!",
+},
+
+ro: { // Romanian server
+     buyMsn    : "Schimb (Cumpara)",
+     buyMsnBack: "Schimb (Revin)",
+     selMsn    : "Schimb (Vinde)",
+     selMsnUndo: "Schimb (Vinde) (anulata)",
+     tspMsn    : "Transport",
+     tspMsnUndo: "Transport (anulata)",
+     tspMsnItcp: "?",
+     trpMsn    : "Trimite trupe",
+     trpMsnUndo: "Trimite trupe (anulata)",
+     attMsn    : "Jefuieste",
+     attMsnBack: "Jefuirea (Revin)",
+     attMsnUndo: "Jefuieste (anulata)",
+     colMsn    : "Colonizeaza",
+     colMsnBack: "?",
+},
+
+"com.pt": { // Portuguese server
+   spyWarehouse: "Espiar armazém",
+},
+
+net: { // Turkish server
+   spyWarehouse: "Depo´yu gözletle",
+},
+
+};
+
+var shash = integer(location.hostname);
+for (var i = 0; i < country.length;) shash += country.charCodeAt(i)*(++i << 8);
+var texts = servers[country] || {};
+
 
 GM_registerMenuCommand("Ikariam Kronos Tools: Your language", promptLanguage);
 
