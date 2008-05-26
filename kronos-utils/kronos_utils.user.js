@@ -3841,7 +3841,7 @@ function mainviewCityID() {
   if (city) return integer(urlParse("id", city.search));
   if ((city = urlParse("id", $X('id("advCities")/a').search)))
     return integer(city);
-  retirm cityID();
+  return cityID();
 }
 
 function mainviewCityName() {
