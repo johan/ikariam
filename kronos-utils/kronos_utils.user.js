@@ -3839,7 +3839,9 @@ function mainviewOnReferenceIsland() {
 function mainviewCityID() {
   var city = $X('id("breadcrumbs")/a[@class="city"]');
   if (city) return integer(urlParse("id", city.search));
-  return integer(urlParse("id", $X('id("advCities")/a').search));
+  if ((city = urlParse("id", $X('id("advCities")/a').search)))
+    return integer(city);
+  retirm cityID();
 }
 
 function mainviewCityName() {
