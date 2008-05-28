@@ -2080,8 +2080,8 @@ function merchantNavyView() {
   function missionType(mission, t1_vs_t2, c1, c2) {
     var R = "right", L = "left", x = "swap";
     var data = {// arrival<end  arrival==end  arrival>end  (",  " == verified)
-      colMiss: { "-1": [R   ],  "0": [R   ],  "1": [R   ] },
-      colUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
+      colMiss: { "-1": [R,  ],  "0": [R   ],  "1": [R   ] },
+      colUndo: { "-1": [L,  ],  "0": [L   ],  "1": [L   ] },
       attMiss: { "-1": [R,  ],  "0": [L,  ],  "1": [L, x] },
       attUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
       attBack: { "-1": [L   ],  "0": [L, x],  "1": [L, x] },// 0: YOUR name :/
@@ -3346,12 +3346,6 @@ function projectQueue() {
   u.forEach(projectCompletion);
 }
 
-function shipyardView() {
-  dontSubmitZero();
-  showUnitLevels(ships);
-  projectQueue();
-}
-
 function cityTabs(cid) {
   cid = cid || mainviewCityID();
   var b = document.body.id;
@@ -3379,27 +3373,24 @@ function cityTabs(cid) {
   </div> });
 }
 
-function barracksView() {
-  dontSubmitZero();
-  showUnitLevels(troops);
-  projectQueue();
-
-  var cities = cityIDs().filter(cityHasBuilding("barracks"));
+function buildViewCompactor() {
+  var me = document.body.id;
+  var cities = cityIDs().filter(cityHasBuilding(me));
   var hash = "#keep:header,mainview,breadcrumbs," +
     "unitConstructionList,reportInboxLeft,buildingUpgrade";
   if (location.hash == hash) {
     document.body.style.marginTop = "-148px";
   } else if (cities.length > 1) {
-    // add the other barracks views
+    // inline the other barracks/shipyard views onclick?
   }
   cityTabs($X('id("buildForm")/input[@name="id"]').value);
 
-  cssToggler("barracks", false, gfx.stamina, <><![CDATA[
+  cssToggler(me, false, gfx.stamina, <><![CDATA[
 #container #mainview #units .unit p {
   display: none;
 }
 
-#container #mainview #units .unit .unitinfo a img {
+#container #mainview #units .unit .unitinfo img {
   top: 5px;
   left: 25px;
   max-height: 70px;
@@ -3413,6 +3404,20 @@ function barracksView() {
   min-height: 100px;
 }
 ]]></>);
+}
+
+function shipyardView() {
+  dontSubmitZero();
+  showUnitLevels(ships);
+  projectQueue();
+  buildViewCompactor();
+}
+
+function barracksView() {
+  dontSubmitZero();
+  showUnitLevels(troops);
+  projectQueue();
+  buildViewCompactor();
 }
 
 function unitStatsFromImage(img) {
