@@ -30,11 +30,11 @@
 
 var kronos = this, version = "0.5", lang, scientists, growthDebug = 0;
 var base = "http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/";
+if (config.get("debug")) unsafeWindow.kronos = kronos;
 if (location.hostname.match(/^s\d+\./))
   init();
 else
   login();
-if (config.get("debug")) unsafeWindow.kronos = kronos;
 
 function init() {
   try { upgradeConfig(); }
@@ -54,9 +54,9 @@ function init() {
 
   var help = $X('id("buildingUpgrade")/h3/a[@class="help"]');
   if (help) {
-    linkTo(urlTo("building", buildingID(urlParse("view"))), help);
     var building = buildingID(view);
     if (isDefined(building)) {
+      linkTo(urlTo("building", building), help);
       var level = $X('id("buildingUpgrade")//div[@class="buildingLevel"]');
       if (level)
         config.setCity(["l", building], number(level));
@@ -2472,7 +2472,6 @@ function townHallView() {
   linkTo("wood", 'div[@class="woodworkers"]/span[@class="production"]', 0, g);
   linkTo("luxe", 'div[@class="specialworkers"]/span[@class="production"]', 0,g);
   linkTo("academy", 'div[@class="scientists"]/span[@class="production"]', 0, g);
-
   var value, city = mainviewCityID();
   var science = $X('div[@class="scientists"]//span[@class="count"]', g.context);
   if (science)
@@ -2480,19 +2479,19 @@ function townHallView() {
 
   var growth = $("SatisfactionOverview");
   var tavern = $X('.//div[@class="cat wine"]', growth);
-  if (tavern) {
+  var tlevel = $X('div[@class="tavern"]/span[@class="value"]', tavern);
+  if (tlevel) {
     clickTo(tavern, "tavern");
-    value = integer($X('div[@class="tavern"]/span[@class="value"]', tavern));
-    config.setCity(["l", buildingIDs.tavern], value / 12, city);
+    config.setCity(["l", buildingIDs.tavern], integer(tlevel) / 12, city);
     value = integer($X('div[@class="serving"]/span[@class="value"]', tavern));
     value = buildingCapacities.tavern[value / 80];
     config.setCity(["x", buildingIDs.tavern], value, city);
   }
   var museum = $X('.//div[@class="cat culture"]', growth);
-  if (museum) {
+  var mlevel = $X('div[@class="museum"]/span[@class="value"]', museum);
+  if (mlevel) {
     clickTo(museum, "museum");
-    value = integer($X('div[@class="museum"]/span[@class="value"]', museum));
-    config.setCity(["l", buildingIDs.museum], value / 20, city);
+    config.setCity(["l", buildingIDs.museum], integer(mlevel) / 20, city);
     value = integer($X('div[@class="treaties"]/span[@class="value"]', museum));
     config.setCity(["x", buildingIDs.museum], value / 50, city);
   }
