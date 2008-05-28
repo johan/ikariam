@@ -3353,7 +3353,7 @@ function shipyardView() {
 }
 
 function cityTabs(cid) {
-  cid = cid || cityID();
+  cid = cid || mainviewCityID();
   var b = document.body.id;
   var cities = cityIDs().filter(cityHasBuilding(b));
   if (cities.length < 2) return;
