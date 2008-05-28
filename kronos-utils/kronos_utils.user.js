@@ -48,10 +48,6 @@ function init() {
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
   css(GM_getResourceText("css"));
   lang = langs[getLanguage()];
-  if (location.hash) {
-    var id = location.hash.match(/^#keep:(.*)/);
-    if (id) keep(id[1]);
-  }
 
   var view = urlParse("view");
   var action = urlParse("action");
@@ -138,6 +134,9 @@ function init() {
   if (location.hash) {
     var fn = location.hash.match(/^#call:(.*)/);
     if (fn && (fn = kronos[fn[1]])) setTimeout(fn, 1e3);
+
+    var id = location.hash.match(/^#keep:(.*)/);
+    if (id) keep(id[1].split(","));
   }
 }
 
@@ -3060,16 +3059,27 @@ function advisorLocations() {
   }
 }
 
-function keep(node) {
-  if (isString(node)) node = $(node);
-  if (!node) return;
-  var p = node.parentNode;
-  if (p) keep(p); else return;
-  while (node.nextSibling)
-    p.removeChild(node.nextSibling);
-  if (node != document.body)
-    while (node.previousSibling)
-      p.removeChild(node.previousSibling);
+function keep(nodes) {
+  function equalOrAncestors(a, b) {
+    var relation = a.compareDocumentPosition(b);
+    return !relation /* equal */ || (a & 24) /* ancestors */;
+  }
+  function keeper(node) {
+    for each (var n in nodes)
+      if (equalOrAncestors(n, node)) return true;
+  }
+  function retain(node) {
+    if (!node) return;
+    var p = node.parentNode;
+    if (p) retain(p); else return;
+    while (node.nextSibling && !keeper(node.nextSibling))
+      p.removeChild(node.nextSibling);
+    if (node != document.body)
+      while (node.previousSibling && !keeper(node.previousSibling))
+        p.removeChild(node.previousSibling);
+  }
+  nodes = nodes.map(function(n) { return isString(n) ? $(n) : n; });
+  nodes.forEach(retain);
 }
 
 function resourceOverview() {
@@ -3343,6 +3353,14 @@ function barracksView() {
   dontSubmitZero();
   showUnitLevels(troops);
   projectQueue();
+
+  var hash = "#keep:header,mainview,breadcrumbs," +
+    "unitConstructionList,reportInboxLeft,buildingUpgrade";
+  if (location.hash == hash) {
+    document.body.style.marginTop = "-148px";
+  } else {
+    // add the other barracks views
+  }
 
   cssToggler("barracks", false, gfx.stamina, <><![CDATA[
 #container #mainview #units .unit p {
