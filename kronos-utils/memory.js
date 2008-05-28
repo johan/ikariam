@@ -89,21 +89,16 @@ var config = (function() {
     }
   }
 
-  function getCity(name, value, id) {
-    return getServer(["cities", id || cityID()].concat(array(name)), value);
+  function make(getOrSet, what, dflt) {
+    return function(name, value, id) {
+      return getOrSet([what, id || dflt()].concat(array(name)), value);
+    };
   }
 
-  function setCity(name, value, id) {
-    return setServer(["cities", id || cityID()].concat(array(name)), value);
-  }
-
-  function getIsle(name, value, id) {
-    return getServer(["islands", id || islandID()].concat(array(name)), value);
-  }
-
-  function setIsle(name, value, id) {
-    return setServer(["islands", id || islandID()].concat(array(name)), value);
-  }
+  var getCity = make(getServer, "cities", mainviewCityID);
+  var setCity = make(setServer, "cities", mainviewCityID);
+  var getIsle = make(getServer, "islands", islandID);
+  var setIsle = make(setServer, "islands", islandID);
 
   function getServer(name, value) {
     if ("?!" == value) console.log(name, value);
