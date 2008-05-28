@@ -379,3 +379,18 @@ function cssToggler(id, enabled, img, css) {
          append: $("breadcrumbs") });
   clickTo($("toggler"), toggle);
 }
+
+function cityHasBuilding(b) {
+  b = buildingID(b);
+  return function(city) { return config.getCity(["l", b], 0, city); };
+}
+
+function cityName(id) {
+  var name = {};
+  var ids = cityIDs();
+  var names = cityNames();
+  for (var i = 0; i < ids.length; i++)
+    name[ids[i]] = names[i];
+  console.log(name.toSource, id);
+  return name[id];
+}

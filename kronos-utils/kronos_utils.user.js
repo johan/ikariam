@@ -110,6 +110,9 @@ function init() {
     case "options": optionsView(); break;
   }
 
+  if (!$("tabz") && $("tearing"))
+    cityTabs();
+
   var upgradeDiv = $("upgradeCountDown");
   var buildDiv = $("buildCountDown");
   projectCompletion(upgradeDiv, "time")
@@ -3349,18 +3352,47 @@ function shipyardView() {
   projectQueue();
 }
 
+function cityTabs(cid) {
+  cid = cid || cityID();
+  var b = document.body.id;
+  var cities = cityIDs().filter(cityHasBuilding(b));
+  if (cities.length < 2) return;
+
+  GM_addStyle(<><![CDATA[
+#tabz td   { width: auto; } .militaryAdvisorTabs
+#tabz td a { width: ]]>{ Math.round(500 / cities.length) }<![CDATA[px; }
+]]></>.toXMLString());
+
+  var tabs = <></>;
+  for each (var city in cities) {
+    var url = urlTo(b, city);
+    var td = <td><a href={ url }><em>{ cityName(city) }</em></a></td>;
+    if (city == cid)
+      td.@class = "selected";
+    tabs += td;
+  }
+
+  node({ before: $("tearing"), tag: <div class="militaryAdvisorTabs">
+    <table id="tabz" cellspacing="0" cellpadding="0">
+      <tr>{ tabs }</tr>
+    </table>
+  </div> });
+}
+
 function barracksView() {
   dontSubmitZero();
   showUnitLevels(troops);
   projectQueue();
 
+  var cities = cityIDs().filter(cityHasBuilding("barracks"));
   var hash = "#keep:header,mainview,breadcrumbs," +
     "unitConstructionList,reportInboxLeft,buildingUpgrade";
   if (location.hash == hash) {
     document.body.style.marginTop = "-148px";
-  } else {
+  } else if (cities.length > 1) {
     // add the other barracks views
   }
+  cityTabs($X('id("buildForm")/input[@name="id"]').value);
 
   cssToggler("barracks", false, gfx.stamina, <><![CDATA[
 #container #mainview #units .unit p {
@@ -3886,8 +3918,10 @@ function mainviewCityName() {
   if (city) return city.textContent;
 }
 
-function cityName() {
-  return cityNames()[referenceCityID("index")];
+function cityName(id) {
+  if (!id)
+    return cityNames()[referenceCityID("index")];
+  return cityNames()[cityIDs().indexOf(integer(id))];
 }
 
 function cityNames() {
