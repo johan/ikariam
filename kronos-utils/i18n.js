@@ -607,7 +607,8 @@ org: #1={ // English
      attMsn    : "Pillage",
      attMsnBack: "Pillage (Return)",  // Back = left arrow
      attMsnUndo: "Pillage  (cancelled)",
-     colMsn    : "?",
+     colMsn    : "Colonize",
+     colMsnUndo: "Colonize (cancelled)",
 
 // ?view=workshop-army texts:
   lackResources: "Insufficient Resources", // Hover tooltip over "Not available"

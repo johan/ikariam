@@ -3343,6 +3343,26 @@ function barracksView() {
   dontSubmitZero();
   showUnitLevels(troops);
   projectQueue();
+
+  cssToggler("barracks", false, gfx.stamina, <><![CDATA[
+#container #mainview #units .unit p {
+  display: none;
+}
+
+#container #mainview #units .unit .unitinfo a img {
+  top: 5px;
+  left: 25px;
+  max-height: 70px;
+}
+
+#container #mainview #units .unit .unitcount {
+  top: 77px;
+}
+
+#container #mainview #units .unit {
+  min-height: 100px;
+}
+]]></>);
 }
 
 function unitStatsFromImage(img) {
@@ -3509,7 +3529,7 @@ function getMaxPopulation(townHallLevel) {
 
 function projectPopulation(opts) {
   function getGrowth(population) {
-    return (happy - Math.floor(population)) / 50;
+    return (happy - Math.floor(population + corr * population)) / 50;
   }
   var wellDigging = 50 * isCapital() * config.getServer("techs.3010");
   var holiday = 25 * config.getServer("techs.2080", 0);
@@ -3532,7 +3552,6 @@ function projectPopulation(opts) {
                              (happy - population) +" base happiness");
 
   var corr = corruption();
-  happy -= Math.ceil(corr * population);
   growthDebug && console.log("Actual corruption rate ("+ corr.toFixed(4) +
                              ") * population ("+ population +") => "+
                              Math.ceil(corr * population) +

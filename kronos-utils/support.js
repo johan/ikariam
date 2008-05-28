@@ -366,3 +366,16 @@ function time(t) {
   }
   return minus + result.join(join || " ");
 }
+
+function cssToggler(id, enabled, img, css) {
+  function toggle() {
+    css.disabled = config.set("default-"+id, !css.disabled);
+  }
+  if (!isString(css)) css = css.toXMLString();
+  css = node({ tag: "style", text: css,
+               append: document.documentElement.firstChild });
+  css.disabled = config.get("default-"+id, !enabled);
+  node({ tag: <a class="mini-icon" id="toggler" href="#"><img src={ img }/></a>,
+         append: $("breadcrumbs") });
+  clickTo($("toggler"), toggle);
+}
