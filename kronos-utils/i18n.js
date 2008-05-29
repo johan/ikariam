@@ -4,8 +4,9 @@ var DEBUT = new Date();
 //
 // Before contributing translations or in-game texts shown in this file, read:
 // http://corentin.jarnoux.free.fr/kronosutils/?topic=133.0 -- or at least the
-// bold face text. If that is too much work, ALWAYS list your server hostname,
-// your ISO 639-1 language id, your changes, and remove parts you didn't change
+// bold face text. (If that is too much work, ALWAYS list your server hostname,
+// your ISO 639-1 language id, your changes, and remove parts you didn't change.
+// On behalf of myself, and all the players in your locale: thanks for helping!)
 
 var langs = { // Indexed on ISO 639-1 language ids (since country != language)
 
