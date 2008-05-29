@@ -1,5 +1,12 @@
 var DEBUT = new Date();
 
+// *** Ahoy translators and contributors out there! This section is for you! ***
+//
+// Before contributing translations or in-game texts shown in this file, read:
+// http://corentin.jarnoux.free.fr/kronosutils/?topic=133.0 -- or at least the
+// bold face text. If that is too much work, ALWAYS list your server hostname,
+// your ISO 639-1 language id, your changes, and remove parts you didn't change
+
 var langs = { // Indexed on ISO 639-1 language ids (since country != language)
 
 en: { // English language strings maintained by myself. :-)
@@ -580,6 +587,46 @@ stillRemains: "Pozostanie:",
        Gray$: "Szary",
       Green$: "Zielony",
         Red$: "Czerwony",
+},
+
+hr: { // Croatian translation maintained by Ivan Bižaca
+    language: "Hrvatski",
+    finished: " Gotovo ",
+    execTime: "Vrijeme učitavanja",
+ researching: "Istražujemo",
+    showLoot: "Prikaži pljačke",
+       shown: "Pokazano", 
+      hidden: "Skriveno",
+       empty: "prazno: ",
+        full: "puno: ",
+      months: ["Sij", "Velj", "Ožu", "Tra", "Svi", "Lip",
+               "Srp", "Kol", "Ruj", "Lis", "Stu", "Pro"],
+ startExpand: "; kreni širit prije ",
+     enqueue: "Na čekanje",
+  prependToQ: "Shift i klik za staviti na vrh reda",
+  leftByThen: "Ostali resursi ",
+shoppingList: "Lista kupovine: klikni na resurs kojeg želiš kupiti",
+ unavailable: "Nedovoljno resursa (uključujuči proizvodnju)",
+   popupInfo: "Klikni za info, koristi kotačić kako bi pogledao druge levele",
+ notShownNow: "Napomena: nije prikazano u glavnom pogledu.",
+ readlibrary: "Kronos treba pregledati Vašu knjižnicu. Jel' može sada?",
+  travelTime: "Vrijeme putovanja",
+   startTime: "Započeto",
+      points: "bodova",
+   countdown: "Krećem na sljedeću stavku u redu za ",
+   countdone: "I idemo -- Započeta sljedeća gradnja!",
+  clickToBuy: "klikni na cjenu da bi kupio najviše moguće.",
+stillRemains: "Fali:",
+      title$: "Kronos Utils naštimavanje",
+    general$: "Općenito",
+   cityview$: "Pogled grada",
+ kronosMenu$: "Pokaži Kronos menu",
+ haveEnough$: "Boja ruba građevina koje možete unaprijediti",
+  notEnough$: "Boja ruba građevina za čije unaprijeđenje nemate dovoljno resursa",
+      White$: "Bijela",
+       Gray$: "Siva",
+      Green$: "Zelena",
+        Red$: "Crvena",
 },
 
 };
