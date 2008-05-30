@@ -3488,9 +3488,14 @@ function workshopView() {
     }
   }
 
+  function showWhy(a) {
+    a.innerHTML += ":<br/>" + a.title;
+  }
+
   var levels = ["bronze", "silber", "gold"];
   $x('id("demo")//tr[td[@class="object"]]').forEach(augment);
   projectCompletion("upgradeCountdown", "done");
+  $x('//a[@class="button inactive" and @title]').forEach(showWhy);
 }
 
 function lootable(res, port, warehouse) {
