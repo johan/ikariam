@@ -45,6 +45,7 @@ function init() {
         "?topic=2.0#post_requirements";
     return;
   }
+  addEventListener("load", maybeAugmentOverviewTable, false); // wine shortages?
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
   css(GM_getResourceText("css"));
   lang = langs[getLanguage()];
@@ -151,6 +152,32 @@ function login() {
   var site = /^http:..s(\d+)\.ikariam/.exec(document.referrer);
   if (site)
     uni.selectedIndex = integer(site[1]) - 1;
+}
+
+function maybeAugmentOverviewTable() {
+  function countdown(td, s) {
+    var time = secsToDHMS(s, 0);
+    if (time != td.textContent)
+      td.textContent = time;
+    var wait = s < 61 ? 1 : s % 60 + 1;
+    setTimeout(countdown, wait * 1e3, td, s - wait);
+  }
+
+  function wineLasts(td) {
+    if (td.textContent) return;
+    var total = $X('preceding-sibling::td[2]', td).textContent;
+    var rate = $X('preceding-sibling::td[1]', td).textContent;
+    if (rate) {
+      rate = -integer(rate);
+      total = integer(total);
+      if (rate < 1) return;
+      var left = Math.floor(3600 * total / rate);
+      countdown(td, left);
+    }
+  }
+  var td = $x('id("overview__table")/table[@class="resources_table"]/tbody/' +
+              'tr[count(td) = 19 and not(@class="table_footer")]/td[11]'); // W
+  if (td) td.map(wineLasts);
 }
 
 function url(query) {
@@ -2931,7 +2958,8 @@ function improveTopPanel() {
   // wine flow calculation
   var flow = reapingPace();
   var span = $("value_wine");
-  var time = flow.W < 0 ? Math.floor(number(span)/-flow.W) +"h" : sign(flow.W);
+  var time = flow.W < 0 ? secsToDHMS(3600 * number(span) / -flow.W, 0)
+                        : sign(flow.W);
   time = node({ tag: "span", className: "ellipsis", text: time, after: span });
   if (flow.W < 0)
     time.title = lang.empty + resolveTime(number(span)/-flow.W * 3600, 1);
