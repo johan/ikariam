@@ -475,7 +475,7 @@ pt: { // Portuguese translation by anónimo:
     finished: " termina às ",
     execTime: "Tempo de construção",
  researching: "Pesquisando",
-    showLoot: "Informação detalhada do roubo",
+    showLoot: "Informação detalhada da Pilhagem",
        shown: "Mostrar",
       hidden: "Ocultar",
        empty: "vazio: ",
