@@ -164,7 +164,8 @@ function integer(n) {
       n = n.value;
     else if (n.textContent)
       n = n.textContent;
-  n = n.replace(/[^\d-]+/g, "");
+  if (isString(n))
+    n = n.replace(/[^\d-]+/g, "");
   return n ? parseInt(n, 10) : undefined;
 }
 
@@ -367,17 +368,24 @@ function time(t) {
   return minus + result.join(join || " ");
 }
 
-function cssToggler(id, enabled, img, css) {
+function toggler(img, callback) {
+  toggler.id = (toggler.id || 0) + 1;
+  var id = "toggler" + toggler.id;
+  node({ tag: <a class="mini-icon" id={ id } href="#"> <img src={ img }/></a>,
+         append: $("breadcrumbs") });
+  clickTo($("toggler"), callback);
+}
+
+function cssToggler(id, enabled, img, css, cb) {
   function toggle() {
     css.disabled = config.set("default-"+id, !css.disabled);
+    if (isFunction(cb)) cb(!css.disabled);
   }
   if (!isString(css)) css = css.toXMLString();
   css = node({ tag: "style", text: css,
                append: document.documentElement.firstChild });
   css.disabled = config.get("default-"+id, !enabled);
-  node({ tag: <a class="mini-icon" id="toggler" href="#"><img src={ img }/></a>,
-         append: $("breadcrumbs") });
-  clickTo($("toggler"), toggle);
+  toggler(img, toggle, enabled);
 }
 
 function cityHasBuilding(b) {
@@ -386,6 +394,7 @@ function cityHasBuilding(b) {
 }
 
 function cityName(id) {
+  //return cityNames()[cityIDs().indexOf(integer(id))];
   var name = {};
   var ids = cityIDs();
   var names = cityNames();

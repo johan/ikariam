@@ -46,6 +46,7 @@ function init() {
     return;
   }
   addEventListener("load", maybeAugmentOverviewTable, false); // wine shortages?
+  fixUpdates();
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
   css(GM_getResourceText("css"));
   lang = langs[getLanguage()];
@@ -1062,6 +1063,15 @@ function levelBat() { // Ajout d'un du level sur les batiments.
 }
 
 function worldmap_isoView() {
+  function doubleClickableCoords() {
+    function invertCoord(e) {
+      var input = e.target;
+      var value = integer(input);
+      input.value = 100 - value;
+    }
+    dblClickTo($x('id("mapCoordInput")/input[@type="text"]'), invertCoord);
+  }
+
   function showResources() {
     drawMap();
     var w = unsafeWindow;
@@ -1108,8 +1118,11 @@ function worldmap_isoView() {
 
   var setMark = unsafeWindow.mark;
   unsafeWindow.mark = mark;
+
+  doubleClickableCoords();
 }
 
+// island view selected city
 function focusCity(city) {
   var a = $("city_" + city);
   var other = $X('//a[starts-with(@id,"city_") and not(@id="city_'+city+'")]');
@@ -1180,6 +1193,10 @@ function showMinimap(i) {
 }
 
 function islandView() {
+  function cultureTreatyMassMessage() {
+    //toggler(gfx.stamina, toggleClickMode);
+  }
+
   function nextprev(event) {
     var n = event.charCode || event.keyCode;
     var next = { 37: prevIsland, 39: nextIsland }[n];
@@ -2884,7 +2901,17 @@ function dblClickTo(node, action, condition, capture) {
   clickTo(node, action, condition, capture, "dblclick");
 }
 
+function map(func, args, self) {
+  function call(x) {
+    return func.apply(self||this, [x].concat(args));
+  }
+  args = [].slice.call(args);
+  var array = args.shift();
+  return array.map(call);
+}
+
 function clickTo(node, action, condition, capture, event) {
+  if (isArray(node)) return map(clickTo, arguments);
   if (node) {
     node.addEventListener(event || "click", function(e) {
       if (!condition || $X(condition, e.target)) {
@@ -2900,7 +2927,7 @@ function clickTo(node, action, condition, capture, event) {
   }
 }
 
-function post(url, args) {
+function post(url, args, target) {
   var form = document.createElement("form");
   form.method = "POST";
   form.action = url;
@@ -2912,6 +2939,7 @@ function post(url, args) {
     form.appendChild(input);
   }
   document.body.appendChild(form);
+  if (target) form.target = target;
   form.submit();
 }
 
@@ -3186,6 +3214,125 @@ function onChange(nodes, cb, attribute, watch) {
   else
     for each (var node in nodes)
       node.addEventListener("DOMAttrModified", modified, false);
+}
+
+function fixUpdates() {
+  function update(node, interval, max) {
+    function periodic() {
+      count = integer(node);
+      node.textContent = number_format(++count);
+      if (count >= max)
+        return full();
+      if (count >= warning)
+        node.className = "storage_danger";
+    }
+
+    function full() {
+      //clearInterval(whenFull); // wine consumption could make more room
+      node.className = "storage_full";
+    }
+
+    var count = integer(node);
+    var warning = Math.ceil(count * 0.75);
+    var whenFull = setInterval(periodic, interval);
+    periodic();
+  }
+
+  // at HH:00:00, HH:20:00 and HH:40:00, server time, drink some wine!
+  function setupWine(node) {
+    unsafeWindow.ev_updateResources = setInterval(cheers, 1200e3, node);
+    cheers(node);
+  }
+
+  function cheers(node) {
+    var left = integer(node) - each - (rest ? gulp++ < rest : 0);
+    config.get("live-resources", 0) &&
+    console.log("Drank "+ (integer(node) - left) + " wine at "+ (new Date));
+    node.textContent = number_format(left);
+    gulp = gulp % 3;
+  }
+
+  config.get("live-resources", 0) &&
+  console.log("Drank "+ (unsafeWindow.tradegoodSub||"?") + " wine/20min "+
+              (unsafeWindow.tradegoodSubTime / 60.0).toFixed(1) + " minutes " +
+              "ago (" + config.getCity(["x", buildingIDs.tavern]) + "/h).");
+
+  if (0) {
+    var msPerWood = 1 / unsafeWindow.startResourcesDelta * 1e3;
+    var nextWood = (1 - unsafeWindow.startResources % 1) * msPerWood;
+    console.log("Next wood in "+ (nextWood/1e3).toFixed(2) + "s");
+    var wood = $("donateWood");
+    if (wood) wood.value = "1000";
+    if (wood) setTimeout(function(){wood.form.submit();}, nextWood - 70);
+    return;
+  }
+
+  var number_format = unsafeWindow.number_format;
+  clearInterval(unsafeWindow.ev_updateResources);
+
+  var city = referenceCityID();
+  var wine = config.getCity(["x", buildingIDs.tavern], 0, city);
+  if (wine) {
+    var gulp = 0;
+    var each = Math.floor(wine / 3);
+    var rest = wine % 3; // if > 0, the rest-1
+    var nextWine = (1200 - unsafeWindow.tradegoodSubTime) * 1e3;
+    console.log("Next gulp: "+ each +"(:"+ rest +") in "+
+                (nextWine/6e4).toFixed(1) +" m.");
+    setTimeout(setupWine, nextWine, $("value_wine"));
+  }
+
+  if (unsafeWindow.startResourcesDelta) {
+    var msPerWood = 1 / unsafeWindow.startResourcesDelta * 1e3;
+    var nextWood = (1 - unsafeWindow.startResources % 1) * msPerWood;
+    var maxWood = unsafeWindow.resourcesStorage;
+    setTimeout(update, nextWood, $("value_wood"), msPerWood, maxWood);
+  }
+
+  if (unsafeWindow.startTradegoodDelta) {
+    var msPerLuxe = 1 / unsafeWindow.startTradegoodDelta * 1e3;
+    var nextLuxe = (1 - unsafeWindow.startTradegood % 1) * 1e3;
+    var maxLuxe = unsafeWindow.resourcesStorage;
+    var luxType = luxuryType("name");
+    setTimeout(update, nextLuxe, $("value_" + luxType), msPerLuxe, maxLuxe);
+  }
+}
+
+/*
+ 0:  0/h
+ 1:  3/h
+ 2:  5/h
+ 3:  8/h
+ 4: 11/h 
+ 5: 14/h 
+ 6: 17/h 
+ 7: 21/h 
+ 8: 25/h
+ 9: 29/h 
+10: 33/h
+11: 38/h
+12: 42/h
+13: 47/h
+14: 52/h
+*/
+
+function autodonate() {
+  function donate(woodCount, woodNode) {
+    console.log(arguments);
+    var donation = {
+      "id": "2", "type": "resource",
+      "action": "IslandScreen",
+      "function": "donate",
+      "donation": "100"
+    };
+    post(location.href.replace(/[?#].*/, ""), donation, "give");
+    given.textContent = 100 + integer(given);
+  }
+
+  node({ tag: <iframe id="give" name="give"/>, append: document.body });
+  var given = node({ prepend: $X('id("GF_toolbar")/ul'),
+                     tag: <li><a>Given: <span id="gw">0</span></a></li> }).gw;
+  onChange([$("value_wood").firstChild], donate, "nodeValue", true);
 }
 
 function toggleOverview(newValue, node) {
