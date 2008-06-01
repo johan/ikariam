@@ -3277,6 +3277,7 @@ function fixUpdates() {
     var each = Math.floor(wine / 3);
     var rest = wine % 3; // if > 0, the rest-1
     var nextWine = (1200 - unsafeWindow.tradegoodSubTime) * 1e3;
+    config.get("live-resources", 0) &&
     console.log("Next gulp: "+ each +"(:"+ rest +") in "+
                 (nextWine/6e4).toFixed(1) +" m.");
     setTimeout(setupWine, nextWine, $("value_wine"));
