@@ -373,7 +373,7 @@ function toggler(img, callback) {
   var id = "toggler" + toggler.id;
   node({ tag: <a class="mini-icon" id={ id } href="#"> <img src={ img }/></a>,
          append: $("breadcrumbs") });
-  clickTo($("toggler"), callback);
+  clickTo($(id), callback);
 }
 
 function cssToggler(id, enabled, img, css, cb) {
@@ -385,7 +385,7 @@ function cssToggler(id, enabled, img, css, cb) {
   css = node({ tag: "style", text: css,
                append: document.documentElement.firstChild });
   css.disabled = config.get("default-"+id, !enabled);
-  toggler(img, toggle, enabled);
+  toggler(img, toggle);
 }
 
 function cityHasBuilding(b) {

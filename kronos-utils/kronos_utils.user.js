@@ -3383,10 +3383,12 @@ function showOverview() {
       var v = data[r] || "\xA0";
       if ("w" == r)
         v = <a class="text" href={ urlTo("wood", undefined, { city: id }) }
-               title={sign(p[r])}>{v}</a>;
+               title={ sign(p[r]) }>{ v }</a>;
+      else if ("p" == r)
+        v = <a class="text" href={ urlTo("city", id) }>{ v||0 }</a>;
       else if (config.getIsle("r", "", island) == r)
         v = <a class="text" href={ urlTo("luxe", undefined, { city: id }) }
-               title={sign(p[r])}>{v}</a>;
+               title={ sign(p[r]) }>{ v }</a>;
       else if ("W" == r && config.getCity("l", [], city)[buildingIDs.tavern])
         v = <span title={ sign(p.W) }>{v}</span>;
       tr.td += <td>{ v }</td>;
