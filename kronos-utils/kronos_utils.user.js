@@ -1499,6 +1499,9 @@ function changeQueue(e) {
   } else if ((a = $X('ancestor-or-self::a[starts-with(@rel,"i")]', clicked))) {
     e.preventDefault();
     goto(urlTo(e.shiftKey ? "pillage" : "transport", a.rel.slice(1)));
+  } else if ((a = urlParse("combatId", clicked.search||""))) {
+    clicked.search = clicked.search.replace("combatId", "detailedCombatId");
+    setTimeout(goto, 0, clicked.href);
   }
   if (a || enqueued) {
     e.stopPropagation();
@@ -3263,8 +3266,7 @@ function fixUpdates() {
     console.log("Next wood in "+ (nextWood/1e3).toFixed(2) + "s");
     var wood = $("donateWood");
     if (wood) wood.value = "1000";
-    if (wood) setTimeout(function(){wood.form.submit();}, nextWood - 70);
-    return;
+    //if (wood) setTimeout(function(){wood.form.submit();}, nextWood - 25);
   }
 
   var number_format = unsafeWindow.number_format;
