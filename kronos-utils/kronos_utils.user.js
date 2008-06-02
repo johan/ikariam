@@ -2129,7 +2129,7 @@ function merchantNavyView() {
     var data = {// arrival<end  arrival==end  arrival>end  (",  " == verified)
       colMiss: { "-1": [R,  ],  "0": [R   ],  "1": [R   ] },
       colUndo: { "-1": [L,  ],  "0": [L   ],  "1": [L   ] },
-      attMiss: { "-1": [R,  ],  "0": [L,  ],  "1": [L, x] },
+      attMiss: { "-1": [R,  ],  "0": [L, x],  "1": [L, x] },
       attUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
       attBack: { "-1": [L   ],  "0": [L, x],  "1": [L, x] },// 0: YOUR name :/
       buyMiss: { "-1": [R,  ],  "0": [L,  ],  "1": [R   ] },
