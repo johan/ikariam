@@ -2452,6 +2452,8 @@ function resourceView() {
     pillageLink(id, { after: a });
   }
   if (/setWorkers/i.test(location.hash||"")) {
+    var l = integer($X('id("resUpgrade")//div[@class="buildingLevel"]'));
+    node({ tag: <div id="mineLevel">{ l }</div>, before: $("inputWorkers") });
     var form = $("setWorkers");
     if (form) {
       form.action = location.href;
@@ -2900,10 +2902,6 @@ function colonizeView() {
     annotate(needWood, resolveTime((1250 - have.w) / (woodadd / 3600), 1));
 }
 
-function dblClickTo(node, action, condition, capture) {
-  clickTo(node, action, condition, capture, "dblclick");
-}
-
 function map(func, args, self) {
   function call(x) {
     return func.apply(self||this, [x].concat(args));
@@ -2913,10 +2911,20 @@ function map(func, args, self) {
   return array.map(call);
 }
 
-function clickTo(node, action, condition, capture, event) {
+function altClickTo(node, action, condition, capture) {
+  function altIsPressed(e) { return e.altKey; }
+  clickTo(node, action, condition, capture, "click", altIsPressed);
+}
+
+function dblClickTo(node, action, condition, capture) {
+  clickTo(node, action, condition, capture, "dblclick");
+}
+
+function clickTo(node, action, condition, capture, event, when) {
   if (isArray(node)) return map(clickTo, arguments);
   if (node) {
     node.addEventListener(event || "click", function(e) {
+      if (when && !when(e)) return;
       if (!condition || $X(condition, e.target)) {
         e.stopPropagation();
         e.preventDefault();
@@ -3150,9 +3158,9 @@ function resourceOverview() {
     var iframe = rm(dom.defaultView.frameElement);
     var isWood = urlParse("view", url) == "resource";
     if (isWood)
-      node({ tag: iframe, after: city.firstChild });
-    else
       node({ tag: iframe, append: city });
+    else
+      node({ tag: iframe, after: city.firstChild });
     iframe.style.visibility = "visible";
     iframe.style.position = iframe.style.height = iframe.style.left = "";
   }
@@ -3255,6 +3263,19 @@ function fixUpdates() {
     gulp = gulp % 3;
   }
 
+  function timedDonation(e) {
+    function submit() {
+      e.target.form.submit();
+    }
+    var dt = prompt("Dispatch donation how many ms before wood increase?", 100);
+    if (dt === null) return;
+    var when = fixUpdates.woodTiming - integer(dt);
+    var time = (new Date).valueOf();
+    var left = msPerWood - ((time - when) % msPerWood);
+    setTimeout(submit, left);
+    console.log("Submitting in "+ Math.round(left) +" ms");
+  }
+
   config.get("live-resources", 0) &&
   console.log("Drank "+ (unsafeWindow.tradegoodSub||"?") + " wine/20min "+
               (unsafeWindow.tradegoodSubTime / 60.0).toFixed(1) + " minutes " +
@@ -3290,6 +3311,9 @@ function fixUpdates() {
     var nextWood = (1 - unsafeWindow.startResources % 1) * msPerWood;
     var maxWood = unsafeWindow.resourcesStorage;
     setTimeout(update, nextWood, $("value_wood"), msPerWood, maxWood);
+    fixUpdates.woodTiming = nextWood + (new Date).getTime();
+    fixUpdates.woodPeriod = msPerWood;
+    altClickTo($X('id("donate")/input[@type="submit"]'), timedDonation);
   }
 
   if (unsafeWindow.startTradegoodDelta) {
