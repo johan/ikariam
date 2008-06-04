@@ -132,9 +132,11 @@ function init() {
     unsafeWindow.friends = config.getServer("treaties", []);
 
   if (!config.get("kronosMenu")) return title();
-  var langChoice = panelInfo();
   title();
-  langChoice.title = lang.execTime +": "+ (Date.now() - DEBUT) +"ms";
+  if ("militaryAdvisorMilitaryMovements" != urlParse("view")) {
+    var langChoice = panelInfo();
+    langChoice.title = lang.execTime +": "+ (Date.now() - DEBUT) +"ms";
+  }
 
   if (location.hash) {
     var fn = location.hash.match(/^#call:(.*)/);
