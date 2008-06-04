@@ -823,11 +823,11 @@ hr#vr {
 }
 
 #mainview .city-resources iframe {
-  position: relative;
+  float: right;
   overflow: hidden;
   display: block;
   height: 188px;
-  left:  -273px;
+  width:  961px !important;
   border: 0;
 }
 
@@ -861,4 +861,18 @@ hr#vr {
   height:  140px;
   bottom: -140px;
   left: 0;
+}
+
+/**** island view alliances ****/
+#island #container #mainview #alliances {
+  border-collapse: separate;
+  position: absolute;
+  background: #CCF;
+  opacity: 0.7;
+  padding: 4px;
+  bottom: 0;
+}
+
+#island #container #mainview #alliances td {
+  text-align: center;
 }

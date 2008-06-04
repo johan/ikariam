@@ -1199,6 +1199,22 @@ function islandView() {
     //toggler(gfx.stamina, toggleClickMode);
   }
 
+  function alliancePresence() {
+    var all = {}, main = $("mainview");
+    var a = node({ append: main, tag:<table id="alliances"></table> });
+    node({ append: main, tag: <div style="position:absolute; left:390px; top: 4px; color:#FFF !important;">[<a style="color:#CCF !important;" target="_blank" href="http://corentin.jarnoux.free.fr/kronosutils/?topic=157">Your icon to toggle alliance standings here</a>]</div> });
+    a = a.alliances;
+    for each (var city in c) {
+      var name = $X('string(li[@class="ally"]/a[1])', city) || "-";
+      all[name] = (all[name] || []).concat(integer(city.parentNode.id));
+    }
+    for (name in all) {
+      var tr = a.insertRow(0);
+      tr.insertCell(0).textContent = all[name].length;
+      tr.insertCell(0).textContent = name;
+    }
+  }
+
   function nextprev(event) {
     var n = event.charCode || event.keyCode;
     var next = { 37: prevIsland, 39: nextIsland }[n];
@@ -1245,9 +1261,10 @@ function islandView() {
   var island = integer(urlParse("id", $X('id("advCities")/a').search));
   travelDistanceBreadcrumbs(island);
 
-  $x('id("cities")/li[contains(@class,"level") and ' +
-                ' not(contains(@class,"level0"))]/ul[@class="cityinfo"]').
-    forEach(registerCity);
+  var c = $x('id("cities")/li[contains(@class,"level") and ' +
+             ' not(contains(@class,"level0"))]/ul[@class="cityinfo"]');
+  c.forEach(registerCity);
+  alliancePresence();
 
   showSpies();
 
