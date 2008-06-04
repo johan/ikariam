@@ -2470,8 +2470,9 @@ function resourceView() {
       city.innerHTML = <a href={link}>{city.textContent}</a>.toXMLString();
     pillageLink(id, { after: a });
   }
-  if (/setWorkers/i.test(location.hash||"")) {
+  if (/#keep:setWorkers/i.test(location.hash||"")) {
     var l = integer($X('id("resUpgrade")//div[@class="buildingLevel"]'));
+    if ($("upgradeCountDown")) l += "+";
     node({ tag: <div id="mineLevel">{ l }</div>, before: $("inputWorkers") });
     var form = $("setWorkers");
     if (form) {
