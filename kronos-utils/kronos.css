@@ -882,7 +882,7 @@ hr#vr {
 
 
 /**** pillage view ****/
-#ikafight {
+#ikafight iframe {
   border: none;
   overflow-x: hidden;
   height: 490px;

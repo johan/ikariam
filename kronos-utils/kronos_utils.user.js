@@ -709,6 +709,7 @@ function augmentIkaFight() {
     if (a) input[a].checked = true;
     if (d) input[integer(d)+3].checked = true;
   }
+  scrollWheelable($x('//input[@type="text"]'));
   if (window != top) document.body.style.background = "none";
 }
 
@@ -736,11 +737,14 @@ function plunderView(where) {
     var url = "http://ikariam.immortal-nights.com/ikafight/?battleType=";
     url += (1 ? "land" : "sea") +"#"+ makeQuery(stats);
 
-    return node({ append: $("mainview"), tag: <div class="contentBox01h" id="f">
+    var form = $("plunderForm");
+    var div = node({ before: form, tag: <div class="contentBox01h" id="f">
       <h3 class="header">ImmortalNights&apos; IkaFight</h3>
-      <div class="content"><iframe id="ikafight" src={ url }></iframe></div>
-      <div class="footer"></div>
+      <div class="content" id="ikafight"> </div>
+      <div class="footer"> </div>
     </div> }).f;
+    node({ append: $("ikafight"), tag: <iframe src={ url }/> });
+    return div;
   }
 
   function ikaFight() {
@@ -1572,7 +1576,7 @@ function changeQueue(e) {
   } else if (!e.altKey) {
     return;
   } else if ((a = $X('parent::li[parent::ul[@id="locations"]]/a', clicked))) {
-    if (config.get("noQ")) return;
+    if (!$("cityCountdown") && config.get("noQ")) return;
     addToQueue(buildingID(a), e.shiftKey);
     setTimeout(processQueue, 10);
   } else if ((a = $X('ancestor-or-self::a[@href="#upgrade"]', clicked))) {
