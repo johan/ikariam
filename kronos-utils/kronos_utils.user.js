@@ -6,6 +6,7 @@
 // @include        http://s*.ikariam.tld/*
 // @exclude        http://board.ikariam.*/
 // @exclude        http://*.ikariam.*/index.php?view=renameCity*
+// @include        http://ikariam.immortal-nights.com/ikafight/*
 // @require        http://ecmanaut.googlecode.com/svn/trunk/lib/gm/wget.js
 // @resource woody header.png
 // @resource att-r arrow-right.png
@@ -31,6 +32,8 @@
 var kronos = this, version = "0.5", lang, scientists, growthDebug = 0;
 var base = "http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/";
 if (config.get("debug")) unsafeWindow.kronos = kronos;
+if (/^http:\/\/ikariam.immortal-nights.com\/ikafight/i.test(location.href))
+  augmentIkaFight();
 if (location.hostname.match(/^s\d+\./))
   init();
 else
@@ -695,20 +698,80 @@ function blockadeView() {
   plunderView("fleet");
 }
 
+function augmentIkaFight() {
+  var args = urlParse(null, (location.hash||"#").slice(1));
+  for (var n in args) {
+    var td = $X('//td[.="'+ n +'"]');
+    if (!td) continue;
+    var v, a, d; [v, a, d] = args[n].split(".").concat(0, 0);
+    var input = $x('following::input', td);
+    input[0].value = v;
+    if (a) input[a].checked = true;
+    if (d) input[integer(d)+3].checked = true;
+  }
+  if (window != top) document.body.style.background = "none";
+}
+
 function plunderView(where) {
+  function simulateBattle() {
+    function count(input) {
+      var unit = readUnit(input);
+      var units = integer(input.value);
+      if (empty) // pick the maximum available, if no units were selected
+        units = integer($X('preceding::div[@class="amount"][1]', input));
+      if (!units) return;
+      var name = ika[unit.id] || (troops[unit.id] || ships[unit.id]).n;
+      var a = config.getServer(["techs", "units", unit.id, "a"], 0);
+      var d = config.getServer(["techs", "units", unit.id, "d"], 0);
+      if (a || d) { units += "."+ a +"."+ d; }
+      stats[name] = units;
+      return input;
+    }
+
+    var ika = { 308: "Steamgiant", 312: "Gyro", 210: "Ram", 213: "Ballista",
+                214: "Catapult", 215: "Mortor", 216: "Paddle-wheel" };
+    var send = sending(), stats = {};
+    var empty = !sum(send); // none selected?
+    send.forEach(count);
+    var url = "http://ikariam.immortal-nights.com/ikafight/?battleType=";
+    url += (1 ? "land" : "sea") +"#"+ makeQuery(stats);
+
+    return node({ append: $("mainview"), tag: <div class="contentBox01h" id="f">
+      <h3 class="header">ImmortalNights&apos; IkaFight</h3>
+      <div class="content"><iframe id="ikafight" src={ url }></iframe></div>
+      <div class="footer"></div>
+    </div> }).f;
+  }
+
+  function ikaFight() {
+    if (!ikaFight.loaded)
+      ikaFight.loaded = simulateBattle();
+    else
+      toggle(ikaFight.loaded)
+  }
+
+  function readUnit(input) {
+    var id = integer(input.id);
+    var type = input.id.split("_")[1]; // army | fleet
+    var unit = (type == "army" ? troops : ships)[id];
+    return unit;
+  }
+
+  function sending() {
+    return $x('//input[@type="text" and starts-with(@id,"cargo_")]');
+  }
+
   function updateMilitaryScores() {
     function cost(input) {
       var n = integer(input.value);
-      var id = integer(input.id);
-      var type = input.id.split("_")[1]; // army | fleet
-      var unit = (type == "army" ? troops : ships)[id];
+      var unit = readUnit(input);
       score += n * (2*unit.w + 4*(unit.C||0) + 16*(unit.S||0) + 4*(unit.S||0));
       var level = config.getServer;
-      offense += n * (unit.a + level("techs.units."+ id +".a", 0) * unit.A);
-      defense += n * (unit.d + level("techs.units."+ id +".d", 0) * unit.D);
+      offense += n * (unit.a + level("techs.units."+unit.id+".a", 0) * unit.A);
+      defense += n * (unit.d + level("techs.units."+unit.id+".d", 0) * unit.D);
     }
     var offense = 0, defense = 0, score = 0;
-    $x('//input[@type="text" and starts-with(@id,"cargo_")]').forEach(cost);
+    sending().forEach(cost);
     $("militaryscore").textContent = score;
     if (!od) return;
     $("offense").innerHTML = offense;
@@ -729,6 +792,7 @@ function plunderView(where) {
 
   scrollWheelable();
   dontSubmitZero(2, 'id("selectArmy")//input[@type="submit"]');
+  toggler(gfx.swords, ikaFight);
 }
 
 
@@ -1967,6 +2031,7 @@ function portView() {
 }
 
 function sum(a, b) {
+  if (1 == arguments.length) return reduce(sum, a, 0);
   return integer(a || 0) + integer(b || 0);
 }
 

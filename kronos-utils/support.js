@@ -117,12 +117,24 @@ function rm(node) {
   return node && node.parentNode && node.parentNode.removeChild(node);
 }
 
+function toggle(node) {
+  if (node)
+    return node.style.display = !node.style.display ? "none" : "";
+}
+
 function hide(node) {
   if (node) return node.style.display = "none";
 }
 
 function show(node) {
   if (node) return node.style.display = "block";
+}
+
+function makeQuery(o) {
+  var q = [];
+  for (var i in o)
+    q.push(encodeURIComponent(i) +"="+ encodeURIComponent(o[i]));
+  return q.join("&");
 }
 
 function css(rules, disabled) {

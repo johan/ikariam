@@ -852,6 +852,9 @@ hr#vr {
   right: -2px;
   top: -2px;
 }
+#breadcrumbs .mini-icon img {
+  height: 16px;
+}
 
 #breadcrumbs #miniMap {
   visibility: hidden;
@@ -875,4 +878,13 @@ hr#vr {
 
 #island #container #mainview #alliances td {
   text-align: center;
+}
+
+
+/**** pillage view ****/
+#ikafight {
+  border: none;
+  overflow-x: hidden;
+  height: 490px;
+  width:  674px;
 }
