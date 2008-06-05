@@ -699,7 +699,15 @@ function blockadeView() {
 }
 
 function augmentIkaFight() {
-  var args = urlParse(null, (location.hash||"#").slice(1));
+  var specs = (location.hash||"#").slice(1);
+  if (window != top) {
+    document.body.style.background = "none";
+    if (specs)
+      window.name = specs;
+    else
+      specs = window.name;
+  }
+  var args = urlParse(null, specs);
   for (var n in args) {
     var td = $X('//td[.="'+ n +'"]');
     if (!td) continue;
@@ -710,7 +718,6 @@ function augmentIkaFight() {
     if (d) input[integer(d)+3].checked = true;
   }
   scrollWheelable($x('//input[@type="text"]'));
-  if (window != top) document.body.style.background = "none";
 }
 
 function plunderView(where) {
