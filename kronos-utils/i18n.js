@@ -796,6 +796,10 @@ net: { // Turkish server
    spyWarehouse: "Depo´yu gözletle",
 },
 
+es: { // Spanish server
+   spyWarehouse: "Inspeccionar depósito",
+},
+
 };
 
 var shash = integer(location.hostname);
