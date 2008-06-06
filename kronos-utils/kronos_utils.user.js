@@ -1522,7 +1522,10 @@ function urlTo(what, id, opts) {
     case "researchOverview":
       			return urlTo("academy").replace("academy", what);
 
-    case "city":	return url("?view=city&id="+ (id || c));
+    case "city":	return !opts || !opts.changeCity ?
+                          url("?view=city&id="+ (id || c)) :
+                          url("?action=header&function=changeCurrentCity" +
+                              "&oldView=city&view=city&cityId="+ id);
     case "building":	return url("?view=buildingDetail&buildingId="+ id);
     case "research":	return url("?view=researchDetail&researchId="+ id);
     case "pillage":	return url("?view=plunder&destinationCityId="+ id);
@@ -2447,7 +2450,7 @@ function warehouseSpy() {
     if (city.n != cityName) continue;
     if (city.l) {
       found = true;
-      var a = <><a href={urlTo("city", id)}>{cityName}</a> (</>;
+      var a = <><a href={urlTo("city", id)}>{ cityName }</a> (</>;
       var isle = config.getCity("i", id);
       if (isle) {
         isle = urlTo("island", {city: id, island: isle});
@@ -3507,9 +3510,10 @@ function showOverview() {
       if ("w" == r)
         v = <a class="text" href={ urlTo("wood", undefined, { city: id }) }
                title={ sign(p[r]) }>{ v }</a>;
-      else if ("p" == r)
-        v = <a class="text" href={ urlTo("city", id) }>{ v||0 }</a>;
-      else if (config.getIsle("r", "", island) == r)
+      else if ("p" == r) {
+        var u = urlTo("city", id, { changeCity: 1 });
+        v = <a class="text" href={ u }>{ (v + "").replace("\xA0", 0) }</a>;
+      } else if (config.getIsle("r", "", island) == r)
         v = <a class="text" href={ urlTo("luxe", undefined, { city: id }) }
                title={ sign(p[r]) }>{ v }</a>;
       else if ("W" == r && config.getCity("l", [], city)[buildingIDs.tavern])
