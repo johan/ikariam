@@ -227,15 +227,17 @@ function node(opt) {
       if (n.childNodes.length == 1)
         n = n.firstChild;
     }
-    var after = attr("after");
+    var after = attr("after"), replace = attr("replace");
     var before = opt.prepend ? opt.prepend.firstChild : attr("before");
     var parent = attr("prepend") || attr("append") ||
-                   (before || after || {}).parentNode;
+                   (before || after || replace || {}).parentNode;
     if (parent) {
       if (before)
         parent.insertBefore(n, before);
       else if (after)
         parent.insertBefore(n, after.nextSibling);
+      else if (replace)
+        parent.replaceChild(n, replace);
       else
         parent.appendChild(n);
     }
