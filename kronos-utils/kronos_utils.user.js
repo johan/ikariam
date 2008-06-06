@@ -2390,7 +2390,7 @@ function scrapeIkipediaBuilding(doc, id) {
   if (isUndefined(id)) id = urlParse("buildingId");
   if (isUndefined(id)) return undefined;
 
-  var body = $X('id("overview")/tbody', doc);
+  var body = $X('id("citypanel")/tbody', doc);
   var head = $x('tr[1]/th[@class="costs"]/img', body).map(resource);
   var data = $x('tr[td[@class="costs"]]', body);
   var cost = data.map(parse);
@@ -3396,6 +3396,7 @@ function fixUpdates() {
 
   var number_format = unsafeWindow.number_format;
   clearInterval(unsafeWindow.ev_updateResources);
+  if (/#keep:/.test(location.hash||"")) return;
 
   var city = referenceCityID();
   var wine = config.getCity(["x", buildingIDs.tavern], 0, city);
@@ -3503,7 +3504,7 @@ function showOverview() {
   }
 
   var grid = {}, res = ["w", "W", "M", "C", "S", "p"];
-  var table = <table id="overview" title=" "><tr id="headers">
+  var table = <table id="citypanel" title=" "><tr id="headers">
     <th class="w"/><th class="W"/><th class="M"/>
     <th class="C"/><th class="S"/><th class="p"/>
   </tr></table>;
@@ -3551,9 +3552,9 @@ function showOverview() {
         v = <a class="text" href={ urlTo("luxe", undefined, { city: id }) }
                title={ sign(p[r]) }>{ v }</a>;
       } else if ("W" == r && config.getCity("l", [], city)[buildingIDs.tavern])
-        v = <span title={ sign(p.W) }>{ v }</span>;
+        v = <div title={ sign(p.W) }>{ v }</div>;
       else
-        td = v = <td >{ v }</td>;
+        td = v = <td ><div>{ v }</div></td>;
       v.@id = r +"_"+ id;
       v.@rel = o;
       tr.td += td || <td>{ v }</td>;
@@ -3599,7 +3600,7 @@ function showOverview() {
   table.tr[1].@class = "first " + (table.tr[1].@class || "");
   var ids = node({ after: $("citySelect"), tag: table });
   ids.headers.style.backgroundImage = "url("+ GM_getResourceURL("woody") +")";
-  toggleOverview.table = ids.overview;
+  toggleOverview.table = ids.citypanel;
 
   // hover callbacks
   for (var id in ids) {
