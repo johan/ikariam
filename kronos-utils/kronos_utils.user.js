@@ -2222,6 +2222,18 @@ function pruneTodayDates(xpath, root) {
   $x(xpath + '[contains(.,"'+ date +'")]', root).forEach(dropDate);
 }
 
+function linkCity(name, player) {
+  var n = name.textContent;
+  var cities = config.getServer(["players", player, "c"]);
+  if (!cities) return;
+  for each (var city in cities) {
+    var c = config.getServer(["cities", city]);
+    if (!c || !c.i || c.n != n) continue;
+    var u = urlTo("island", { city: city, island: c.i });
+    return node({ tag: <a href={ u }>{ n }</a>, replace: name });
+  }
+}
+
 // would ideally treat the horrid tooltips as above, but they're dynamic. X-|
 function merchantNavyView() {
   function missionType(mission, t1_vs_t2, c1, c2) {
@@ -2275,6 +2287,7 @@ function merchantNavyView() {
       td[0].appendChild(c2);
       [c1, c2] = [c2, c1];
     }
+    linkCity(c2, player);
     node({ tag: <img class="arrow" src={arrows[direction][msn]}/>,
            append: arrow });
   }
