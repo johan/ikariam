@@ -1559,8 +1559,8 @@ function urlTo(what, id, opts) {
   }
 }
 
-function getQueue() {
-  return config.getCity("q", []);
+function getQueue(city) {
+  return config.getCity("q", [], city);
 }
 
 function setQueue(q) {
@@ -3476,7 +3476,10 @@ function toggleOverview(newValue, node) {
 // extended city selection panel
 function showOverview() {
   function reset(e) {
-    var id = e.target.id.split("-").pop();
+    var on = e.target;
+    var id = on.id.split("-").pop();
+    //var is = eval(on.getAttribute("rel"));
+    //on.textContent = is.l; // original level
     for each (var r in res) {
       if ("S" == r) return; // no buildings cost sulphur or people anyway
       var n = $(r +"_"+ id);
@@ -3560,6 +3563,7 @@ function showOverview() {
       tr.td += td || <td>{ v }</td>;
     }
 
+    var q = getQueue(id);
     // building half of the city popup
     for each (var name in names) {
       var b = buildingIDs[name], a, need;
@@ -3591,7 +3595,9 @@ function showOverview() {
             a.@style = "opacity: 0.5;";//"text-decoration: line-through";
             break;
           }
-        a.@rel = need.toSource()
+        a.@rel = need.toSource();
+        if (-1 != q.indexOf(b))
+          a.@style = (a.@style||"") + "font-style: italic;";
       }
       tr.td += <td class="building">{a}</td>;
     }
