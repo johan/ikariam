@@ -400,7 +400,7 @@ function cssToggler(id, enabled, img, css, cb) {
   css = node({ tag: "style", text: css,
                append: document.documentElement.firstChild });
   css.disabled = config.get("default-"+id, !enabled);
-  toggler(img, toggle);
+  toggler(img, toggle, "#"+id);
 }
 
 function cityHasBuilding(b) {

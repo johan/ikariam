@@ -3474,6 +3474,34 @@ function toggleOverview(newValue, node) {
 
 // extended city selection panel
 function showOverview() {
+  function reset(e) {
+    var id = e.target.id.split("-").pop();
+    for each (var r in res) {
+      if ("S" == r) return; // no buildings cost sulphur or people anyway
+      var n = $(r +"_"+ id);
+      var v = n.getAttribute("rel") || "\xA0";
+      if (n.textContent != v) {
+        n.textContent = v;
+        n.style.fontWeight = "";
+      }
+    }
+  }
+
+  // deduct how much an upgrade costs
+  function hover(e) {
+    var b, id, n = e.target;
+    [b, id] = n.id.split("-");
+    //var cost = buildingExpansionNeeds(b, n.textContent);
+    var cost = eval(n.getAttribute("rel"));
+    for (var r in cost) {
+      n = $(r +"_"+ id);
+      if (!n) continue;
+      var v = integer(n.getAttribute("rel")) - cost[r];
+      n.textContent = v;
+      n.style.fontWeight = "bold";
+    }
+  }
+
   var grid = {}, res = ["w", "W", "M", "C", "S", "p"];
   var table = <table id="overview" title=" "><tr id="headers">
     <th class="w"/><th class="W"/><th class="M"/>
@@ -3509,23 +3537,31 @@ function showOverview() {
     if (id == city) tr.@class = "current";
     var island = config.getCity("i", 0, id);
     grid[id] = data;
+
+    // resource half of the city popup
     for each (r in res) {
-      var v = data[r] || "\xA0";
-      if ("w" == r)
+      var o = data[r], v = o || "\xA0", td = null;
+      if ("w" == r) {
         v = <a class="text" href={ urlTo("wood", undefined, { city: id }) }
                title={ sign(p[r]) }>{ v }</a>;
-      else if ("p" == r) {
+      } else if ("p" == r) {
         var u = urlTo("city", id, { changeCity: 1 });
-        v = <a class="text" href={ u }>{ (v + "").replace("\xA0", 0) }</a>;
-      } else if (config.getIsle("r", "", island) == r)
+        v = <a class="text" href={ u }>{ data[r] }</a>;
+      } else if (config.getIsle("r", "", island) == r) {
         v = <a class="text" href={ urlTo("luxe", undefined, { city: id }) }
                title={ sign(p[r]) }>{ v }</a>;
-      else if ("W" == r && config.getCity("l", [], city)[buildingIDs.tavern])
-        v = <span title={ sign(p.W) }>{v}</span>;
-      tr.td += <td>{ v }</td>;
+      } else if ("W" == r && config.getCity("l", [], city)[buildingIDs.tavern])
+        v = <span title={ sign(p.W) }>{ v }</span>;
+      else
+        td = v = <td >{ v }</td>;
+      v.@id = r +"_"+ id;
+      v.@rel = o;
+      tr.td += td || <td>{ v }</td>;
     }
+
+    // building half of the city popup
     for each (var name in names) {
-      var b = buildingIDs[name], a;
+      var b = buildingIDs[name], a, need;
       var l = config.getCity(["l", b], undefined, id);
       if ("palace" == name && isUndefined(l)) {
         name = "palaceColony";
@@ -3535,15 +3571,26 @@ function showOverview() {
       if (isUndefined(l)) {
         a = "\xA0";
       } else {
-        a = <a href={urlTo(name, id)} title={name}>{l}</a>;
+        a = <a href={ urlTo(name, id) } title={ name }>{ l }</a>;
         var t = config.getCity("t", 0, id);
         var u = config.getCity("u", 0, id);
         if (t && t > Date.now() && u)
           u = urlParse("view", u);
         else
           u = null;
-        if (u == name)
+        a.@id = name +"-"+ id;
+        if (u == name) {
           a.@class = "being-upgraded";
+          need = buildingExpansionNeeds(name, l+1);
+        } else {
+          need = buildingExpansionNeeds(name, l);
+        }
+        for (r in need)
+          if (data[r] < need[r]) {
+            a.@style = "opacity: 0.5;";//"text-decoration: line-through";
+            break;
+          }
+        a.@rel = need.toSource()
       }
       tr.td += <td class="building">{a}</td>;
     }
@@ -3553,6 +3600,15 @@ function showOverview() {
   var ids = node({ after: $("citySelect"), tag: table });
   ids.headers.style.backgroundImage = "url("+ GM_getResourceURL("woody") +")";
   toggleOverview.table = ids.overview;
+
+  // hover callbacks
+  for (var id in ids) {
+    if (!/-/.test(id)) continue;
+    var n = $(id), b, name;
+    [b, name] = id.split("-");
+    n.addEventListener("mouseout",  reset, false);
+    n.addEventListener("mouseover", hover, false);
+  }
 
   var expander = $X('id("changeCityForm")//div[contains(@class,"dropbutton")]');
   onChange(expander, toggleOverview, "class");
