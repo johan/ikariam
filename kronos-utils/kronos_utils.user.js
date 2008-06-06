@@ -1340,6 +1340,8 @@ function islandView() {
   c.forEach(registerCity);
   alliancePresence();
 
+  cssToggler("playernames", true, "http://i297.photobucket.com/albums/mm209/apocalypse33/Avatar/Ava52.png", "#island #container #mainview #cities .textLabel.player-name { display: none; }");
+
   showSpies();
 
   showMinimap(island);
@@ -1426,6 +1428,7 @@ function levelTown() {
       '<span class="after"></span>';
     name = trim($X('ul/li[@class="owner"]/text()[1]', li).textContent);
     player.childNodes[1].nodeValue = name;
+    addClass(player, "player-name");
 
     city.parentNode.insertBefore(player, city.nextSibling);
     player.style.top = "84px";
