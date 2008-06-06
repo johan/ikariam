@@ -8,6 +8,8 @@
 ///\\\   which technologies you have researched, anyway.                ///\\\
 ///\\\                                                                  ///\\\
 
+var base = "http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/";
+
 // resources:
 var resourceIDs = {
   wood: "w", wine: "W", marble: "M", glass: "C", crystal: "C", sulfur: "S",
@@ -69,6 +71,7 @@ var gfx = {
       attack: "/skin/layout/sword-icon-report.gif",
       defend: "/skin/layout/shield-icon-report.gif",
      stamina: "/skin/layout/icon-endurance2.gif",
+   alliances: base + "gfx/icons/alliances-colour.png",
 
      pillage: "/skin/actions/plunder.gif",
 

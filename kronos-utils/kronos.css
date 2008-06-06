@@ -844,16 +844,20 @@ hr#vr {
 
 
 /**** island view minimap ****/
-#breadcrumbs .mini-icon:active { opacity: 1.0; }
-#breadcrumbs .mini-icon:hover  { opacity: 0.7; }
-#breadcrumbs .mini-icon {
+#breadcrumbs #miniPane {
   position: absolute;
-  opacity: 0.5;
-  right: -2px;
-  top: -2px;
+  right: -5px;
+  top: 2px;
 }
-#breadcrumbs .mini-icon img {
-  height: 16px;
+
+#breadcrumbs #miniPane a:active { opacity: 1.0; }
+#breadcrumbs #miniPane a:hover  { opacity: 0.9; }
+#breadcrumbs #miniPane a {
+  opacity: 0.8;
+  margin-left: 13px; /* temp hack for the alliance icon */
+}
+#breadcrumbs #miniPane img {
+  height: 20px;
 }
 
 #breadcrumbs #miniMap {
@@ -887,4 +891,19 @@ hr#vr {
   overflow-x: hidden;
   height: 490px;
   width:  674px;
+}
+
+
+/**** resource view ****/
+#tradegood.wine #mainview #setWorkers .workers {
+  background-image: url(http://duckpit.hamptonlane.co.uk/images/ikariam/kronos/workers/worker_wine.png);
+}
+#tradegood.marble #mainview #setWorkers .workers {
+  background-image: url(http://duckpit.hamptonlane.co.uk/images/ikariam/kronos/workers/worker_marble.png);
+}
+#tradegood.crystal #mainview #setWorkers .workers {
+  background-image: url(http://duckpit.hamptonlane.co.uk/images/ikariam/kronos/workers/worker_crystal.png);
+}
+#tradegood.sulfur #mainview #setWorkers .workers {
+  background-image: url(http://duckpit.hamptonlane.co.uk/images/ikariam/kronos/workers/worker_sulphur.png);
 }

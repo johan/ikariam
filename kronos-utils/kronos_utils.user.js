@@ -30,7 +30,6 @@
 // ==/UserScript==
 
 var kronos = this, version = "0.5", lang, scientists, growthDebug = 0;
-var base = "http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/";
 if (config.get("debug")) unsafeWindow.kronos = kronos;
 if (/^http:\/\/ikariam.immortal-nights.com\/ikafight/i.test(location.href))
   augmentIkaFight();
@@ -1261,12 +1260,8 @@ function showMinimap(i) {
   var me = cityIDs().map(referenceIslandID).join(",");
   var u = base +"minimap.html?s="+ location.hostname +"&t=_top&w=7&h=7&c="+
     i +"&r=0&red="+ me +"&white="+ i;
-
   var b = $("breadcrumbs");
-  node({ tag: <a class="mini-icon" id="minimapIcon" target="minimap" href={ u }>
-      <img src={ gfx.world }/>
-    </a>, append: b });
-  clickTo($("minimapIcon"), toggleMinimap);
+  toggler(gfx.world, toggleMinimap, u.replace(/([wh])=7/g, "$1=33"));
 }
 
 function islandView() {
@@ -1277,7 +1272,11 @@ function islandView() {
   function alliancePresence() {
     var all = {}, main = $("mainview");
     var a = node({ append: main, tag:<table id="alliances"></table> });
-    node({ append: main, tag: <div style="position:absolute; left:390px; top: 4px; color:#FFF !important;">[<a style="color:#CCF !important;" target="_blank" href="http://corentin.jarnoux.free.fr/kronosutils/?topic=157">Your icon to toggle alliance standings here</a>]</div> });
+    cssToggler("alliances", true, gfx.alliances, <><![CDATA[
+#container #mainview #alliances {
+  display: none;
+}
+]]></>);
     a = a.alliances;
     for each (var city in c) {
       var name = $X('string(li[@class="ally"]/a[1])', city) || "-";
@@ -2546,6 +2545,8 @@ function resourceView() {
       city.innerHTML = <a href={link}>{city.textContent}</a>.toXMLString();
     pillageLink(id, { after: a });
   }
+
+  addClass(document.body, luxuryType("name"));
   if (/#keep:setWorkers/i.test(location.hash||"")) {
     var l = integer($X('id("resUpgrade")//div[@class="buildingLevel"]'));
     if ($("upgradeCountDown")) l += "+";
@@ -3020,7 +3021,7 @@ function clickTo(node, action, condition, capture, event, when) {
   if (isArray(node)) return map(clickTo, arguments);
   if (node) {
     node.addEventListener(event || "click", function(e) {
-      if (when && !when(e)) return;
+      if (e.button || when && !when(e)) return;
       if (!condition || $X(condition, e.target)) {
         e.stopPropagation();
         e.preventDefault();

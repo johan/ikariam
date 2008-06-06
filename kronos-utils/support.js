@@ -381,11 +381,13 @@ function time(t) {
   return minus + result.join(join || " ");
 }
 
-function toggler(img, callback) {
+function toggler(img, callback, url) {
   toggler.id = (toggler.id || 0) + 1;
   var id = "toggler" + toggler.id;
-  node({ tag: <a class="mini-icon" id={ id } href="#"> <img src={ img }/></a>,
-         append: $("breadcrumbs") });
+  var pane = $("miniPane") || node({ append: $("breadcrumbs"),
+                                     tag: <div id="miniPane"/> }).miniPane;
+  node({ tag: <a id={ id } href={ url || "#" }> <img src={ img }/></a>,
+         append: pane });
   clickTo($(id), callback);
 }
 
