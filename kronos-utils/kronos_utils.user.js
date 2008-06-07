@@ -1233,9 +1233,9 @@ function travelDistanceBreadcrumbs(island) {
       config.setIsle("y", y = integer(y), island);
     }
     //console.log("isle %x at %x:%y", island, x, y);
-    //while (isTextNode(breadcrumbs.lastChild)) rm(breadcrumbs.lastChild);
     if ((t = travelTime(x, y)))
-      breadcrumbs.innerHTML += " ("+ secsToDHMS(t) +")";
+      node({ id: "travel_time", tag: "span", text: " ("+ secsToDHMS(t) +")",
+             append: breadcrumbs });
   }
 }
 
