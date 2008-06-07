@@ -2726,6 +2726,11 @@ function townHallView() {
 }
 
 function museumView() {
+  function link(td) {
+    var player = $X('preceding-sibling::td[@class="player"]', td).textContent;
+    linkCity(td.firstChild, player);
+  }
+
   var goods = $X('id("val_culturalGoodsDeposit")/..');
   if (goods)
     config.setCity(["x", buildingIDs.museum],
@@ -2741,6 +2746,8 @@ function museumView() {
   for (var i = 0; i < friends.length; i++)
     friends[i] = urlParse("receiverName", friends[i].search);
   config.setServer("treaties", friends);
+
+  $x('//td[@class="capital"]').map(link);
 }
 
 function updateCurrentResearch() {
