@@ -743,6 +743,14 @@ function plunderView(where) {
     var send = sending(), stats = {};
     var empty = !sum(send); // none selected?
     send.forEach(count);
+    var to = $X('id("plunderForm")//input[@name="destinationCityId"]');
+    if (to) {
+      var city = integer(to);
+      var levels = config.getCity("l", {}, city);
+      stats["Town Level"] = levels[buildingIDs.townHall] || 0;
+      stats["Wall Level"] = levels[buildingIDs.wall] || 0;
+    }
+
     var url = "http://ikariam.immortal-nights.com/ikafight/?battleType=";
     url += ("fleet" == where ? "sea" : "land") +"#"+ makeQuery(stats);
 
@@ -1416,12 +1424,15 @@ function levelTown() {
       location.href = "javascript:void(flToggleFrame(1))";
     }
   }
+
   function level(li) {
-    var level = li.className.match(/\d+/)[0];
+    var level = integer(li.className);
     var city = $X('a[@onclick]/span', li);
     if (!city) return; // new city site
     var name = $X('text()[preceding-sibling::span]', city);
     if (name) {
+      var id = integer($X('a', li).id);
+      config.setCity(["l", buildingIDs.townHall], level, id);
       name.nodeValue = level +":"+ name.nodeValue;
       name = name.parentNode;
       name.style.left = Math.round((name.offsetWidth) / -2 + 34) + "px";
@@ -1442,6 +1453,7 @@ function levelTown() {
     clickTo(player, addToFriendList);
     dblClickTo(player, msg.href);
   }
+
   $x('//li[starts-with(@class,"cityLocation city level")]').forEach(level);
 }
 
