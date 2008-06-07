@@ -253,6 +253,7 @@ function militaryAdvisorMilitaryMovementsView() {
     li.style.height = "52px";
   }
   $x('//li/div/div[contains(@id,"CountDown")]').forEach(project);
+  tab3('id("tabz")/tbody/tr/td/a');
 }
 
 function makeLootTable(table, reports) {
@@ -615,6 +616,8 @@ function militaryAdvisorCombatReportsView() {
     rows[n].tr = tr;
   }
 
+  tab3('id("tabz")/tbody/tr/td/a');
+
   var my = militaryAdvisorCombatReportsView; my.unknowns = [];
   var table = $X('id("finishedReports")/table[@class="operations"]');
   if (!table) return;
@@ -741,9 +744,9 @@ function plunderView(where) {
     var empty = !sum(send); // none selected?
     send.forEach(count);
     var url = "http://ikariam.immortal-nights.com/ikafight/?battleType=";
-    url += (1 ? "land" : "sea") +"#"+ makeQuery(stats);
+    url += ("fleet" == where ? "sea" : "land") +"#"+ makeQuery(stats);
 
-    var form = $("plunderForm");
+    var form = $("plunderForm") || $("blockadeForm");
     var div = node({ before: form, tag: <div class="contentBox01h" id="f">
       <h3 class="header">ImmortalNights&apos; IkaFight</h3>
       <div class="content" id="ikafight"> </div>
@@ -2234,6 +2237,59 @@ function linkCity(name, player) {
   }
 }
 
+function tab3(tabTitles) {
+  function cleanup(title) {
+    return trim(title).replace(/\s*[(\d)]+$/, "");
+  }
+  return;
+  var titles = $x(tabTitles);
+  console.log(titles);
+  var texts = pluck(titles, "textContent").map(trim);
+  console.log(texts);
+  var saved = config.getServer("lang.tabs", titles);
+  var had = saved.length, got = titles.length;
+  if (1 == got && 2 == had) saved = texts.concat(saved); else
+  if (2 == got && 1 == had) saved = saved.concat(texts); else
+    return config.setServer("lang.tabs", saved.map(cleanup));
+
+  console.log(saved.join(",?"));
+
+  var selected = 2 == got ? titles[0].className ? 2 : 1 : 0;
+  console.log("saved: "+ saved.join() + "("+selected+")");
+  if (selected != 0) rm($X('id("tabz")/..')); // drop the old tabs
+
+  var urls = ["/index.php?view=merchantNavy",
+              "/index.php?view=militaryAdvisorMilitaryMovements",
+              "/index.php?view=militaryAdvisorCombatReports"];
+  var tabs = <></>;
+  for (var i = 0; i < urls.length; i++) {
+    var tab = <li><a href={ urls[i] }><em>{ saved[i] }</em></a></li>;
+    if (selected == i)
+      tab.@class = "selected";
+    tabs += tab;
+  }
+  tabs = <div id="demo" class="yui-navset yui-navset-top">
+    <ul class="yui-nav">{ tabs }</ul>
+  </div>;
+
+  node({ tag: tabs,
+         after: $X('id("mainview")/div[@class="buildingDescription"]') });
+
+/*
+    <div class="yui-content">
+    <div style="display: block;" id="tab1">
+      <div class="contentBox01h">
+        <h3 class="header"><span class="textLabel">Empire overview</span></h3>
+          <div class="content">
+          </div>
+        <div class="footer"/>
+      </div><!--contentBox01h-->
+    </div><!--tab1 -->
+  </div><!-- end YUI Content -->
+</div>
+*/
+}
+
 // would ideally treat the horrid tooltips as above, but they're dynamic. X-|
 function merchantNavyView() {
   function missionType(mission, t1_vs_t2, c1, c2) {
@@ -2353,6 +2409,8 @@ function merchantNavyView() {
   unsafeWindow.Tip = monkeypatch; // fixes up the tooltips a bit
 
   var table = $X('id("mainview")//table[@class="table01"]/tbody');
+
+  tab3('id("mainview")/div/h1');
 
   if (texts) {
     var arrows = { left: {}, right: {} };
