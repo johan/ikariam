@@ -47,6 +47,7 @@ function init() {
         "?topic=2.0#post_requirements";
     return;
   }
+
   addEventListener("load", maybeAugmentOverviewTable, false); // wine shortages?
   fixUpdates();
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
@@ -67,6 +68,15 @@ function init() {
     }
   }
 
+  try {
+    augment(view, action, lang);
+  }
+  finally {
+    processHash();
+  }
+}
+
+function augment(view, action, lang) {
   switch (view || action) {
     case "tavern": tavernView(); break;
     case "resource":  // fall-through:
@@ -139,13 +149,29 @@ function init() {
     var langChoice = panelInfo();
     langChoice.title = lang.execTime +": "+ (Date.now() - DEBUT) +"ms";
   }
+}
 
+function processHash() {
   if (location.hash) {
     var fn = location.hash.match(/^#call:(.*)/);
     if (fn && (fn = kronos[fn[1]])) setTimeout(fn, 1e3);
 
     var id = location.hash.match(/^#keep:(.*)/);
     if (id) keep(id[1].split(","));
+
+    var rest = urlParse(null, location.hash.slice(1));
+    for each (var where in "before,after,prepend,append,replace".split(",")) {
+      var opts = {}, is = rest[where], at = is.indexOf(":");
+      var path = is.slice(0, at), what = is.slice(at+1);
+      if ((opts[where] = $X(path))) {
+        var div = document.createElement("div");
+        div.innerHTML = what;
+        var tmp = document.createRange();
+        tmp.selectNodeContents(div);
+        opts.tag = tmp.extractContents();
+        node(opts);
+      }
+    }
   }
 }
 
@@ -157,6 +183,15 @@ function login() {
   var site = /^http:..s(\d+)\.ikariam/.exec(document.referrer);
   if (site)
     uni.selectedIndex = integer(site[1]) - 1;
+}
+
+function wineConsumptionTime(total, rate, city) {
+  if (city)
+    rate = config.getCity(["x", buildingIDs.tavern], 0, city);
+  total = integer(total);
+  rate = Math.abs(integer(rate));
+  if (!rate) return Infinity;
+  return Math.floor(3600 * total / rate);
 }
 
 function maybeAugmentOverviewTable() {
@@ -173,10 +208,8 @@ function maybeAugmentOverviewTable() {
     var total = $X('preceding-sibling::td[2]', td).textContent;
     var rate = $X('preceding-sibling::td[1]', td).textContent;
     if (rate) {
-      rate = -integer(rate);
-      total = integer(total);
-      if (rate < 1) return;
-      var left = Math.floor(3600 * total / rate);
+      var left = wineConsumptionTime(total, rate);
+      if (!isFinite(rate)) return;
       countdown(td, left);
     }
   }
@@ -688,8 +721,28 @@ function militaryAdvisorReportViewView() {
   c.i = integer(island);
   config.setServer("cities", cities);
   config.setServer("battles.reports", reports);
-  //console.log(cities.toSource());
-  //console.log(reports[r].toSource());
+
+  var q = urlParse();
+  var url = "?view=militaryAdvisorReportView&";
+  var panel = $("troopsReport");
+  var detail = $X('//a[contains(@href,"'+ url +'")]') ||
+    node({ append: $("ergebnis").insertRow(-1).insertCell(0),
+           tag: <><a id="detail">Detailed combat report</a>
+           &gt;&gt;</> }).detail;
+  detail.parentNode.setAttribute("colspan", "7");
+  var lastrow = rm(detail.parentNode.parentNode);
+
+  if (q.combatId)
+    url += "detailedCombatId="+ q.combatId +'#before=id("troopsReport"):'+
+      encodeURIComponent(encodeURIComponent(trim(panel.innerHTML)));
+  else {
+    return $("ergebnis").appendChild(lastrow);
+    url += "combatId="+ q.detailedCombatId +'#after=id("troopsReport"):'+
+      encodeURIComponent(encodeURIComponent(trim(panel.innerHTML)));
+  }
+
+  $("ergebnis").appendChild(lastrow);
+  detail.href = url;
 }
 
 function deploymentView() {
@@ -2086,6 +2139,7 @@ function evenShips(nodes) {
     input.addEventListener("dblclick", fillNextEvenShip, false);
   }
 
+  // estimates travel time there (and updates wine consumption time :-)
   function showTime() {
     var loading = goods() * (60 / buildingCapacity("port"));
     var loadTime = secsToDHMS(loading);
@@ -2096,6 +2150,14 @@ function evenShips(nodes) {
       t.nodeValue = loadTime +" + "+ text +" = "+ secsToDHMS(total);
     else
       t.nodeValue = text;
+
+    var wine = $("textfield_wine");
+    if (wine) {
+      var id = integer($X('id("transport")//input[@name="destinationCityId"]'));
+      var wt = wineConsumptionTime(wine, 1, id);
+      if (wt && isFinite(wt))
+        node({ id: "wineends", text: secsToDHMS(wt, 1), after: wine });
+    }
   }
 
   var baseline = $("sendSummary") || 0;
@@ -3835,6 +3897,7 @@ function cityTabs(cid) {
 }
 
 function buildViewCompactor() {
+  addMeta("items-xpath", 'id("units")/li');
   var me = document.body.id;
   var cities = cityIDs().filter(cityHasBuilding(me));
   var hash = "#keep:header,mainview,breadcrumbs," +

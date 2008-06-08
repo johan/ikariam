@@ -103,6 +103,13 @@ function expensive(fn, n) {
   };
 }
 
+function addMeta(name, content) {
+  var meta = document.createElement("meta");
+  meta.name = name;
+  meta.content = content;
+  return document.documentElement.firstChild.appendChild(meta);
+}
+
 function trim(str) {
   return str.replace(/^\s+|\s+$/g, "");
 }

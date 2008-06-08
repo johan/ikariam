@@ -61,6 +61,13 @@
 }
 */
 
+#wineends {
+  top: 9px;
+  right: 0;
+  width: 4em;
+  margin-right: -5em;
+  position: absolute;
+}
 
 /**** Our own hacks ****/
 
