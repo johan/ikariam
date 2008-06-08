@@ -49,6 +49,7 @@ function init() {
   }
 
   addEventListener("load", maybeAugmentOverviewTable, false); // wine shortages?
+  addEventListener("keypress", cityByNumber, false);
   fixUpdates();
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
   css(GM_getResourceText("css"));
@@ -173,6 +174,18 @@ function processHash() {
       }
     }
   }
+}
+
+function cityByNumber(e) {
+  var on = e.target, name = on && on.nodeName;
+  if (/^(input|textarea)$/i.test(name||"") &&
+      !/radio|checkbox/i.test(on.type||""))
+    return; // focused element was a text field of some sort
+  var li = $x('id("changeCityForm")//*[contains(@class,"citySelect")]/ul/li');
+  var key = integer(String.fromCharCode(e.charCode));
+  if (isNaN(key)) return;
+  li = li[(key || 10) - 1];
+  li && click(li);
 }
 
 function login() {
@@ -1413,19 +1426,25 @@ function islandView() {
     addEventListener("keypress", nextprev, false);
 }
 
+// alternative args formats: "isle", "x1, y1, isle", "isle, null, isle",
+// "null, null, isle" (for mainview -> isle)
 function travelTime(x1, y1, x2, y2) {
-  if (arguments.length == 1) { // a city id
-    var city = isleForCity(x1);
-    x1 = config.getIsle("x", 0, city);
-    y1 = config.getIsle("y", 0, city);
-    //console.log("isle %x at %x:%y", city, x1, y1);
+  if (arguments.length & 1) { // a city id
+    var isle = x1 ? isleForCity(x1) : mainviewIslandID();
+    x1 = config.getIsle("x", 0, isle);
+    y1 = config.getIsle("y", 0, isle);
+    //console.log("isle %x at %x:%y", isle, x1, y1);
     if (!x1 || !y1) return 0;
   }
+  if (arguments.length < 4)
+    if (arguments.length == 3)
+      isle = x2 || mainviewIslandID();
+    else
+      isle = referenceIslandID();
   if (arguments.length < 4) {
-    city = referenceIslandID();
-    x2 = config.getIsle("x", 0, city);
-    y2 = config.getIsle("y", 0, city);
-    //console.log("to isle %x at %x:%y", city, x2, y2);
+    x2 = config.getIsle("x", 0, isle);
+    y2 = config.getIsle("y", 0, isle);
+    //console.log("to isle %x at %x:%y", isle, x2, y2);
     if (!x2 || !y2) return 0;
   }
   var dx = x2 - x1, dy = y2 - y1;
@@ -3800,7 +3819,12 @@ function showCityBuildCompletions() {
     if (res) {
       var has = {}; has[res] = "";
       var img = visualResources(has, { size: 0.5, noMargin: 1 });
-      li.innerHTML = img + li.innerHTML;
+      var from = isleForCity(referenceCityID());
+      var time = travelTime(from, null, isleForCity(id))
+      time = secsToDHMS(time < 3600 || time >= 86400 ? time : time + 3599, 0);
+      if ("island" != urlParse("view") && id == focused)
+        time = "";
+      li.innerHTML = time + img + li.innerHTML;
 
       if (links) { // island link bar
         var a = <a href={urlTo("island", { city: id })} title={names[i]}
