@@ -49,7 +49,7 @@ function init() {
   }
 
   addEventListener("load", maybeAugmentOverviewTable, false); // wine shortages?
-  addEventListener("keypress", cityByNumber, false);
+  addEventListener("keyup", cityByNumber, false);
   fixUpdates();
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
   css(GM_getResourceText("css"));
@@ -182,10 +182,18 @@ function cityByNumber(e) {
       !/radio|checkbox/i.test(on.type||""))
     return; // focused element was a text field of some sort
   var li = $x('id("changeCityForm")//*[contains(@class,"citySelect")]/ul/li');
-  var key = integer(String.fromCharCode(e.charCode));
+  var key = integer(String.fromCharCode(e.keyCode));
   if (isNaN(key)) return;
-  li = li[(key || 10) - 1];
-  li && click(li);
+  var n = (key || 10) - 1;
+  var id = cityIDs()[n];
+  switch ((e.altKey << 1) + e.shiftKey) {
+    case 3: return location.search = urlTo("fleet", id);
+    case 2: return location.search = urlTo("army", id);
+    case 1: return location.search = urlTo("transport", id);
+    case 0:
+      li = li[n];
+      li && click(li);
+  }
 }
 
 function login() {
@@ -1620,6 +1628,8 @@ function urlTo(what, id, opts) {
     case "research":	return url("?view=researchDetail&researchId="+ id);
     case "pillage":	return url("?view=plunder&destinationCityId="+ id);
     case "transport":	return url("?view=transport&destinationCityId="+ id);
+    case "army": case "fleet": return url("?view=deployment&deploymentType="+
+                                          what +"&destinationCityId="+ id);
 
     case "tradeAdvisor":
     case "militaryAdvisorCombatReports":
