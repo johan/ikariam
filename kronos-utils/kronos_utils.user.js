@@ -1631,6 +1631,11 @@ function urlTo(what, id, opts) {
     case "army": case "fleet": return url("?view=deployment&deploymentType="+
                                           what +"&destinationCityId="+ id);
 
+    case "spy":
+      var isle = isleForCity(id);
+      return isle && url("?view=sendSpy&destinationCityId="+ id + "&islandId="+
+                         isle);
+
     case "tradeAdvisor":
     case "militaryAdvisorCombatReports":
     case "researchAdvisor":
@@ -2112,10 +2117,18 @@ function sumPrices(table, c1, c2) {
 }
 
 function pillageLink(id, opts) {
-  opts.tag = <a href={urlTo("pillage", id)}>
-    <img src={gfx.pillage} height="20"/>
-  </a>;
-  node(opts);
+  function add(what, icon) {
+    var link = copy(opts);
+    var url = urlTo(what, id);
+    if (url)
+      link.tag = <a href={ url }><img src={gfx[icon]} height="20"/></a>;
+    else
+      link.tag = <a><img height="20" width="29" src={ gfx.spacer }/></a>;
+    node(link);
+  }
+  add("pillage", "pillage");
+  if (config.getCity(["l", buildingIDs.safehouse]))
+    add("spy", "spy");
 }
 
 function branchOfficeView() {
