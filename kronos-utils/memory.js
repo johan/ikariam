@@ -70,9 +70,11 @@ var data = eval(GM_getValue("config", {}) || {});
 var server = eval(GM_getValue(location.host, none) || none);
 
 function saveConfig() {
-  GM_setValue("config", uneval(data));
-  //console.log("config ", uneval(data));
+  if (isDefined(data))
+    return GM_setValue("config", uneval(data));
+  console.log("Failed to save global Kronos config.");
 }
+
 function saveServer() {
   GM_setValue(location.host, uneval(server).replace(/ \(void 0\)/g, ""));
   //console.log("server ", uneval(server));
