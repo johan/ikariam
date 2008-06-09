@@ -417,6 +417,11 @@ html body div#container div#container2 a.text:hover {
   top: 6px;
 }
 
+#cityNav #citypanel td, #cityNav #citypanel th {
+  padding: 0;
+  margin: 0;
+}
+
 #cityNav #citypanel tr td {
   background: url(/skin/layout/select_citynav.jpg) no-repeat -35px -96px;
   line-height: 24px;
