@@ -181,9 +181,15 @@ function processHash() {
 
 function unbreakSliders() {
   var sliders = unsafeWindow.sliders;
-  if (!sliders) return;
-  for (var id in sliders)
-    sliders[id].adjustSliderRange(sliders[id].actualMax + 1e-5);
+  if (!sliders || !config.get("debug")) return;
+  for (var id in sliders) {
+    var slider = sliders[id];
+    slider.adjustSliderRange(slider.actualMax + 1e-5);
+    slider.valueToThumb = function() {
+      this.setValue(Math.floor( (this.actualValue / this.scaleFactor) -
+                                config.topConstraint ));
+    };
+  }
 }
 
 function cityByNumber(e) {
