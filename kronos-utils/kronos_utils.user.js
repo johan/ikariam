@@ -48,6 +48,8 @@ function init() {
     return;
   }
 
+  unbreakSliders();
+
   addEventListener("load", maybeAugmentOverviewTable, false); // wine shortages?
   addEventListener("keyup", cityByNumber, false);
   fixUpdates();
@@ -175,6 +177,13 @@ function processHash() {
       }
     }
   }
+}
+
+function unbreakSliders() {
+  var sliders = unsafeWindow.sliders;
+  if (!sliders) return;
+  for (var id in sliders)
+    sliders[id].adjustSliderRange(sliders[id].actualMax + 1e-5);
 }
 
 function cityByNumber(e) {
@@ -2686,8 +2695,13 @@ function safehouseReportsView() {
     warehouseSpy();
 }
 
+function spySelf() {
+  goto(urlTo("spy", mainviewCityID()));
+}
+
 function safehouseView() {
   $x('//li/div[starts-with(@id,"SpyCountDown")]').forEach(projectCompletion);
+  altClickTo($X('id("units")/li/div/a[@class="button"]'), spySelf);
 }
 
 function highlightMeInTable() {
