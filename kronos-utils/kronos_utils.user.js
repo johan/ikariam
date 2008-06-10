@@ -83,6 +83,7 @@ function augment(view, action, lang) {
     case "resource":  // fall-through:
     case "tradegood": resourceView(); // fall-through:
     case "takeOffer": scrollWheelable(); break;
+    case "premiumTrader": // fall-through:
     case "transport": scrollWheelable(); evenShips(); break;
     case "loginAvatar":// &function=login
     case "CityScreen": // &function=build&id=...&position=4&building=13
@@ -3286,11 +3287,27 @@ function improveTopPanel() {
     clickTo(li, bind(buy, this, what), 'not(self::a or self::span)');
     dblClickTo(li, bind(sell, this, what));
   }
+
   function projectWarehouseFull(node, what, have, pace) {
     var capacity = integer($X('../*[@class="tooltip"]', get(what)));
     var time = resolveTime((capacity - have) / (pace/3600), 1);
     node.title = (node.title ? node.title +", " : "") + lang.full + time;
   }
+
+  function peekServerTime() {
+    var obj_ServerTime = {}, t = unsafeWindow.localTime;
+    var startServerTime = unsafeWindow.startServerTime;
+    var getFormatedDate = unsafeWindow.getFormatedDate;
+    var src = unsafeWindow.updateServerTime.toSource();
+    var magic = src.match(/\d{10,}/)[0];
+    src = src.replace(/new Date[^;]*/, "new Date("+ (t.getTime()) +")");
+    eval(src);
+    updateServerTime();
+    prompt("Rendered at:", [obj_ServerTime.innerHTML, magic, startServerTime]);
+  }
+
+  // show at what server time this page was rendered when clicking server time
+  clickTo($("servertime"), peekServerTime);
 
   // wine flow calculation
   var flow = reapingPace();
