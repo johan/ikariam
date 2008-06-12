@@ -74,8 +74,11 @@ var gfx = {
    alliances: base + "gfx/icons/alliances-colour.png",
 
      pillage: "/skin/actions/plunder.gif",
+         spy: "/skin/layout/icon-mission.gif",
 
        world: "/skin/layout/icon-world.gif",
+      spacer: "data:image/gif;base64,R0lGODlhAQABAID/A" +
+              "MDAwAAAACH5BAEAAAAALAAAAAABAAEAAAEBMgA7",
 
     townHall: "/skin/img/city/building_townhall.gif",
         port: "/skin/img/city/building_port.gif",

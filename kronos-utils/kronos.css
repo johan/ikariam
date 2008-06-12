@@ -935,3 +935,10 @@ hr#vr {
 #tradegood.sulfur #mainview #setWorkers .workers {
   background-image: url(http://duckpit.hamptonlane.co.uk/images/ikariam/kronos/workers/worker_sulphur.png);
 }
+
+
+#embassy #container #mainview table.table01 td.online,
+#embassy #container #mainview table.table01 td.offline {
+  background-position: left center;
+  padding-left: 18px;
+}

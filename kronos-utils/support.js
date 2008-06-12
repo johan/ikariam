@@ -427,3 +427,24 @@ function cityName(id) {
   console.log(name.toSource, id);
   return name[id];
 }
+
+string.r = /([\x00-\x1F\\\x22])/g;
+string.m = { "\n": "\\n", "\r": "\\r", "\t": "\\t", "\b": "\\b", "\f": "\\f",
+             '"' : '\\"', "\\": "\\\\" };
+function string(s) {
+  if (string.r.test(s)) {
+    return '"'+ s.replace(string.r, function(a, b) {
+      var c = string.m[b];
+      if (c) return c;
+      c = b.charCodeAt().toString(16);
+      return "\\u00"+ (c.length < 2 ? "0" : "") + c;
+    }) +'"';
+  }
+  return '"'+ s +'"';
+}
+
+var console = { log: function(x) {
+  if (!config.get("debug")) return;
+  x = isString(x) ? string(x) : x;
+  location.href = "javascript:void console.log(" + x +")";
+}};

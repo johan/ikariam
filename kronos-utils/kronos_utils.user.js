@@ -4,6 +4,7 @@
 // @description    Tons of UI upgrades and features for Ikariam.
 // @include        http://ikariam.tld/
 // @include        http://s*.ikariam.tld/*
+// @include        http://s*.ikariam.com.pt/*
 // @exclude        http://board.ikariam.*/
 // @exclude        http://*.ikariam.*/index.php?view=renameCity*
 // @include        http://ikariam.immortal-nights.com/ikafight/*
@@ -98,6 +99,7 @@ function augment(view, action, lang) {
     case "townHall": townHallView(); break;
     case "culturalPossessions_assign": scrollWheelable(); // fall-through:
     case "museum": museumView(); break;
+    case "embassy": embassyView(); break;
     case "fleetGarrisonEdit": // fall-through:
     case "armyGarrisonEdit": dontSubmitZero(); break;
     case "shipyard": shipyardView(); break;
@@ -182,6 +184,7 @@ function processHash() {
 function unbreakSliders() {
   var sliders = unsafeWindow.sliders;
   if (!sliders || !config.get("debug")) return;
+  return;
   for (var id in sliders) {
     var slider = sliders[id];
     slider.adjustSliderRange(slider.actualMax + 1e-5);
@@ -2469,6 +2472,9 @@ function merchantNavyView() {
     var direction, msn, swap;
     [msn, direction, swap] = missionType(mission, compare(t1, t2), c1.nodeValue, c2.nodeValue);
     var arrow = tr.insertCell(1);
+    if (cityNames().indexOf((swap ? c2 : c1).textContent) == -1) {
+      swap = !swap; // when possible, salvage ambiguous contexts
+    }
     if (swap) {
       //console.log("replacing row " + (i+1));
       td[1].replaceChild(c1, c2);
@@ -2815,11 +2821,12 @@ function corruption(city, fullpct) {
   var colonies = cityIDs().length - 1;
   var building = "palace" + (isCapital(city) ? "" : "Colony");
   var governor = buildingLevel(building, 0, city);
-  var max = governor >= colonies ? 0 : 7 * colonies - 8 * governor + 2;
+  var max = governor >= colonies ? 0 : (1 - (governor+1) / (colonies+1)) * 100;
   var now = new Date, baseline = new Date(Date.UTC(2008, 3, 28));
   var factor = now < baseline ? 0.1 : 0.2;
   var weeks = Math.floor((now - baseline) / (7*24*60*60e3));
   if (now > baseline) factor += weeks * 0.1;
+  factor = 0.3; // updates: http://board.ikariam.org/?page=Thread&postID=289911
   var corr = Math.min(factor, 1.0) * max / 100;
   growthDebug && console.log("Max corruption (" + max + "%) * gating factor "+
                              factor.toFixed(1) +" ("+ weeks +" whole weeks " +
@@ -2860,6 +2867,28 @@ function townHallView() {
 
   if ($X('.//div[@class="capital"]', growth))
     config.setServer("capital", cityID());
+}
+
+function embassyView() {
+  function link(url, title, was) {
+    node({ tag: <a href={ url }>{ title }</a>, replace: was });
+  }
+
+  function lastOn(td) {
+    var t = td.title.match(/[\d.]{10}/)[0];
+    td.textContent = t.split(".").reverse().join("-");
+  }
+
+  var t = $X('id("allyinfo")/tbody');
+  var td = $x('tr/td[2]', t);
+  var txt = td[4].firstChild; // alliance page
+  var url = txt.textContent.match(/^http:\/\/\S*/);
+  if (url) link(url[0], txt.textContent, txt );
+
+  var n = td[3].textContent.split(/\s+/)[0]; // placement (i e "4 (1,340,785)")
+  link(url("?view=allyHighscore&offset="+ Math.floor(integer(n)/100)),
+       td[3].textContent, td[3].firstChild);
+  $x('id("memberList")/tbody/tr/td[contains(@class,"line")]').forEach(lastOn);
 }
 
 function museumView() {
@@ -3761,9 +3790,9 @@ function showOverview() {
     if (!isObject(data)) {
       data = p = {};
     } else {
-      p = data.p;
+      p = data.p || {}; // production at time data.t
       var dt = (Date.now() - ((new Date(data.t)).getTime())) / 3600e3;
-      data = copy(data.r);
+      data = copy(data.r || {}); // amount at time t
       //console.log(id +": "+ Math.floor(p.w*dt) + " | "+ (data.w) +" | "+ (dt * 60));
       for (var r in p)
         data[r] = Math.floor((data[r] || 0) + p[r] * dt);
@@ -3771,6 +3800,7 @@ function showOverview() {
     var tr = <tr/>;
     if (id == city) tr.@class = "current";
     var island = config.getCity("i", 0, id);
+    if (!island) continue; // no data for this isle yet
     grid[id] = data;
 
     // resource half of the city popup
@@ -3781,7 +3811,7 @@ function showOverview() {
                title={ sign(p[r]) }>{ v }</a>;
       } else if ("p" == r) {
         var u = urlTo("city", id, { changeCity: 1 });
-        v = <a class="text" href={ u }>{ data[r] }</a>;
+        v = <a class="text" href={ u }>{ data[r] || "" }</a>;
       } else if (config.getIsle("r", "", island) == r) {
         v = <a class="text" href={ urlTo("luxe", undefined, { city: id }) }
                title={ sign(p[r]) }>{ v }</a>;
