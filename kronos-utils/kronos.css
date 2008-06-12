@@ -1,5 +1,11 @@
 /**** Fixes to the game's own broken css ****/
 
+/* center the city names in the city dropdown again */
+#cityNav .citySelect .dropbutton,
+#cityNav .citySelect .optionList li {
+  text-align: center;
+}
+
 /* Don't let the warehouse tooltips grow wider than necessary: */
 #container #cityResources li .tooltip {
   padding: 4px 5px;
