@@ -1,3 +1,4 @@
+// coding: utf-8
 // ==UserScript==
 // @name           ikariam alarm and overview table
 // @namespace      psmith
@@ -9,6 +10,56 @@
 // ==/UserScript==
 /**************************************************************************************************
 Version history:
+- 2008.06.02:
+  * Russian translation by LiFeAiR
+  * Tavern wine usage missed for level 17
+
+- 2008.06.01:
+  * colorize current building in buildings table
+
+- 2008.05.31:
+  * in building view, getting upgrading building name is not worked for town hall. fixed.
+  * mark current population red, when citizens number reaches town halls capacity
+
+- 2008.05.26:
+  * colorize players in highscore view, using his/her alliance name. There are 3 type of alliances: your own alliance, friendly
+    alliances and hostile alliances.
+    You have to set these values in settings to see any changes. Alliance names separated by commas. If alliance name contains comma,
+    you stucked.
+    Also, there are 3 styles in css to configure colors.
+    To work properly, I have to set the form's method to "get". I think it can be detectable by gameforge, so I recommend you not use
+    this feature (i.e. leave all 3 values empty) !
+
+- 2008.05.22:
+  * fix incompatibility with transport countdown script
+
+- 2008.05.10:
+  * population estimation (try to guess current number of citizens in cities. Based on satisfaction)
+  * population remaining time estimation is more accurate. It is based on population estimation. If capacity is
+    higher than reachable maximum, it displays infinity hours (it happens, when current satisfaction is lower than
+    the remaining space in town hall).
+  * use setInterval for counters instead of setTimeout
+  * append alliance name after player's in city view, when 4th table is enabled
+  * show last update time of city's resource amounts and population 3rd column (I use it for population estimation)
+
+- 2008.05.08:
+  * Romanian translation, by Atomic
+
+- 2008.05.07:
+  * Polish translation, thanks to -S-X-
+  * fix unserialize problem (thanks to ogameclub)
+
+- 2008.05.06:
+  * display happiness in a separated column (no colors yet)
+  * happiness changes when population changes (1 people == 1 point of satisfaction).
+    Population is still constant, so u have to visit your town to see happiness changes!
+  * link to island view in fourth (players and cities) table
+  * "Show settings" and "Hide settings" texts can be localized
+
+- 2008.05.05:
+  * Portuguese translation update (thanks to alpha tester)
+  * language selection into settings
+
 - 2008.05.04:
   * translate some german texts on .hu server. Probably it will be fixed in ikariam 0.2.2, but it is so annoying.
   * fix wine remaining time computing
@@ -129,7 +180,13 @@ var PROGRESS_BAR_MODE; //have to be a global variable
 
 var time = new Date().getTime();
 log("time unserialize: "+(time - _startTime)+" msec");
-var players = eval(getVar("players", "({})"));
+var players;
+try {
+  players = eval(getVar("players", "({})"));
+} catch (e) {
+  log("Error while unserializing 'players': "+e);
+  log("Stored data: "+getVar("players", ""));
+}
 if (players == null || players == undefined || ("".players == "NaN")) {
   players = new Object();
 }
@@ -147,7 +204,7 @@ log("time unserialize: "+(new Date().getTime() - time)+" msec");
 log("time-1: "+(new Date().getTime() - _startTime)+" msec");
 
 
-
+/************************* DEFAULT STYLE **************************/
 var default_style = <><![CDATA[
 .resources_table, .buildings_table, .army_table, .players_table {
   text-align: center;
@@ -166,20 +223,33 @@ var default_style = <><![CDATA[
   background-color: #CDA55F;
 }
 #overview__table .upgrading {
-  color: yellow; font-weight: bold;
+  background-color: #22AAAA;
 }
 tr.table_header {
   border-bottom: double;
   font-weight: bold;
-  background-color: inherit;
+  background-color: #A8A92A;
 }
-td.table_header {
+th.table_header {
+  text-align: center;
+  font-weight: bold;
 }
-tr.table_footer { /*also for army table's last column*/
+tr.table_footer {
   border-top: double;
 }
 td.table_footer { /*also for army table's last column*/
   font-weight: bold;
+}
+.arrivinggoods {
+  font-weight: bold;
+  color: #ff0000;
+}
+td.arrivinggoodstooltip {
+  padding: 3px;
+}
+td.arrivinggoodstooltip {
+  border-width: 1px;
+  border-style: dotted;
 }
 
 /****************** progress bar styles *******************/
@@ -205,6 +275,31 @@ td.myPercentAlmostFull { /* warehouse is almost full */
 td.myPercentFull { /* warehouse is full */
   background-color: #ff0000;
 }
+
+/****************** highscore styles *******************/
+tr.hs_ownally {
+  background-color: #DAF887 !important;
+}
+tr.hs_friendlyally {
+  background-color: #FFFF80 !important;
+}
+tr.hs_hostileally {
+  background-color: #FF979B !important;
+}
+
+/****************** population full *******************/
+td.populationfull {
+  color: red;
+  font-weight: bold;
+}
+
+/****************** current building *******************/
+th.current_building {
+  background-color: #D2B1EB;
+  color: white;
+}
+td.current_building {
+}
 ]]></>.toXMLString();
 
 
@@ -219,7 +314,7 @@ var MAX = getCfgValue("AUTO_REFRESH_MAX_SECS", 600);  // seconds
 
 function log(msg) {
   if ((config.cfg["DEBUG_LOG"] == true) && (console != undefined)) {
-    console.log(msg);
+    console.log("[ikariam_overview] "+msg);
   }
 }
 function xpath(query) {
@@ -263,14 +358,22 @@ if (AUTO_REFRESH) {
 //Kigyűjti a faluban lévő nyersi mennyiségét, és eltárolja. Majd az így eltárolt adatokat megjeleníti egy táblázatban.
 ////////////////////////////////////////////////////
 
-var arr = server.split("\.");
-language = arr[arr.length - 1];
-if (language == "com" && arr.length == 4) { //for example: http://s1.ba.ikariam.com
-  language = arr[1];
+var language;
+function setLanguage() {
+  var arr = server.split("\.");
+  language = arr[arr.length - 1];
+  if (language == "com" && arr.length == 4) { //for example: http://s1.ba.ikariam.com
+    language = arr[1];
+  }
+  var l = getCfgValueNonEmpty("LANGUAGE", language);
+  if (l != undefined) {
+    language = l;
+  }
 }
+setLanguage();
 
 //adott szintu kocsmaban legfeljebb ennyi bor szolgalhato fel orankent
-var tavernWineUsage = [0, 3, 5, 8, 11, 14, 17, 21, 25, 29, 33, 38, 42, 47, 52, 57, 63];
+var tavernWineUsage = [0, 3, 5, 8, 11, 14, 17, 21, 25, 29, 33, 38, 42, 47, 52, 57, 63, 68];
 var townHallSpaces = [0, 60, 96, 143, 200, 263, 333, 410, 492, 580, 672, 769, 871, 977, 1087, 1201, 1320, 1441, 1567, 1696, 1828, 1964, 2103, 2246, 2391, 2540, 2691, 2845, 3003, 3163, 3326, 3492, 3660];
 var unitsAndShipsIndexes = {
   "unit slinger" : 0,
@@ -304,208 +407,299 @@ var warehouseWoodCapacities = [0, 2160, 3200, 4576, 6336, 8424, 9975, 12799, 161
 var warehouseOtherCapacities = [0, 720, 800, 1152, 2352, 2548, 3507, 3780, 5332, 7179, 9347, 11784, 14499, 20028, 23548, 27484, 34932, 139728, 279456, 558912, 1117824, 2235648, 4471296, 8942592, 17885184, 35770368, 71540736, 143081472, 286162944, 572325888, 1144651776, 2289303552, 4578607104];
 
 
-
-var buildings = [];
-var texts = [];
-if (language == "hu") {
-  buildings = {
-    "townHall"      : ["Városháza", "Városháza"],
-    "academy"       : ["Akadémia", "Akadémia"],
-    "port"          : ["Kikötő", "Kikötő"],
-    "shipyard"      : ["Hajógyár", "Hajógyár"],
-    "warehouse"     : ["Raktár", "Raktár"],
-    "wall"          : ["Városfal", "Fal"],
-    "tavern"        : ["Fogadó", "Fogadó"],
-    "museum"        : ["Múzeum", "Múzeum"],
-    "palace"        : ["Palota", "Palota"],
-    "palaceColony"  : ["Helytartó", "Helytartó"],
-    "embassy"       : ["Nagykövetség", "Nagykövetség"],
-    "branchOffice"  : ["Kereskedő", "Kereskedő"],
-    "safehouse"     : ["Rejtekhely", "Rejtekhely"],
-    "barracks"      : ["Barakk", "Barakk"],
-    "workshop-army" : ["Műhely", "Műhely"],
-  };
-  texts = {
-    "cityName": "Város neve",
-    "currentlyBuilding": "Építés alatt",
-    "summary": "Összesen:",
-  };
-} else if (language == "de") { //german translation, thanks to Schneppi
-  buildings["townHall"]      = ["Rathaus", "Rathaus"];
-  buildings["academy"]       = ["Academie", "Academie"];
-  buildings["port"]          = ["Handelshafen", "Handelshafen"];
-  buildings["shipyard"]      = ["Schiffswerft", "Schiffswerft"];
-  buildings["warehouse"]     = ["Lagerhaus", "Lagerhaus"];
-  buildings["wall"]          = ["Stadtmauer", "Stadtmauer"];
-  buildings["tavern"]        = ["Taverne", "Taverne"];
-  buildings["museum"]        = ["Museum", "Museum"];
-  buildings["palace"]        = ["Palast", "Palast"];
-  buildings["palaceColony"]  = ["Stadthaltersitz", "Stadthalt"];
-  buildings["embassy"]       = ["Botschaft", "Botschaft"];
-  buildings["branchOffice"]  = ["Kontor", "Kontor"];
-  buildings["safehouse"]     = ["Versteck", "Versteck"];
-  buildings["barracks"]      = ["Kaserne", "Kaserne"];
-  buildings["workshop-army"] = ["Erfinderwerkstatt", "Erfinder"];
-  texts["cityName"] = "Stadtname";
-  texts["currentlyBuilding"] = "Zur Zeit im Bau";
-  texts["summary"] = "Gesamt:";
-} else if (language == "cz") { //cz translation, thanks to pavel10
-  buildings["townHall"]      = ["Městská radnice", "radnice"];
-  buildings["academy"]       = ["Akademie", "akademie"];
-  buildings["port"]          = ["Obchodní přístav", "pristav"];
-  buildings["shipyard"]      = ["Lodenice", "lodenice"];
-  buildings["warehouse"]     = ["Sklad", "sklad"];
-  buildings["wall"]          = ["Městská zeď", "zed"];
-  buildings["tavern"]        = ["Hostinec", "hostinec"];
-  buildings["museum"]        = ["Muzeum", "muzeum"];
-  buildings["palace"]        = ["Palác", "palac "];
-  buildings["palaceColony"]  = ["Guvernérova Rezidence", "rezidence"];
-  buildings["embassy"]       = ["Ambasáda", "ambasada"];
-  buildings["branchOffice"]  = ["Tržnice", "trznice"];
-  buildings["safehouse"]     = ["Úkryt", "ukryt"];
-  buildings["barracks"]      = ["Kasárna", "kasarna"];
-  buildings["workshop-army"] = ["Dílna", "dilna"];
-  texts["cityName"] = "Jméno";
-  texts["currentlyBuilding"] = "Staví se";
-  texts["summary"] = "Celkem:";
-} else if (language == "tr") { //Turkish translation, thanks to Guybrush
-  buildings["townHall"]      = ["Belediye Binasi", "Bldy"];
-  buildings["academy"]       = ["Akademi", "Akdm"];
-  buildings["port"]          = ["Ticaret Limani", "Limn"];
-  buildings["shipyard"]      = ["Donanma Tersanesi", "Trsn"];
-  buildings["warehouse"]     = ["Depo", "Depo"];
-  buildings["wall"]          = ["Sur", "Sur"];
-  buildings["tavern"]        = ["Taverna", "Tvrna"];
-  buildings["museum"]        = ["Müze", "Muze"];
-  buildings["palace"]        = ["Saray", "Sary"];
-  buildings["palaceColony"]  = ["Vali Konagi", "Vali"];
-  buildings["embassy"]       = ["Büyük Elçilik", "Elçlk"];
-  buildings["branchOffice"]  = ["Ticaret Merkezi", "Markt"];
-  buildings["safehouse"]     = ["Istihbarat Merkezi", "Isthb"];
-  buildings["barracks"]      = ["Kişla", "Kişla"];
-  buildings["workshop-army"] = ["Mucit Atölyesi", "Mucit"];
-  texts["cityName"] = "Şehir";
-  texts["currentlyBuilding"] = "Yükseltilen";
-  texts["summary"] = "Toplam:";
-} else if (language == "es") { //Spanish translation, thanks to dragondeluz
-  buildings["townHall"]      = ["Intendencia", "Intendencia"];
-  buildings["academy"]       = ["Academia", "Academia"];
-  buildings["port"]          = ["Puerto comercial", "Puerto"];
-  buildings["shipyard"]      = ["Astillero", "Astillero"];
-  buildings["warehouse"]     = ["Depósito", "Depósito"];
-  buildings["wall"]          = ["Muro", "Muro"];
-  buildings["tavern"]        = ["Taberna", "Taberna"];
-  buildings["museum"]        = ["Museo", "Museo"];
-  buildings["palace"]        = ["Palacio", "Palacio"];
-  buildings["palaceColony"]  = ["Residencia del Gobernador", "R. Gobernador"];
-  buildings["embassy"]       = ["Embajada", "Embajada"];
-  buildings["branchOffice"]  = ["Tienda", "Tienda"];
-  buildings["safehouse"]     = ["Escondite", "Escondite"];
-  buildings["barracks"]      = ["Cuarteles", "Cuarteles"];
-  buildings["workshop-army"] = ["Taller de Invenciones", "Taller"];
-  texts["cityName"] = "Nombre de la Ciudad";
-  texts["currentlyBuilding"] = "Construcción Actual";
-  texts["summary"] = "Totales:";
-} else if (language == "ba") { //Bosnian translation, thanks to Sasha969
-  buildings["townHall"]      = ["Gradska Vijećnica", "Gradska Vijećnica"];
-  buildings["academy"]       = ["Akademija", "Akademija"];
-  buildings["port"]          = ["Trgovačka luka", "Trgovačka luka"];
-  buildings["shipyard"]      = ["Brodogradilište", "Brodogradilište"];
-  buildings["warehouse"]     = ["Skladište", "Skladište"];
-  buildings["wall"]          = ["Gradski bedem", "Gradski bedem"];
-  buildings["tavern"]        = ["Taverna", "Taverna"];
-  buildings["museum"]        = ["Muzej", "Muzej"];
-  buildings["palace"]        = ["Palača", "Palača"];
-  buildings["palaceColony"]  = ["Guvernerova palača", "Guvernerova palača"];
-  buildings["embassy"]       = ["Veleposlanstvo", "Veleposlanstvo"];
-  buildings["branchOffice"]  = ["Market", "Market"];
-  buildings["safehouse"]     = ["Sklonište", "Sklonište"];
-  buildings["barracks"]      = ["Barake", "Barake"];
-  buildings["workshop-army"] = ["Radionica", "Radionica"];
-  texts["cityName"] = "Ime grda";
-  texts["currentlyBuilding"] = "Trenutno se gradi";
-  texts["summary"] = "Izvještaj:";
-} else if (language == "it") { //Italian translation, thanks to Brucee
-  buildings["townHall"]      = ["Municipio", "Municipio"];
-  buildings["academy"]       = ["Accademia", "Accademia"];
-  buildings["port"]          = ["Porto", "Porto"];
-  buildings["shipyard"]      = ["Cantiere navale", "Cantiere navale"];
-  buildings["warehouse"]     = ["Magazzino", "Magazzino"];
-  buildings["wall"]          = ["Muro", "Muro"];
-  buildings["tavern"]        = ["Taverna", "Taverna"];
-  buildings["museum"]        = ["Museo", "Museo"];
-  buildings["palace"]        = ["Palazzo", "Palazzo"];
-  buildings["palaceColony"]  = ["Governatore", "Governatore"];
-  buildings["embassy"]       = ["Ambasciata", "Ambasciata"];
-  buildings["branchOffice"]  = ["Mercato", "Mercato"];
-  buildings["safehouse"]     = ["Rudere", "Rudere"];
-  buildings["barracks"]      = ["Caserma", "Caserma"];
-  buildings["workshop-army"] = ["Officina", "Officina"];
-  texts["cityName"] = "Citta";
-  texts["currentlyBuilding"] = "Costruzione in corso";
-  texts["summary"] = "Sommario:";
-} else if (language == "pt") { //Portuguese translation, thanks to alpha tester
-  buildings["townHall"]      = ["Camara Municipal", "Camara Municipal"];
-  buildings["academy"]       = ["Academia", "Academia"];
-  buildings["port"]          = ["Porto Mercantil", "Porto Mercantil"];
-  buildings["shipyard"]      = ["Estaleiro", "Estaleiro"];
-  buildings["warehouse"]     = ["Armazem", "Armazem"];
-  buildings["wall"]          = ["Muralha", "Muralha"];
-  buildings["tavern"]        = ["Taberna", "Taberna"];
-  buildings["museum"]        = ["Museu", "Museu"];
-  buildings["palace"]        = ["Palacio", "Palacio"];
-  buildings["palaceColony"]  = ["Residencia do Governador", "Residencia do Governador"];
-  buildings["embassy"]       = ["Embaixada", "Embaixada"];
-  buildings["branchOffice"]  = ["Mercado", "Mercado"];
-  buildings["safehouse"]     = ["Espionagem", "Espionagem"];
-  buildings["barracks"]      = ["Quartel", "Quartel"];
-  buildings["workshop-army"] = ["Oficina", "Oficina"];
-  texts["cityName"] = "Cidades";
-  texts["currentlyBuilding"] = "Em Construcao";
-  texts["summary"] = "Sumario:";
-} else if (language == "fr") { //French translation, thanks to Chirel
-  buildings = {
-    "townHall"      : ["Hôtel de ville", "Hôtel"],
-    "academy"       : ["Académie", "Académie"],
-    "port"          : ["Port commercial", "Port"],
-    "shipyard"      : ["Chantier naval", "Chantier"],
-    "warehouse"     : ["Entrepôt", "Entrepôt"],
-    "wall"          : ["Mur d'enceinte", "Mur"],
-    "tavern"        : ["Taverne", "Taverne"],
-    "museum"        : ["Musée", "Musée"],
-    "palace"        : ["Palais", "Palais"],
-    "palaceColony"  : ["Résidence du Gouverneur", "Résidence"],
-    "embassy"       : ["Ambassade", "Ambassade"],
-    "branchOffice"  : ["Comptoir", "Comptoir"],
-    "safehouse"     : ["Cachette", "Cachette"],
-    "barracks"      : ["Caserne", "Caserne"],
-    "workshop-army" : ["Atelier", "Atelier"],
-  };
-  texts = {
-    "cityName": "Nom ville",
-    "currentlyBuilding": "Construction en cours",
-    "summary": "Total:",
-  };
-} else {
-  buildings["townHall"]      = ["Town Hall", "Town Hall"];
-  buildings["academy"]       = ["Academy", "Academy"];
-  buildings["port"]          = ["Trading Port", "Trading Port"];
-  buildings["shipyard"]      = ["Shipyard", "Shipyard"];
-  buildings["warehouse"]     = ["Warehouse", "Warehouse"];
-  buildings["wall"]          = ["Wall", "Wall"];
-  buildings["tavern"]        = ["Tavern", "Tavern"];
-  buildings["museum"]        = ["Museum", "Museum"];
-  buildings["palace"]        = ["Palace", "Palace"];
-  buildings["palaceColony"]  = ["Governor's Residence", "Governor"];
-  buildings["embassy"]       = ["Embassy", "Embassy"];
-  buildings["branchOffice"]  = ["Trading Post", "Trading Post"];
-  buildings["safehouse"]     = ["Hideout", "Hideout"];
-  buildings["barracks"]      = ["Barracks", "Barracks"];
-  buildings["workshop-army"] = ["Workshop", "Workshop"];
-  texts["cityName"] = "City name";
-  texts["currentlyBuilding"] = "Currently building";
-  texts["summary"] = "Summary:";
+var buildings;
+var texts;
+function getLocalizedTexts() {
+  if (language == "hu") {
+    buildings = {
+      "townHall"      : ["Városháza", "Városháza"],
+      "academy"       : ["Akadémia", "Akadémia"],
+      "port"          : ["Kikötő", "Kikötő"],
+      "shipyard"      : ["Hajógyár", "Hajógyár"],
+      "warehouse"     : ["Raktár", "Raktár"],
+      "wall"          : ["Városfal", "Fal"],
+      "tavern"        : ["Fogadó", "Fogadó"],
+      "museum"        : ["Múzeum", "Múzeum"],
+      "palace"        : ["Palota", "Palota"],
+      "palaceColony"  : ["Helytartó", "Helytartó"],
+      "embassy"       : ["Nagykövetség", "Nagykövetség"],
+      "branchOffice"  : ["Kereskedő", "Kereskedő"],
+      "safehouse"     : ["Rejtekhely", "Rejtekhely"],
+      "barracks"      : ["Barakk", "Barakk"],
+      "workshop-army" : ["Műhely", "Műhely"],
+    };
+    texts = {
+      "cityName": "Város neve", "currentlyBuilding": "Építés alatt", "summary": "Összesen:",
+      "hide_settings": "Beállítások elrejtése", "show_settings": "Beállítások megtekintése",
+    };
+  } else if (language == "de") { //german translation, thanks to Schneppi
+    buildings = {
+      "townHall"      : ["Rathaus", "Rathaus"],
+      "academy"       : ["Academie", "Academie"],
+      "port"          : ["Handelshafen", "Handelshafen"],
+      "shipyard"      : ["Schiffswerft", "Schiffswerft"],
+      "warehouse"     : ["Lagerhaus", "Lagerhaus"],
+      "wall"          : ["Stadtmauer", "Stadtmauer"],
+      "tavern"        : ["Taverne", "Taverne"],
+      "museum"        : ["Museum", "Museum"],
+      "palace"        : ["Palast", "Palast"],
+      "palaceColony"  : ["Stadthaltersitz", "Stadthalt"],
+      "embassy"       : ["Botschaft", "Botschaft"],
+      "branchOffice"  : ["Kontor", "Kontor"],
+      "safehouse"     : ["Versteck", "Versteck"],
+      "barracks"      : ["Kaserne", "Kaserne"],
+      "workshop-army" : ["Erfinderwerkstatt", "Erfinder"],
+    };
+    texts = {
+      "cityName": "Stadtname", "currentlyBuilding": "Zur Zeit im Bau", "summary": "Gesamt:",
+      "hide_settings": "Hide settings", "show_settings": "Show settings",
+    };
+  } else if (language == "cz") { //cz translation, thanks to pavel10
+    buildings = {
+      "townHall"      : ["Městská radnice", "radnice"],
+      "academy"       : ["Akademie", "akademie"],
+      "port"          : ["Obchodní přístav", "pristav"],
+      "shipyard"      : ["Lodenice", "lodenice"],
+      "warehouse"     : ["Sklad", "sklad"],
+      "wall"          : ["Městská zeď", "zed"],
+      "tavern"        : ["Hostinec", "hostinec"],
+      "museum"        : ["Muzeum", "muzeum"],
+      "palace"        : ["Palác", "palac "],
+      "palaceColony"  : ["Guvernérova Rezidence", "rezidence"],
+      "embassy"       : ["Ambasáda", "ambasada"],
+      "branchOffice"  : ["Trnice", "trznice"],
+      "safehouse"     : ["Úkryt", "ukryt"],
+      "barracks"      : ["Kasárna", "kasarna"],
+      "workshop-army" : ["Dílna", "dilna"],
+    };
+    texts = {
+      "cityName": "Jméno", "currentlyBuilding": "Staví se", "summary": "Celkem:",
+      "hide_settings": "Hide settings", "show_settings": "Show settings",
+    };
+  } else if (language == "tr") { //Turkish translation, thanks to Guybrush
+    buildings = {
+      "townHall"      : ["Belediye Binasi", "Bldy"],
+      "academy"       : ["Akademi", "Akdm"],
+      "port"          : ["Ticaret Limani", "Limn"],
+      "shipyard"      : ["Donanma Tersanesi", "Trsn"],
+      "warehouse"     : ["Depo", "Depo"],
+      "wall"          : ["Sur", "Sur"],
+      "tavern"        : ["Taverna", "Tvrna"],
+      "museum"        : ["Müze", "Muze"],
+      "palace"        : ["Saray", "Sary"],
+      "palaceColony"  : ["Vali Konagi", "Vali"],
+      "embassy"       : ["Büyük Elçilik", "Elçlk"],
+      "branchOffice"  : ["Ticaret Merkezi", "Markt"],
+      "safehouse"     : ["Istihbarat Merkezi", "Isthb"],
+      "barracks"      : ["Kişla", "Kişla"],
+      "workshop-army" : ["Mucit Atölyesi", "Mucit"],
+    };
+    texts = {
+      "cityName": "Şehir", "currentlyBuilding": "Yükseltilen", "summary": "Toplam:",
+      "hide_settings": "Hide settings", "show_settings": "Show settings",
+    };
+  } else if (language == "es") { //Spanish translation, thanks to dragondeluz
+    buildings = {
+      "townHall"      : ["Intendencia", "Intendencia"],
+      "academy"       : ["Academia", "Academia"],
+      "port"          : ["Puerto comercial", "Puerto"],
+      "shipyard"      : ["Astillero", "Astillero"],
+      "warehouse"     : ["Depósito", "Depósito"],
+      "wall"          : ["Muro", "Muro"],
+      "tavern"        : ["Taberna", "Taberna"],
+      "museum"        : ["Museo", "Museo"],
+      "palace"        : ["Palacio", "Palacio"],
+      "palaceColony"  : ["Residencia del Gobernador", "R. Gobernador"],
+      "embassy"       : ["Embajada", "Embajada"],
+      "branchOffice"  : ["Tienda", "Tienda"],
+      "safehouse"     : ["Escondite", "Escondite"],
+      "barracks"      : ["Cuarteles", "Cuarteles"],
+      "workshop-army" : ["Taller de Invenciones", "Taller"],
+    };
+    texts = {
+      "cityName": "Nombre de la Ciudad", "currentlyBuilding": "Construcción Actual", "summary": "Totales:",
+      "hide_settings": "Hide settings", "show_settings": "Show settings",
+    };
+  } else if (language == "ba") { //Bosnian translation, thanks to Sasha969
+    buildings = {
+      "townHall"      : ["Gradska Vijećnica", "Gradska Vijećnica"],
+      "academy"       : ["Akademija", "Akademija"],
+      "port"          : ["Trgovačka luka", "Trgovačka luka"],
+      "shipyard"      : ["Brodogradilite", "Brodogradilite"],
+      "warehouse"     : ["Skladite", "Skladite"],
+      "wall"          : ["Gradski bedem", "Gradski bedem"],
+      "tavern"        : ["Taverna", "Taverna"],
+      "museum"        : ["Muzej", "Muzej"],
+      "palace"        : ["Palača", "Palača"],
+      "palaceColony"  : ["Guvernerova palača", "Guvernerova palača"],
+      "embassy"       : ["Veleposlanstvo", "Veleposlanstvo"],
+      "branchOffice"  : ["Market", "Market"],
+      "safehouse"     : ["Sklonite", "Sklonite"],
+      "barracks"      : ["Barake", "Barake"],
+      "workshop-army" : ["Radionica", "Radionica"],
+    };
+    texts = {
+      "cityName": "Ime grda", "currentlyBuilding": "Trenutno se gradi", "summary": "Izvjetaj:",
+      "hide_settings": "Hide settings", "show_settings": "Show settings",
+    };
+  } else if (language == "it") { //Italian translation, thanks to Brucee
+    buildings = {
+      "townHall"      : ["Municipio", "Municipio"],
+      "academy"       : ["Accademia", "Accademia"],
+      "port"          : ["Porto", "Porto"],
+      "shipyard"      : ["Cantiere navale", "Cantiere navale"],
+      "warehouse"     : ["Magazzino", "Magazzino"],
+      "wall"          : ["Muro", "Muro"],
+      "tavern"        : ["Taverna", "Taverna"],
+      "museum"        : ["Museo", "Museo"],
+      "palace"        : ["Palazzo", "Palazzo"],
+      "palaceColony"  : ["Governatore", "Governatore"],
+      "embassy"       : ["Ambasciata", "Ambasciata"],
+      "branchOffice"  : ["Mercato", "Mercato"],
+      "safehouse"     : ["Rudere", "Rudere"],
+      "barracks"      : ["Caserma", "Caserma"],
+      "workshop-army" : ["Officina", "Officina"],
+    };
+    texts = {
+      "cityName": "Citta", "currentlyBuilding": "Costruzione in corso", "summary": "Sommario:",
+      "hide_settings": "Hide settings", "show_settings": "Show settings",
+    };
+  } else if (language == "pt") { //Portuguese translation, thanks to alpha tester
+    buildings = {
+      "townHall"      : ["Câmara Municipal", "Câmara Municipal"],
+      "academy"       : ["Academia", "Academia"],
+      "port"          : ["Porto Mercantil", "Porto Mercantil"],
+      "shipyard"      : ["Estaleiro", "Estaleiro"],
+      "warehouse"     : ["Armazém", "Armazém"],
+      "wall"          : ["Muralha", "Muralha"],
+      "tavern"        : ["Taberna", "Taberna"],
+      "museum"        : ["Museu", "Museu"],
+      "palace"        : ["Palácio", "Palácio"],
+      "palaceColony"  : ["Residencia do Governador", "Residencia do Governador"],
+      "embassy"       : ["Embaixada", "Embaixada"],
+      "branchOffice"  : ["Mercado", "Mercado"],
+      "safehouse"     : ["Espionagem", "Espionagem"],
+      "barracks"      : ["Quartel", "Quartel"],
+      "workshop-army" : ["Oficina", "Oficina"],
+    };
+    texts = {
+      "cityName": "Cidades", "currentlyBuilding": "Em Construçao", "summary": "Sumário:",
+      "hide_settings": "Ocultar Configuraçoes", "show_settings": "Ver Configuraçoes",
+    };
+  } else if (language == "fr") { //French translation, thanks to Chirel
+    buildings = {
+      "townHall"      : ["Hôtel de ville", "Hôtel"],
+      "academy"       : ["Académie", "Académie"],
+      "port"          : ["Port commercial", "Port"],
+      "shipyard"      : ["Chantier naval", "Chantier"],
+      "warehouse"     : ["Entrepôt", "Entrepôt"],
+      "wall"          : ["Mur d'enceinte", "Mur"],
+      "tavern"        : ["Taverne", "Taverne"],
+      "museum"        : ["Musée", "Musée"],
+      "palace"        : ["Palais", "Palais"],
+      "palaceColony"  : ["Résidence du Gouverneur", "Résidence"],
+      "embassy"       : ["Ambassade", "Ambassade"],
+      "branchOffice"  : ["Comptoir", "Comptoir"],
+      "safehouse"     : ["Cachette", "Cachette"],
+      "barracks"      : ["Caserne", "Caserne"],
+      "workshop-army" : ["Atelier", "Atelier"],
+    };
+    texts = {
+      "cityName": "Nom ville", "currentlyBuilding": "Construction en cours", "summary": "Total:",
+      "hide_settings": "Hide settings", "show_settings": "Show settings",
+    };
+  } else if (language == "pl") { //Polish translation, thanks to -S-X-
+    buildings = {
+      "townHall"      : ["Ratusz", "Ratusz"],
+      "academy"       : ["Akademia", "Akademia"],
+      "port"          : ["Port", "Port"],
+      "shipyard"      : ["Stocznia", "Stocznia"],
+      "warehouse"     : ["Magazyn", "Magazyn"],
+      "wall"          : ["Mur", "Mur"],
+      "tavern"        : ["Tawerna", "Tawerna"],
+      "museum"        : ["Muzeum", "Muzeum"],
+      "palace"        : ["Pałac", "Pałac"],
+      "palaceColony"  : ["Stolica", "Stolica"],
+      "embassy"       : ["Ambasada", "Ambasada"],
+      "branchOffice"  : ["Mercato", "Mercato"],
+      "safehouse"     : ["Rudere", "Rudere"],
+      "barracks"      : ["Koszary", "Koszary"],
+      "workshop-army" : ["Warsztat", "Warsztat"],
+    };
+    texts = {
+      "cityName": "Nazwa Miasta", "currentlyBuilding": "Obecnie w budowie", "summary": "Podsumowanie:",
+      "hide_settings": "Ukryj ustawienia", "show_settings": "Pokaż ustawienia",
+    };
+  } else if (language == "ro") { //by Atomic
+    buildings = {
+      "townHall"      : ["Primăria", "Primăria"],
+      "academy"       : ["Academie", "Academie"],
+      "port"          : ["Portcomercial", "PortComerţ"],
+      "shipyard"      : ["Şantier naval", "ŞantierNav"],
+      "warehouse"     : ["Magazie", "Magazie"],
+      "wall"          : ["Zidurile oraşului", "Zid"],
+      "tavern"        : ["Taverna", "Taverna"],
+      "museum"        : ["Muzeu", "Muzeu"],
+      "palace"        : ["Palat", "Palat"],
+      "palaceColony"  : ["Reşedinta Guvernatorului", "Reş.Guv."],
+      "embassy"       : ["Ambasadă", "Ambasadă"],
+      "branchOffice"  : ["Punct de negoţ", "PunctNegoţ"],
+      "safehouse"     : ["Ascunzătoare", "Ascunză."],
+      "barracks"      : ["Casarma", "Casarma"],
+      "workshop-army" : ["Atelier", "Atelier"], 
+    };
+    texts = {
+      "cityName": "NumeleOraşului", "currentlyBuilding": "In construcţie",
+      "summary" : "Total:", "hide_settings": "Inchide Setarile", "show_settings": "Vezi Setarile",
+    };
+  } else if (language == "ru") { //by LiFeAiR
+    buildings = {
+      "townHall"      : ["Town Hall", "Ратуша"],
+      "academy"       : ["Academy", "Академия"],
+      "port"          : ["Trading Port", "Торговый порт"],
+      "shipyard"      : ["Shipyard", "Верфь"],
+      "warehouse"     : ["Warehouse", "Склад"],
+      "wall"          : ["Wall", "Стена"],
+      "tavern"        : ["Tavern", "Таверна"],
+      "museum"        : ["Museum", "Музей"],
+      "palace"        : ["Palace", "Дворец"],
+      "palaceColony"  : ["Governor's Residence", "Губернатор"],
+      "embassy"       : ["Embassy", "Посольство"],
+      "branchOffice"  : ["Trading Post", "Лавка"],
+      "safehouse"     : ["Hideout", "Укрытие"],
+      "barracks"      : ["Barracks", "Казарма"],
+      "workshop-army" : ["Workshop", "Мастерская"],
+    };
+    texts = {
+      "cityName": "Город", "currentlyBuilding": "Строится", "summary": "Всего:",
+      "hide_settings": "Скрыть настройки", "show_settings": "Показать настройки",
+    };
+  } else {
+    buildings = {
+      "townHall"      : ["Town Hall", "Town Hall"],
+      "academy"       : ["Academy", "Academy"],
+      "port"          : ["Trading Port", "Trading Port"],
+      "shipyard"      : ["Shipyard", "Shipyard"],
+      "warehouse"     : ["Warehouse", "Warehouse"],
+      "wall"          : ["Wall", "Wall"],
+      "tavern"        : ["Tavern", "Tavern"],
+      "museum"        : ["Museum", "Museum"],
+      "palace"        : ["Palace", "Palace"],
+      "palaceColony"  : ["Governor's Residence", "Governor"],
+      "embassy"       : ["Embassy", "Embassy"],
+      "branchOffice"  : ["Trading Post", "Trading Post"],
+      "safehouse"     : ["Hideout", "Hideout"],
+      "barracks"      : ["Barracks", "Barracks"],
+      "workshop-army" : ["Workshop", "Workshop"],
+    };
+    texts = {
+      "cityName": "City name", "currentlyBuilding": "Currently building", "summary": "Summary:",
+      "hide_settings": "Hide settings", "show_settings": "Show settings",
+    };
+  }
 }
+
+getLocalizedTexts();
 
 //a város id-je
 var city_id = getIntValue(getNode_value("//option[@class='avatarCities' and @selected='selected']"), 0);
@@ -534,7 +728,7 @@ if (a != null) {
 if (island_id == "" && (/view=island&id=([0-9]+)/.exec(document.URL) != null)) { //sziget nézetben az urlben van a sziget id-je
   island_id = RegExp.$1;
 }
-log("server: "+server+", city_id: "+city_id+", city_idmainView: "+city_idmainView+", city_coord: "+city_coord+", island_id: "+island_id);
+log("server: "+server+", language: "+language+", city_id: "+city_id+", city_idmainView: "+city_idmainView+", city_coord: "+city_coord+", island_id: "+island_id);
 
 //segéd függvények
 function getVar(varname, vardefault) {
@@ -544,19 +738,7 @@ function getVar(varname, vardefault) {
   }
   return res;
 }
-function unUtf(str) { //no need it anymore
-  return str;
-  
-  for(var i = str.length - 1; i >= 0; i--) {
-    var ch = str.charCodeAt(i);
-    if (ch > 255) {
-      str = str.substring(0, i) + "&#" + ch + ";" + str.substring(i + 1);
-    }
-  }
-  return str;
-}
 function setVar(varname, varvalue) {
-  varvalue = unUtf(varvalue);
   GM_setValue(server+varname, varvalue);
 }
 function getCity(city_id) {
@@ -583,7 +765,7 @@ function getNode(path) {
   }
   return null;
 }
-//get node's innerHTML
+//get node's textContent
 function getNodeValue(path, defaultValue) {
   var value = getNode(path);
   if (value != null) {
@@ -762,9 +944,9 @@ function createCounter(startTime, startAmount, factPerHour, showTooltip, maxCapa
   if (plusText != undefined) {
     res += plusText;
   }
+  res = createTooltip(res, tooltip);
   //progress bar :)
   if ((PROGRESS_BAR_MODE != "off") && (maxCapacity > 0)) {
-    res = createTooltip(res, tooltip);
     var curres = getCurrentResourceAmount(new Date().getTime(), startTime, startAmount, factPerHour);
     var perc = Math.min(100, Math.round(curres / maxCapacity * 100.0));
     var remaining = "";
@@ -825,7 +1007,7 @@ function myTimeCounterF(tmp, onlyOnce) {
       var hday = Math.floor(hdata / 86400);
       var hhor = Math.floor((hdata - (hday * 86400)) / 3600);
       var hmin = Math.floor((hdata - (hday * 86400) - (hhor * 3600)) / 60);
-      var hsec = Math.round(hdata - (hday * 86400) - (hhor * 3600) - (hmin * 60));
+      var hsec = Math.floor(hdata - (hday * 86400) - (hhor * 3600) - (hmin * 60));
       var s = "";
       var b = false;
       if (b || hday > 0) { s += hday+"d "; b = true; }
@@ -839,21 +1021,14 @@ function myTimeCounterF(tmp, onlyOnce) {
     }
   }
   var found = realtimeFactDisplayF(0, 1);
-  if (onlyOnce != true && (found || (cs.snapshotLength > 0))) {
+/*  if (onlyOnce != true && (found || (cs.snapshotLength > 0))) {
     nextTimemyTimeCounterF += 1000;
     window.setTimeout(myTimeCounterF, Math.max(20, nextTimemyTimeCounterF - new Date().getTime()));
-  }
+  }*/
 }
 function createTimeCounter(enddate) {
   if (enddate != undefined && enddate != "") {
-    var s = new Date();
-    s.setTime(enddate);
-    var now = new Date();
-    if (now.getYear() != s.getYear() || now.getMonth() != s.getMonth() || now.getDate() != s.getDate()) {
-      s = s.toLocaleString();
-    } else {
-      s = twodigit(s.getHours())+":"+twodigit(s.getMinutes())+":"+twodigit(s.getSeconds());
-    }
+    var s = smartDateFormat(enddate);
     return createTooltip("<font id='mytimecounter' lang='"+enddate+"' class='time_counter'></font>", s);
   }
   return "";
@@ -959,6 +1134,9 @@ function createLink(text, href, attrs) {
 function createLinkToCity(text, city_id, city_index) {
   return createLink(text, "?view=city&id="+city_id, "onclick=\"var s = document.getElementById('citySelect'); s.selectedIndex = "+city_index+"; s.form.submit(); return false;\"");
 }
+function createLinkToForeignCity(text, city_id) {
+  return createLink(text, "?view=island&id="+city_id);
+}
 function createLinkToResource(text, island_id, city_id, city_index) {
   if (island_id != undefined && island_id != "") {
     return createLink(text, "?action=header&function=changeCurrentCity&oldView=tradegood&view=resource&type=resource&id="+island_id+"&cityId="+city_id, "");
@@ -970,6 +1148,18 @@ function createLinkToTradegoodCond(condition, text, island_id, city_id, city_ind
     return createLink(text, "?action=header&function=changeCurrentCity&oldView=tradegood&view=tradegood&type=tradegood&id="+island_id+"&cityId="+city_id, "");
   }
   return text;
+}
+function strToDatetime(str) {
+  var d;
+  if (/([0-9][0-9][0-9][0-9])\.([0-9][0-9])\.([0-9][0-9])[^0-9]*([0-9]+)\:([0-9]+)\:([0-9]+)/.exec(str) != null) {
+    d = new Date(RegExp.$1, RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5, RegExp.$6);
+  } else if (/([0-9][0-9])\.([0-9][0-9])\.([0-9][0-9][0-9][0-9])[^0-9]*([0-9]+)\:([0-9]+)\:([0-9]+)/.exec(str) != null) {
+    d = new Date(RegExp.$3, RegExp.$2, RegExp.$1, RegExp.$4, RegExp.$5, RegExp.$6);
+  }
+  if (d != undefined) {
+    return d.getTime();
+  }
+  return undefined;
 }
 function getArrivingGoods(city_id, resName) {
   var tooltip = "<table class='arrivinggoodstooltip'>";
@@ -1014,6 +1204,86 @@ function getPreviousNode(node) {
   }
   return n;
 }
+
+//megadja, hogy az adott boldogsagi szinten mennyi ido kell egy plusz ember szaporodasahoz. ezredmasodpercekben adja meg.
+function getOnePeopleGrowthTime(happiness) {
+  if (happiness != 0) {
+    return 3600/0.02/happiness*1000;
+  }
+  return "NaN";
+}
+//megadja, hogy varhatoan mekkora a populacio aktualis merete. Azon a feltetelezesen alapul, hogy a
+//boldogsag csak a populacio hatasara valtozik, mas tenyezo nem befolyasolja. Ha ez nem teljesul,
+//akkor rossz eredmenyt fog adni.
+function getEstimatedPopulation(population, startTime, currenttime, startHappiness) {
+  var happiness = startHappiness;
+  startTime = Number(startTime);
+//  log("getEstimatedPopulation("+population+", "+startTime+", "+currenttime+", "+startHappiness+")");
+  while (happiness > 0) {
+    var t = getOnePeopleGrowthTime(happiness);
+//    log(population+", "+startTime+", "+currenttime+", "+happiness+", t: "+t);
+    if (t == "NaN" || startTime + t > currenttime) {
+      break;
+    }
+    population++;
+    happiness--;
+    startTime += t;
+  }
+  return population;
+}
+
+function getGrowthRemainingHours(population, maxPopulation, startTime, happiness) {
+  if (maxPopulation - population > happiness) {
+    return "&#8734; h";
+  }
+  var time = Number(startTime);
+  while (population < maxPopulation) {
+    var t = getOnePeopleGrowthTime(happiness);
+    if (t == "NaN") {
+      return "&#8734; h";
+    }
+    time += t;
+    population++;
+    happiness--;
+  }
+  return floatFormat((time - Number(startTime)) / 1000 / 3600, 1) + " h";
+}
+
+function smartDateFormat(time, showElapsedTime, elapsedTimeSeparator) {
+  if (showElapsedTime != true) {
+    showElapsedTime = false;
+  }
+  if (elapsedTimeSeparator == undefined) {
+    elapsedTimeSeparator = ",";
+  }
+  var s = new Date();
+  s.setTime(time);
+  var now = new Date();
+  var t = "";
+  if (now.getYear() != s.getYear() || now.getMonth() != s.getMonth() || now.getDate() != s.getDate()) {
+    t = s.toLocaleString();
+  } else {
+    t = twodigit(s.getHours())+":"+twodigit(s.getMinutes())+":"+twodigit(s.getSeconds());
+  }
+  if (showElapsedTime) {
+    t += elapsedTimeSeparator;
+    var d = (now.getTime() - s.getTime()) / 1000;
+    if (d < 3600) {
+      t += " " + Math.floor(d / 60) + "m";
+    } else {
+      if (d >= 86400) {
+        t += " " + Math.floor(d / 86400) + "d";
+      }
+      t += " " + floatFormat((d % 86400) / 3600, 1) + "h";
+    }
+  }
+  return t;
+}
+
+function createLastUpdateAsTooltip(content, time) {
+  return createTooltip(content, "last update: "+smartDateFormat(time, true));
+}
+
 //nyersi osztály
 function Resource() {
 //  this.city_coord = city_coord;
@@ -1036,8 +1306,9 @@ if (language == "hu") { //csak magyar szerveren
   //üzenetek fejlécében a dátumot nemtörhetőre állítja, és az év.hónap.nap sorrendbe átrakja a dátumot
   var res = xpath("//td[contains(text(), ':')]");
   for(var i = 0; i < res.snapshotLength; i++) {
-    if (/([0-9]+)\.([0-9]+)\.([0-9]+) ([0-9:]+)/.exec(res.snapshotItem(i).innerHTML)) {
-      res.snapshotItem(i).innerHTML = RegExp.$3 +"."+ RegExp.$2 +"."+ RegExp.$1 +"&nbsp;"+ RegExp.$4;
+    var s = res.snapshotItem(i).innerHTML;
+    if (s.charAt(2) == "." && s.charAt(5) == "." && s.charAt(10) == " " && (s.charAt(12) == ":" || s.charAt(13) == ":")) {
+      res.snapshotItem(i).innerHTML = s.substring(6, 10)+"."+s.substring(3, 5)+"."+s.substring(0, 2)+"&nbsp;"+s.substring(11);
     }
   }
   
@@ -1048,11 +1319,14 @@ if (language == "hu") { //csak magyar szerveren
       res.snapshotItem(i).innerHTML = res.snapshotItem(i).innerHTML.replace(fromwhat, towhat);
     }
   }
-  replaceText("Kulturgüterabkommen", "Kultúrális egyezmény");
-  replaceText("Handelsabkommen", "Kereskedelmi egyezmény");
-  replaceText("kündigen", "felbontás");
-  replaceText("anbieten", "megkötés");
-  replaceText("zurückziehen", "visszavonás");
+  replaceText("Kulturgüterabkommen", "Kultúrális Egyezmény");
+  replaceText("Handelsabkommen", "Kereskedelmi Egyezmény");
+  replaceText("Militärabkmmen", "Katonai Egyezmény");
+  replaceText("kündigen", "Felbontás");
+  replaceText("anbieten", "Megkötés");
+  replaceText("annehmen", "Elfogadás");
+  replaceText("ablehnen", "Elutasítás");
+  replaceText("zurückziehen", "Visszavonás");
 }
 
 var res = getCity(city_id);
@@ -1067,7 +1341,7 @@ digProducedResources(res);
 //lakosok száma a városban
 res.population = getNodeValue("//span[@id='value_inhabitants']");
 if (/\(([0-9,.]+)/.exec(res.population) != null) {
-  res.population = parseInt((RegExp.$1).replace(/[^0-9]/, ""));
+  res.population = parseInt((RegExp.$1).replace(/[^0-9]/g, ""));
 } else {
   res.population = 0;
 }
@@ -1129,7 +1403,8 @@ if (city_idmainView > 0) {
   if (/view=townHall/.test(document.URL)) {
     //ennyivel több a kapacitás, mint a városháza szintje alapján lenne
     res.buildings["townHall"].bonusspace = Number(getNodeValue("//span[@class='value total']", "0")) - townHallSpaces[getArrValue(res.buildings["townHall"], "level")];
-    res.buildings["townHall"].happiness  = Number(getNodeValue("//div[contains(@class, 'happiness ')]/div[@class='value']", "0"));
+    //ennyi az elégedettség a populációt nem számítva
+    res.buildings["townHall"].happiness  = Number(getNodeValue("//div[contains(@class, 'happiness ')]/div[@class='value']", "0")) + res.population;
   }
   //military-army and fleet unit counts
   if (/view=cityMilitary-(army|fleet)/.exec(document.URL) != null) {
@@ -1145,7 +1420,7 @@ if (city_idmainView > 0) {
     var counts = xpath("//table/tbody/tr[@class='count']/td");
     if (names.snapshotLength == counts.snapshotLength) {
       for(var i = 0; i < names.snapshotLength; i++) {
-        var n = unUtf(names.snapshotItem(i).title);
+        var n = names.snapshotItem(i).title;
         var unit_id = unitsAndShipsIndexesR[i + idx];
         config["unitnames"][unit_id] = n;
         var c = counts.snapshotItem(i);
@@ -1178,7 +1453,7 @@ if (city_idmainView > 0) {
     if (names.snapshotLength == counts.snapshotLength) {
       for(var i = 0; i < names.snapshotLength; i++) {
         var node = names.snapshotItem(i);
-        var n = unUtf(node.innerHTML);
+        var n = node.innerHTML;
         var cost;
         try {
           unit_id = node.parentNode.parentNode.getAttribute("class");
@@ -1230,10 +1505,8 @@ if (city_idmainView > 0) {
   if (true) {
     var n = getNode("//*[@id='buildingUpgrade']//*[@class='buildingLevel']");
     if (n != null) {
-      var buildingTitle = getNode("//div[@id='mainview']/div[@class='buildingDescription']/h1");
       var buildingName = getNode("//body"); //a body.id tartalmazza az aktuálisan nézett épület azonosítóját
-      if (buildingTitle != null && buildingName != null) {
-
+      if (buildingName != null) {
         var script = n.parentNode.getElementsByTagName("script")[0];
         if (script != undefined) {
           var enddate = 0;
@@ -1245,13 +1518,18 @@ if (city_idmainView > 0) {
             currentdate = parseFloat(RegExp.$1) * 1000; //millisecundumban az aktuális időpont
           }
           if (enddate != 0 && currentdate != 0) {
-            res.underConstruction = buildingTitle.textContent + " " + (n.innerHTML.replace(/<[^>]*>/g, ""));
+            res.underConstruction = buildings[buildingName.id][0] + " " + (n.innerHTML.replace(/<[^>]*>/g, ""));
             res.underConstructionName = buildingName.id;
             res.underConstruction += ","+(enddate - currentdate + new Date().getTime());
           }
         }
       }
     }
+  }
+
+  //barakk nézet
+  if (/view=barracks/.test(document.URL)) {
+    //az építési sort feldolgozza, és ++ -al jelöli a táblázatban
   }
 } else {
   if (/view=merchantNavy/.test(document.URL)) {
@@ -1311,10 +1589,60 @@ if (city_idmainView > 0) {
         //a szállítmány érkezési ideje
         var nn = getNextNode(nn); //érkezés ideje
         var nn = getNextNode(nn); //küldetés vége, ez kell nekünk
-        c["arrivetime"] = nn.innerHTML;
+        c["arrivetime"] = nn.textContent;
       }
     }
     log("arrivinggoods: "+serialize(config.arrivinggoods));
+  }
+  
+  if (/view=highscore/.test(document.URL)) {
+    var ownAlly = getCfgValue("ownAlly", '');
+    var friendlyAllies = getCfgValue("friendlyAllies", '');
+    if (friendlyAllies != "") {
+      friendlyAllies = friendlyAllies.split(",");
+    } else {
+      friendlyAllies = [];
+    }
+    var hostileAllies = getCfgValue("hostileAllies", '');
+    if (hostileAllies != "") {
+      hostileAllies = hostileAllies.split(",");
+    } else {
+      hostileAllies = [];
+    }
+    
+    function displayHighscoreColor(alliance, colorClass) {
+      if (alliance != undefined && alliance != "" && colorClass != undefined && colorClass != "") {
+        var res = xpath("//tr[@class!='own']/td[@class='allytag' and text()='"+alliance+"']");
+        for(var i = 0; i < res.snapshotLength; i++) {
+          var n = res.snapshotItem(i);
+          var tr = n.parentNode;
+          if (tr != undefined && tr != null) {
+            tr.setAttribute("class", colorClass+" "+tr.getAttribute("class"));
+          } else {
+            log("tr is undefined! n: "+n);
+          }
+        }
+      }
+    }
+    
+    if (ownAlly != "" || friendlyAllies.length > 0 || hostileAllies.length > 0) {
+      displayHighscoreColor(ownAlly, "hs_ownally");
+      for(var i = 0; i < friendlyAllies.length; i++) {
+        displayHighscoreColor(friendlyAllies[i], "hs_friendlyally");
+      }
+      for(var i = 0; i < hostileAllies.length; i++) {
+        displayHighscoreColor(hostileAllies[i], "hs_hostileally");
+      }
+      
+      //set form's method to "get", to work in other pages as well
+      var forms = document.getElementsByTagName("form");
+      for(var i = 0; i < forms.length; i++) {
+        var form = forms[i];
+        if (form != null) {
+          form.method = "get";
+        }
+      }
+    }
   }
 }
 
@@ -1356,17 +1684,79 @@ if ((getCfgValue("TABLE_PLAYERS", false) == true) && (/view=island/.exec(documen
       players.playersCities[playername].alliance = data[3];
       players.cities[cityid] = {name: data[0], size: data[1], player: playername, island_id: island_id};
       players.islands[island_id] = {coord: city_coord};
+      
+      //a szövetség nevét utána fűzi a játékos nevének
+      var a = c.parentNode.getElementsByTagName("a")[0];
+      if (a != undefined) {
+        a = a.getElementsByTagName("span")[0];
+        if (a != undefined) {
+          a = a.getElementsByTagName("span")[0];
+          if (a != undefined) {
+            a = a.nextSibling;
+            if (a != undefined) {
+              a.data += " ("+data[3]+")";
+            }
+          }
+        }
+      }
     }
   }
-  log(players);
 }
-
-
+function phpserialize(txt) {
+  switch(typeof(txt)){
+  case 'string':
+    txt = unUtf(txt); //for utf8 compatibility
+    return 's:'+txt.length+':"'+txt+'";';
+  case 'number':
+    if(txt>=0 && String(txt).indexOf('.') == -1 && txt < 65536000000) return 'i:'+txt+';';
+    return 'd:'+txt+';';
+  case 'boolean':
+    return 'b:'+( (txt)?'1':'0' )+';';
+  case 'object':
+    var i=0,k,ret='';
+    for(k in txt){
+      //log(isNaN(k));
+      if(!isNaN(k)) k = Number(k);
+      if (typeof(txt[k]) != 'function') {
+        ret += phpserialize(k)+phpserialize(txt[k]);
+        i++;
+      }
+    }
+    return 'a:'+i+':{'+ret+'}';
+  case 'function':
+    return 'N;';
+  default:
+    log('var undefined: '+typeof(txt)); //return undefined;
+    txt = unUtf("has undefined type: "+txt);
+    return 's:'+txt.length+':"'+txt+'";';
+  }
+}
+function unUtf(str) {
+//return str;
+  for(var i = str.length - 1; i >= 0; i--) {
+    var ch = str.charCodeAt(i);
+    if (ch > 255) {
+      str = str.substring(0, i) + "&#" + ch + ";" + str.substring(i + 1);
+    }
+  }
+  return str;
+}
+function urlencode(str) {
+  str = escape(str);
+  str = str.replace('+', '%2B');
+  str = str.replace('%20', '+');
+  str = str.replace('*', '%2A');
+  str = str.replace('/', '%2F');
+  str = str.replace('@', '%40');
+  return str;
+}
 
 /**************************************************************************************************
  * Render tables
  *************************************************************************************************/
 function renderTables() {
+  setLanguage();
+  getLocalizedTexts();
   var TABLE_RESOURCES = getCfgValue("TABLE_RESOURCES", true); //overview table for resources
   var TABLE_BUILDINGS = getCfgValue("TABLE_BUILDINGS", true); //overview table for buildings
   var TABLE_ARMYFLEET = getCfgValue("TABLE_ARMYFLEET", true); //overview table for army and fleet
@@ -1388,14 +1778,14 @@ function renderTables() {
     var populationName = getNodeTitle("//div[@id='cityResources']//li[@class='population']", "population");
     s += "<table border=1 class='resources_table'>";
     s += "<tr class='table_header'>";
-    s += "<td class='table_header' colspan=2>"+texts["cityName"]+"</td>"+
-         "<td colspan=3 class='lf table_header'>"+populationName+"</td>"+
-         "<td colspan=2 class='lf table_header'>"+woodName+"</td>"+
-         "<td colspan=3 class='lf table_header'>"+wineName+"</td>"+
-         "<td colspan=2 class='lf table_header'>"+marbleName+"</td>"+
-         "<td colspan=2 class='lf table_header'>"+glassName+"</td>"+
-         "<td colspan=2 class='lf table_header'>"+sulfurName+"</td>"+
-         "<td colspan=2 class='lf table_header'>"+texts["currentlyBuilding"]+"</td>";
+    s += "<th class='table_header' colspan=2>"+texts["cityName"]+"</th>"+
+         "<th colspan=4 class='lf table_header'>"+populationName+"</th>"+
+         "<th colspan=2 class='lf table_header'>"+woodName+"</th>"+
+         "<th colspan=3 class='lf table_header'>"+wineName+"</th>"+
+         "<th colspan=2 class='lf table_header'>"+marbleName+"</th>"+
+         "<th colspan=2 class='lf table_header'>"+glassName+"</th>"+
+         "<th colspan=2 class='lf table_header'>"+sulfurName+"</th>"+
+         "<th colspan=2 class='lf table_header'>"+texts["currentlyBuilding"]+"</th>";
     s += "</tr>";
     var sumres = new Resource("");
     var sumProd = new Resource("");
@@ -1412,7 +1802,6 @@ function renderTables() {
         wineUsage = (tavernLevel > 0 ? tavernWineUsage[tavernLevel] : 0);
       }
 
-      sumres.population += res.population;
       sumres.wood += getCurrentResourceAmount(currenttime, res.prodtime, res.wood, res.prodwood);
       sumres.wine += getCurrentResourceAmount(currenttime, res.prodtime, res.wine, res.prodwine - wineUsage);
       sumres.marble += getCurrentResourceAmount(currenttime, res.prodtime, res.marble, res.prodmarble);
@@ -1440,61 +1829,81 @@ function renderTables() {
       var underConstruction = arr[0];
       var counter = createTimeCounter(arr[1]);
       var happiness = getArrValue(res.buildings["townHall"], "happiness", "?");
+      var population = res.population;
       var bonusspace = getArrValue(res.buildings["townHall"], "bonusspace", "?");
       var spacetotal = townHallSpaces[townHallLevel];
+      if (happiness != "?") {
+        population = getEstimatedPopulation(population, res.prodtime, currenttime, happiness - population);
+        if (parseInt(population) > parseInt(spacetotal) + parseInt(bonusspace)) {
+          population = parseInt(spacetotal) + parseInt(bonusspace);
+        }
+        happiness -= population;
+      }
+      
+      sumres.population += population;
+      
       var growthRemainingHours = undefined;
       var growth = happiness != "?" ? floatFormat(0.02 * happiness, 2, true) : "?";
-      if (happiness != "?" && bonusspace != "?") {
-        growthRemainingHours = floatFormat((parseInt(spacetotal) + parseInt(bonusspace) - parseInt(res.population)) / (0.02 * happiness), 1) + " h";
+      if (happiness != "?" && happiness > 0 && bonusspace != "?") {
+//        growthRemainingHours = floatFormat((parseInt(spacetotal) + parseInt(bonusspace) - parseInt(population)) / (0.02 * happiness), 1) + " h";
+        growthRemainingHours = getGrowthRemainingHours(population, parseInt(spacetotal) + parseInt(bonusspace), currenttime, happiness);
+      }
+      var cs = "";
+      var lfcs = "lf";
+      if (parseInt(city_id) == parseInt(city.value)) {
+        cs += " current_city_highlight";
+        lfcs += " current_city_highlight";
+      }
+      var townHallStyle = "";
+      if (parseInt(population) >= parseInt(spacetotal) + parseInt(bonusspace)) {
+        townHallStyle = " populationfull";
+      } else {
+        log("population is less than spacetotal "+population+" < "+(parseInt(spacetotal) + parseInt(bonusspace)));
       }
       if (bonusspace != "?") {
         spacetotal = createTooltip(mynumberformat(parseInt(spacetotal) + parseInt(bonusspace)), mynumberformat(spacetotal) + " + " + mynumberformat(bonusspace));
       } else {
         spacetotal = mynumberformat(spacetotal) + " + ?";
       }
-      var cs = "";
-      var lfcs = "class='lf'";
-      if (parseInt(city_id) == parseInt(city.value)) {
-        cs = "class='current_city_highlight'";
-        lfcs = "class='lf current_city_highlight'";
-      }
       var warehouseLevel = getArrValue(res.buildings["warehouse"], "level", "0");
       var maxcwood = warehouseWoodCapacities[warehouseLevel] + 1000;//1000 a városháza kapacitása
       var maxcother = warehouseOtherCapacities[warehouseLevel] + 300;//300 a városháza kapacitása
       s += "<tr>";
-      s += "<td "+cs+">"+createLinkToCity(city.innerHTML, city.value, i)+"</td>"+
-           "<td "+cs+">"+res.city_coord+"</td>"+
-           "<td "+lfcs+">"+mynumberformat(res.population)+"</td>"+
-               "<td "+cs+">"+spacetotal+"</td>"+
-               "<td "+cs+">"+createTooltip(growth, growthRemainingHours)+"</td>"+
-           "<td "+lfcs+">"+createLinkToResource(
+      s += "<td class='"+cs+"'>"+createLinkToCity(city.innerHTML, city.value, i)+"</td>"+
+           "<td class='"+cs+"'>"+res.city_coord+"</td>"+
+           "<td class='"+lfcs+townHallStyle+"'>"+createLastUpdateAsTooltip(mynumberformat(population), res.prodtime)+"</td>"+
+               "<td class='"+cs+"'>"+spacetotal+"</td>"+
+               "<td class='"+cs+"'>"+happiness+"</td>"+
+               "<td class='"+cs+"'>"+createTooltip(growth, growthRemainingHours)+"</td>"+
+           "<td class='"+lfcs+"'>"+createLinkToResource(
                               createCounter(res.prodtime, res.wood, res.prodwood, false, maxcwood, getArrivingGoods(city.value, "wood")),
                               res.island_id, city.value, i) +"</td>"+
-               "<td "+cs+">"+createProd(res.prodwood)+"</td>"+
-           "<td "+lfcs+">"+createLinkToTradegoodCond(res.prodwine > 0,
+               "<td class='"+cs+"'>"+createProd(res.prodwood)+"</td>"+
+           "<td class='"+lfcs+"'>"+createLinkToTradegoodCond(res.prodwine > 0,
                               createCounter(res.prodtime, res.wine, res.prodwine - wineUsage, false, maxcother, getArrivingGoods(city.value, "wine")),
                               res.island_id, city.value, i) +"</td>"+
-               "<td "+cs+">"+wineUsageHtml+"</td>"+
-               "<td "+cs+">"+createProd(res.prodwine)+"</td>"+
-           "<td "+lfcs+">"+createLinkToTradegoodCond(res.prodmarble > 0,
+               "<td class='"+cs+"'>"+wineUsageHtml+"</td>"+
+               "<td class='"+cs+"'>"+createProd(res.prodwine)+"</td>"+
+           "<td class='"+lfcs+"'>"+createLinkToTradegoodCond(res.prodmarble > 0,
                               createCounter(res.prodtime, res.marble, res.prodmarble, false, maxcother, getArrivingGoods(city.value, "marble")),
                               res.island_id, city.value, i)+"</td>"+
-               "<td "+cs+">"+createProd(res.prodmarble)+"</td>"+
-           "<td "+lfcs+">"+createLinkToTradegoodCond(res.prodglass > 0,
+               "<td class='"+cs+"'>"+createProd(res.prodmarble)+"</td>"+
+           "<td class='"+lfcs+"'>"+createLinkToTradegoodCond(res.prodglass > 0,
                               createCounter(res.prodtime, res.glass, res.prodglass, false, maxcother, getArrivingGoods(city.value, "glass")),
                               res.island_id, city.value, i) +"</td>"+
-               "<td "+cs+">"+createProd(res.prodglass)+"</td>"+
-           "<td "+lfcs+">"+createLinkToTradegoodCond(res.prodsulfur > 0,
+               "<td class='"+cs+"'>"+createProd(res.prodglass)+"</td>"+
+           "<td class='"+lfcs+"'>"+createLinkToTradegoodCond(res.prodsulfur > 0,
                               createCounter(res.prodtime, res.sulfur, res.prodsulfur, false, maxcother, getArrivingGoods(city.value, "sulfur")),
                               res.island_id, city.value, i) +"</td>"+
-               "<td "+cs+">"+createProd(res.prodsulfur)+"</td>"+
-           "<td "+lfcs+">"+underConstruction+"</td>"+
-               "<td "+cs+">"+counter+"</td>";
+               "<td class='"+cs+"'>"+createProd(res.prodsulfur)+"</td>"+
+           "<td class='"+lfcs+"'>"+underConstruction+"</td>"+
+               "<td class='"+cs+"'>"+counter+"</td>";
       s += "</tr>";
     }
     s += "<tr class='table_footer'>";
     s += "<td class='table_footer' colspan=2>"+texts["summary"]+"</td>"+
          "<td class='table_footer lf'>"+mynumberformat(sumres.population)+"</td>"+
+         "<td class='table_footer'></td>"+
          "<td class='table_footer'></td>"+
          "<td class='table_footer'></td>"+
          "<td class='table_footer lf'>"+createCounter(currenttime, sumres.wood, sumProd.wood)+"</td>"+
@@ -1519,10 +1928,18 @@ function renderTables() {
   //második táblázat: épületek szintjei
   if (TABLE_BUILDINGS) {
     s += "<table border=1 class='buildings_table'>";
-    s += "<tr class='table_header'><td class='table_header'>"+texts["cityName"]+"</td>";
+    s += "<tr class='table_header'><th class='table_header'>"+texts["cityName"]+"</th>";
+    try {
+      var body_id = document.getElementsByTagName("body")[0].id;
+    } catch (e) {
+    }
     var firstStyle = "lf";
     for(key in buildings) {
-      s += "<td class='"+firstStyle+" table_header'>"+createTooltip(buildings[key][1], buildings[key][0])+"</td>";
+      var currentBuildingStyle = "";
+      if (key == body_id) {
+        currentBuildingStyle = " current_building";
+      }
+      s += "<th class='"+firstStyle+currentBuildingStyle+" table_header'>"+createTooltip(buildings[key][1], buildings[key][0])+"</th>";
       firstStyle = "";
     }
     s += "</tr>";
@@ -1546,7 +1963,11 @@ function renderTables() {
           firstStyle += " upgrading";
           level = createTooltip(level, texts["currentlyBuilding"]);
         }
-        s += "<td class='"+cs+" "+firstStyle+"'>"+level+"</td>";
+        var currentBuildingStyle = "";
+        if (key == body_id) {
+          currentBuildingStyle = " current_building";
+        }
+        s += "<td class='"+cs+" "+firstStyle+currentBuildingStyle+"'>"+level+"</td>";
         firstStyle = "";
       }
       s += "</tr>";
@@ -1577,14 +1998,14 @@ function renderTables() {
 
       if (usedIndexesCount > 0) {
         s += "<table border=1 class='army_table'>";
-        s += "<tr class='table_header'><td class='table_header'>"+texts["cityName"]+"</td>";
+        s += "<tr class='table_header'><th class='table_header'>"+texts["cityName"]+"</th>";
         for(key in names) {
           var name = names[key];
           if (usedIndexes[key] == 1) {
-            s += "<td class='lf table_header' colspan=2>"+name+"</td>";
+            s += "<th class='lf table_header' colspan=2>"+name+"</th>";
           }
         }
-        s += "<td class='lf table_header' colspan=2>"+texts["summary"]+"</td>";
+        s += "<th class='lf table_header' colspan=2>"+texts["summary"]+"</th>";
         s += "</tr>";
         var sum = [];
         var sumPoint = [];
@@ -1676,7 +2097,7 @@ function renderTables() {
         if (city_ids[id]) {
           var city = players.cities[id];
           s += "<td class='lf'>" + city.name + "</td>" +
-               "<td>" + players.islands[city.island_id].coord + "</td>" +
+               "<td>" + createLinkToForeignCity(players.islands[city.island_id].coord, city.island_id) + "</td>" +
                "<td>" + city.size + "</td>";
           i++;
         }
@@ -1813,12 +2234,16 @@ function renderTables() {
     t.appendChild(createRowChk("Show army and fleet table:", "TABLE_ARMYFLEET", TABLE_ARMYFLEET));
     t.appendChild(createRowChk("Show players and cities table (under development):", "TABLE_PLAYERS", TABLE_PLAYERS));
     t.appendChild(createRowSlct("Resource progress bar mode:", "PROGRESS_BAR_MODE", PROGRESS_BAR_MODE, {off: "off", time: "based on remaining time", percent: "based on fullness percentage"}));
+    t.appendChild(createRowSlct("Language:", "LANGUAGE", language, {"": "Automatic from server name", en: "English", hu: "Magyar", de: "German", cz: "Czech", tr: "Turkish", es: "Spanish", ba: "Bosnian", it: "Italian", pt: "Portuguese", fr: "French"}));
+    t.appendChild(createRowInput("Own alliance (short name):", "ownAlly", getCfgValue("ownAlly", "")));
+    t.appendChild(createRowInput("Friendly alliances (short names, separated by comma):", "friendlyAllies", getCfgValue("friendlyAllies", "")));
+    t.appendChild(createRowInput("Hostile alliances (short names, separated by comma):", "hostileAllies", getCfgValue("hostileAllies", "")));
     t.appendChild(createRowTxtr("CSS:", "CSS", getCfgValueNonEmpty("CSS", default_style), 15, 70));
     t.appendChild(createRowChk("Log debug messages:", "DEBUG_LOG", DEBUG_LOG));
     
     var tr = document.createElement('tr');
     t.appendChild(tr);
-    var td = document.createElement('tr');
+    var td = document.createElement('td');
     tr.appendChild(td);
     td.setAttribute("colspan", "2");
     var buttonsPanel = document.createElement('div');
@@ -1848,15 +2273,15 @@ function renderTables() {
         var n = document.getElementById("table_settings");
         if (n.style.display == 'none') {
           n.style.display = 'table';
-          this.value = "Hide settings";
+          this.value = texts["hide_settings"];
         } else {
           n.style.display = 'none';
-          this.value = "Show settings";
+          this.value = texts["show_settings"];
         }
       }
       var n = document.createElement('input');
       n.type = "button";
-      n.value = "Show settings";
+      n.value = texts["show_settings"];
       n.setAttribute("class", "button");
       n.addEventListener("click", show_hide_table, false);
       body.appendChild(n);
@@ -1870,22 +2295,29 @@ function renderTables() {
 
 renderTables();
 
-myTimeCounterF();
+window.setInterval(myTimeCounterF, 1000);
+window.setTimeout(myTimeCounterF, 1000); //a setinterval az első két hívást azonnal végrehajtja, és aztán 2 mp marad ki, majd onnantól megy rendesen. kézzel kell ezt a bugot "javítani"
+//myTimeCounterF();
 
 
 //város választó form típusát get-re állítja, hogy a paraméterek az url-ben megjelenjenek
 //var form = getNode("//form[@id='changeCityForm']");
-/*var form = getNode("//form");
-if (form != null) {
-  form.method = "get";
+/*var forms = document.getElementsByTagName("form");
+for(var i = 0; i < forms.length; i++) {
+  var form = forms[i];
+  if (form != null) {
+    form.method = "get";
+  }
 }*/
 
 var time = new Date().getTime();
 setVar("config", serialize(config));
 log("time serialize: "+(new Date().getTime() - time)+" msec");
-var time = new Date().getTime();
-setVar("players", uneval(players));
-log("time uneval: "+(new Date().getTime() - time)+" msec");
+if (getCfgValue("TABLE_PLAYERS", false) == true) {
+  var time = new Date().getTime();
+  setVar("players", uneval(players));
+  log("time uneval: "+(new Date().getTime() - time)+" msec");
+}
 
 var _endTime = new Date().getTime();
 log("total time: "+(_endTime - _startTime)+" msec");
