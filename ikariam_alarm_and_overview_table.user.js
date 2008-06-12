@@ -704,7 +704,7 @@ getLocalizedTexts();
 //a város id-je
 var city_id = getIntValue(getNode_value("//option[@class='avatarCities' and @selected='selected']"), 0);
 var city_idmainView = getNodeValue("id('breadcrumbs')/*[@class='city']");
-city_idmainView = getNode_value("//option[@class='avatarCities' and text()='"+city_idmainView+"']", 0);
+city_idmainView = getNode_value("//option[@class='avatarCities' and text()=' "+city_idmainView+"']", 0);
 
 
 //a varos koordinataja
@@ -1538,7 +1538,7 @@ if (city_idmainView > 0) {
     var res = xpath("//select[@id='citySelect']/option");
     for(var i = 0; i < res.snapshotLength; i++) {
       var n = res.snapshotItem(i);
-      cities[n.value] = n.innerHTML;
+      cities[n.value] = trim(n.innerHTML);
     }
     var res = xpath("//table[@class='table01']/tbody/tr/td/br");
     for(var i = 0; i < res.snapshotLength; i++) {
@@ -2309,6 +2309,10 @@ for(var i = 0; i < forms.length; i++) {
     form.method = "get";
   }
 }*/
+
+function trim(str) {
+  return str.replace(/^\s+|\s+$/g, "");
+}
 
 var time = new Date().getTime();
 setVar("config", serialize(config));
