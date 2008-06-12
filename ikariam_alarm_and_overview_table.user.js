@@ -6,7 +6,8 @@
 //                 üzenet jön, vagy megtámadnak, akkor hangjelzéssel figyelmeztet.
 //                 Ezen kívül a falvakról összegyűti a fontos információkat (lakosok, nyersanyagok mennyisége,
 //                 épületek szintje, építés alatt álló épület), és a lap alján egy táblázatban megjeleníti.
-// @include        http://*.ikariam.*/index.php*
+// @include        http://s*.ikariam.tld/*
+// @include        http://s*.ikariam.com.pt/*
 // ==/UserScript==
 /**************************************************************************************************
 Version history:
