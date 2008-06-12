@@ -2882,8 +2882,8 @@ function embassyView() {
   var t = $X('id("allyinfo")/tbody');
   var td = $x('tr/td[2]', t);
   var txt = td[4].firstChild; // alliance page
-  var url = txt.textContent.match(/^http:\/\/\S*/);
-  if (url) link(url[0], txt.textContent, txt );
+  var u = txt.textContent.match(/^http:\/\/\S*/);
+  if (u) link(u[0], txt.textContent, txt );
 
   var n = td[3].textContent.split(/\s+/)[0]; // placement (i e "4 (1,340,785)")
   link(url("?view=allyHighscore&offset="+ Math.floor(integer(n)/100)),
