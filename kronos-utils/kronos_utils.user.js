@@ -3858,9 +3858,9 @@ function showOverview() {
           }
         a.@rel = need.toSource();
         if (-1 != q.indexOf(b))
-          a.@style = (a.@style||"") + "font-style: italic;";
+          a.@style = (a.@style||"") + "font-weight: bold;";
       }
-      tr.td += <td class="building">{a}</td>;
+      tr.td += <td class="building">{ a }</td>;
     }
     table.* += tr;
   }
