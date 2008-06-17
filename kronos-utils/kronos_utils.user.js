@@ -2821,18 +2821,12 @@ function corruption(city, fullpct) {
   var colonies = cityIDs().length - 1;
   var building = "palace" + (isCapital(city) ? "" : "Colony");
   var governor = buildingLevel(building, 0, city);
+  var a = 10; // absorption factor; see http://ikariam.wikia.com/wiki/Corruption
   var max = governor >= colonies ? 0 : (1 - (governor+1) / (colonies+1)) * 100;
-  var now = new Date, baseline = new Date(Date.UTC(2008, 3, 28));
-  var factor = now < baseline ? 0.1 : 0.2;
-  var weeks = Math.floor((now - baseline) / (7*24*60*60e3));
-  if (now > baseline) factor += weeks * 0.1;
-  factor = 0.3; // updates: http://board.ikariam.org/?page=Thread&postID=289911
-  var corr = Math.min(factor, 1.0) * max / 100;
-  growthDebug && console.log("Max corruption (" + max + "%) * gating factor "+
-                             factor.toFixed(1) +" ("+ weeks +" whole weeks " +
-                             "from 2008-04-28) => "+ (100*corr).toFixed(2) +
-                             "% actual corruption");
-  return fullpct ? max : corr;
+  var real = governor >= colonies ? 0 : (1 - (governor+a) / (colonies+a)) * 100;
+  growthDebug && console.log("Max ("+ max.toFixed(2) +"%) / actual corruption: "
+                             + real.toFixed(2) +"%");
+  return (fullpct ? max : real) / 100;
 }
 
 function townHallView() {
@@ -4227,7 +4221,7 @@ function getMaxPopulation(townHallLevel) {
 
 function projectPopulation(opts) {
   function getGrowth(population) {
-    return (happy - Math.floor(population + corr * population)) / 50;
+    return (happy - Math.floor(population + corr * happy)) / 50;
   }
   var wellDigging = 50 * isCapital() * config.getServer("techs.3010");
   var holiday = 25 * config.getServer("techs.2080", 0);
@@ -4245,14 +4239,12 @@ function projectPopulation(opts) {
   growthDebug && console.log("well digging: "+ wellDigging +", holiday: "+
                              holiday +", tavern:"+ tavern +", wine: "+ wine +
                              ", museum: "+ museum +", culture: "+ culture +
-                             ", utopia: "+ (200 * utopia * isCapital()) +
-                             " - population: "+ population + " => "+
-                             (happy - population) +" base happiness");
+                             ", utopia: "+ (200 * utopia * isCapital()) +" = "+
+                             happy + " base happiness");
 
   var corr = corruption();
-  growthDebug && console.log("Actual corruption rate ("+ corr.toFixed(4) +
-                             ") * population ("+ population +") => "+
-                             Math.ceil(corr * population) +
+  growthDebug && console.log("Actual corruption rate ("+ (100*corr).toFixed(2) +
+                             ") * base happiness => "+ Math.floor(corr*happy) +
                              " unhappy citizens from corruption");
   var initialGrowth = getGrowth(population);
   var growthSignSame = initialGrowth > 0 ? function plus(p) { return p > 0; } :
