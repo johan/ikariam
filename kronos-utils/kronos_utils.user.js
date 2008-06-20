@@ -167,6 +167,7 @@ function processHash() {
 
     var rest = urlParse(null, location.hash.slice(1));
     for each (var where in "before,after,prepend,append,replace".split(",")) {
+      if (!rest[where]) continue;
       var opts = {}, is = rest[where], at = is.indexOf(":");
       var path = is.slice(0, at), what = is.slice(at+1);
       if ((opts[where] = $X(path))) {
@@ -743,7 +744,7 @@ function militaryAdvisorCombatReportsView() {
 
 function militaryAdvisorReportViewView() {
   var loot = parseResources('//td[@class="winner"]/ul[@class="resources"]/li');
-  var a = $X('id("battleReportDetail")//a');
+  var a = $X('id("mainview")//a[contains(@href,"selectCity")][last()]');
   var cities = config.getServer("cities", {});
   var city = parseInt(urlParse("selectCity", a.search));
   var island = parseInt(urlParse("id", a.search));
@@ -772,17 +773,49 @@ function militaryAdvisorReportViewView() {
   detail.parentNode.setAttribute("colspan", "7");
   var lastrow = rm(detail.parentNode.parentNode);
 
-  if (q.combatId)
+  if (q.combatId) {
     url += "detailedCombatId="+ q.combatId +'#before=id("troopsReport"):'+
       encodeURIComponent(encodeURIComponent(trim(panel.innerHTML)));
-  else {
+  } else return detailedCombatView(); /* {
     return $("ergebnis").appendChild(lastrow);
     url += "combatId="+ q.detailedCombatId +'#after=id("troopsReport"):'+
       encodeURIComponent(encodeURIComponent(trim(panel.innerHTML)));
-  }
+  } */
 
   $("ergebnis").appendChild(lastrow);
   detail.href = url;
+}
+
+function detailedCombatView() {
+  function register(unit, i) {
+    if (!unit.A || !unit.D) return;
+    var att = Math.floor((a[i] - unit.a) / unit.A);
+    var def = Math.floor((d[i] - unit.d) / unit.D);
+    levels[unit.id] = { a: att, d: def };
+    att = <img alt={"["+ att +"]"} src={ gfx.sword(att) }/>;
+    def = <img alt={"["+ def +"]"} src={ gfx.shield(def) }/>;
+    att.@style = def.@style = "margin-right: 2px";
+    node({ prepend: attack[i], tag: att });
+    node({ prepend: defend[i], tag: def });
+  }
+  var wallBonus = $X('//td[@colspan="15"][a]/text()[contains(.,"%")]');
+  wallBonus = 1 + (!wallBonus ? 0 :
+                   integer(wallBonus.textContent.match(/\d+%/)[0]) / 100);
+  var c = $X('(//td[@colspan="15"]/a[contains(@href,"selectCity")])[last()]');
+  var cid = urlParse("selectCity", c.search);
+  var player = config.getCity("o", null, cid);
+  if (!player) return;
+
+  var levels = config.getServer(["players", player, "u"], {});
+
+  var trs = $x('id("result")/tbody/tr[th[@class="defenders"]][1]/' +
+               'following-sibling::tr');
+  var stats = $x('td/img', trs[0]).map(unitStatsFromImage);
+  var counts = $x('td[text()]', trs[1]), n = counts.map(integer);
+  var attack = $x('td[text()]', trs[2]), a = attack.map(number);
+  var defend = $x('td[text()]', trs[3]), d = defend.map(number);
+  stats.forEach(register);
+  config.setServer(["players", player, "u"], levels);
 }
 
 function deploymentView() {
@@ -4058,7 +4091,7 @@ function unitStatsFromImage(img) {
   }
   var name = img.src.split("/").pop();
   if (name) {
-    var junk = /^(ship|y\d+)_|_(r|\d+x\d+)(?=[_.])|_faceright|\....$/g;
+    var junk = /^(ship|y\d+)_|_(l|r|\d+x\d+)(?=[_.])|_faceright|\....$/g;
     var ship = /ship_/.test(name);
     name = name.replace(junk, "");
     name = { medic: "doctor", marksman: "gunsman", steamboat: "paddle",

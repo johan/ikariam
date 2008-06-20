@@ -54,6 +54,15 @@ var buildingCapacities = {
   }
 };
 
+function getSword(level) {
+  if (!level) return "http://img185.imageshack.us/img185/2054/22786730ag3.gif";
+  return "/skin/layout/sword-icon"+ (4-level) +".gif";
+}
+function getShield(level) {
+  if (!level) return "http://img262.imageshack.us/img262/800/72814733ej8.gif";
+  return "/skin/layout/shield-icon"+ (4-level) +".gif";
+}
+
 var gfx = {
         wood: "/skin/resources/icon_wood.gif",
         wine: "/skin/resources/icon_wine.gif",
@@ -66,6 +75,9 @@ var gfx = {
         gold: "/skin/resources/icon_gold.gif",
         time: "/skin/resources/icon_time.gif",
         bulb: "/skin/layout/bulb-on.gif",
+
+       sword: getSword,
+      shield: getShield,
 
       swords: "/skin/layout/icon-crossedswords.gif", // 33x27
       attack: "/skin/layout/sword-icon-report.gif",
