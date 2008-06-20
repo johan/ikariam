@@ -792,6 +792,8 @@ function detailedCombatView() {
     var div = ("Resistance" == unit.x ? 1.3 : 1) * wallBonus;
     var att = Math.max(0, Math.floor((a[i] - unit.a) / unit.A));
     var def = Math.max(0, Math.floor((d[i]/div - unit.d) / unit.D));
+    att = Math.min(3, att);
+    def = Math.min(3, def);
     units[unit.id] = n[i];
     levels[unit.id] = { a: att, d: def };
     att = <img alt={"["+ att +"]"} src={ gfx.sword(att) }/>;
