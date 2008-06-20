@@ -791,6 +791,7 @@ function detailedCombatView() {
     if (!unit.A || !unit.D) return;
     var att = Math.floor((a[i] - unit.a) / unit.A);
     var def = Math.floor((d[i] - unit.d) / unit.D);
+    units[unit.id] = n[i];
     levels[unit.id] = { a: att, d: def };
     att = <img alt={"["+ att +"]"} src={ gfx.sword(att) }/>;
     def = <img alt={"["+ def +"]"} src={ gfx.shield(def) }/>;
@@ -803,6 +804,7 @@ function detailedCombatView() {
                    integer(wallBonus.textContent.match(/\d+%/)[0]) / 100);
   var c = $X('(//td[@colspan="15"]/a[contains(@href,"selectCity")])[last()]');
   var cid = urlParse("selectCity", c.search);
+  var units = config.getCity("U", {}, cid);
   var player = config.getCity("o", null, cid);
   if (!player) return;
 
@@ -815,6 +817,7 @@ function detailedCombatView() {
   var attack = $x('td[text()]', trs[2]), a = attack.map(number);
   var defend = $x('td[text()]', trs[3]), d = defend.map(number);
   stats.forEach(register);
+  config.setCity("U", units, cid);
   config.setServer(["players", player, "u"], levels);
 }
 
@@ -842,6 +845,7 @@ function augmentIkaFight() {
     var v, a, d, f, A, D;
     [v, a, d, f, A, D] = args[n].split(".").concat(0, 0, 0, 0, 0);
     var input = $x('following::input', td);
+    if (!input) return;
     input[0].value = v;
     if (a) input[a].checked = true;
     if (d) input[integer(d)+3].checked = true;
@@ -873,21 +877,22 @@ function plunderView(where) {
     var send = sending(), stats = {};
     var empty = !sum(send); // none selected?
     send.forEach(count);
-    var to = $X('id("plunderForm")//input[@name="destinationCityId"]');
+    var to = $X('id("mainview")//input[@name="destinationCityId"]');
     if (to) {
       var city = integer(to);
       var player = config.getCity("o", "", city);
-      var levels = config.getCity("l", {}, city);
-      stats["Town Level"] = levels[buildingIDs.townHall] || 0;
-      stats["Wall Level"] = levels[buildingIDs.wall] || 0;
       if (player) {
         var nmiLevels = config.getServer(["players", player, "u"], {});
         for (var id in nmiLevels) {
           var l = nmiLevels[id];
+          var n = config.getCity(["U", id], 0, city);
           var name = ika[id] || (troops[id] || ships[id]).n;
-          stats[name] = (stats[name] || "0.0.0") +".0."+ l.a +"."+ l.d;
+          stats[name] = (stats[name] || "0.0.0") +"."+ n +"."+ l.a +"."+ l.d;
         }
       }
+      var levels = config.getCity("l", {}, city);
+      stats["Town Level"] = levels[buildingIDs.townHall] || 0;
+      stats["Wall Level"] = levels[buildingIDs.wall] || 0;
     }
 
     var url = "http://ikariam.immortal-nights.com/ikafight/?battleType=";
