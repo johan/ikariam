@@ -789,8 +789,10 @@ function militaryAdvisorReportViewView() {
 function detailedCombatView() {
   function register(unit, i) {
     if (!unit.A || !unit.D) return;
+    var div = "Resistance" == unit.x ? 1.3 : 1;
     var att = Math.max(0, Math.floor((a[i] - unit.a) / unit.A));
-    var def = Math.max(0, Math.floor((d[i] - unit.d) / unit.D));
+    var def = Math.max(0, Math.floor((d[i] / div - unit.d) / unit.D));
+    if ("Resistance" == unit.x)
     units[unit.id] = n[i];
     levels[unit.id] = { a: att, d: def };
     att = <img alt={"["+ att +"]"} src={ gfx.sword(att) }/>;
