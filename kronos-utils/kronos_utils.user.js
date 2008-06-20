@@ -839,11 +839,15 @@ function augmentIkaFight() {
   for (var n in args) {
     var td = $X('//td[.="'+ n +'"]');
     if (!td) continue;
-    var v, a, d; [v, a, d] = args[n].split(".").concat(0, 0);
+    var v, a, d, f, A, D;
+    [v, a, d, f, A, D] = args[n].split(".").concat(0, 0, 0, 0, 0);
     var input = $x('following::input', td);
     input[0].value = v;
     if (a) input[a].checked = true;
     if (d) input[integer(d)+3].checked = true;
+    if (f) input[7].value = f;
+    if (A) input[integer(A)+7].checked = true;
+    if (D) input[integer(D)+10].checked = true;
   }
   scrollWheelable($x('//input[@type="text"]'));
 }
@@ -872,9 +876,18 @@ function plunderView(where) {
     var to = $X('id("plunderForm")//input[@name="destinationCityId"]');
     if (to) {
       var city = integer(to);
+      var player = config.getCity("o", "", city);
       var levels = config.getCity("l", {}, city);
       stats["Town Level"] = levels[buildingIDs.townHall] || 0;
       stats["Wall Level"] = levels[buildingIDs.wall] || 0;
+      if (player) {
+        var nmiLevels = config.getServer(["players", player, "u"], {});
+        for (var id in nmiLevels) {
+          var l = nmiLevels[id];
+          var name = ika[id] || (troops[id] || ships[id]).n;
+          stats[name] = (stats[name] || "0.0.0") +".0."+ l.a +"."+ l.d;
+        }
+      }
     }
 
     var url = "http://ikariam.immortal-nights.com/ikafight/?battleType=";

@@ -27,7 +27,10 @@ reports: {
   },
   players: {
    <name>: {
-   cities: [id, id, id...]
+   cities: [id, id, id...],
+        u: {
+     <id>: { a: 0-3, d: 0-3 }
+      }
     },
   },
   cities: {
@@ -38,6 +41,7 @@ reports: {
       g: gold net income (FIXME: remove and add allocated/free pop instead),
       t: completionTime,
       u: buildURL,
+      U: { <id>: count },
       l: [ lvl0, ...], // building level
       p: [ pos0, ...], // building position
       q: [ bID, ...], // buildings sceduled to be built
