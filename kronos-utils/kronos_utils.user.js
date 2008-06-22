@@ -1587,6 +1587,9 @@ function levelTown() {
       var id = integer($X('a', li).id);
       config.setCity(["l", buildingIDs.townHall], level, id);
       name.nodeValue = level +":"+ name.nodeValue;
+      var wl = config.getCity(["l", buildingIDs.wall], "", id);
+      if ("" != wl && config.get("debug"))
+        name.nodeValue = wl +"/"+ name.nodeValue;
       name = name.parentNode;
       name.style.left = Math.round((name.offsetWidth) / -2 + 34) + "px";
     }
@@ -4116,7 +4119,7 @@ function unitStatsFromImage(img) {
     var ship = /ship_/.test(name);
     name = name.replace(junk, "");
     name = { medic: "doctor", marksman: "gunsman", steamboat: "paddle",
-             steamgiant: "steam" }[name] || name;
+             steamgiant: "steam", submarine: "diving" }[name] || name;
     if (!ship)
       for (var id in troops)
         if (normalize(troops[id].n) == name)
