@@ -774,6 +774,12 @@ function militaryAdvisorReportViewView() {
   var lastrow = rm(detail.parentNode.parentNode);
 
   if (q.combatId) {
+    var wall = $X('id("ergebnis")//td[img[contains(@src,"wall.gif")]]');
+    var defense = $X('following-sibling::td[contains(.,"%")]', wall);
+    if (defense && wall) {
+      var text = wall.lastChild, txt = text.nodeValue;
+      text.nodeValue = txt.replace(":", " "+ wallLevel(defense, city) +":");
+    }
     url += "detailedCombatId="+ q.combatId +'#before=id("troopsReport"):'+
       encodeURIComponent(encodeURIComponent(trim(panel.innerHTML)));
   } else return detailedCombatView(); /* {
@@ -1139,6 +1145,16 @@ function haveEnoughToUpgrade(b, level, have) {
     if (resource != "t" && have[resource] < upgrade[resource])
       return false;
   return true;
+}
+
+function wallLevel(defense, city) {
+  var level = 0, defense = number(defense), wall = ["l", buildingIDs.townHall];
+  if (defense) {
+    var townHall = config.getCity(wall, null, city);
+    if (!townHall) return undefined;
+    level = Math.sqrt(defense * townHall / 10);
+  }
+  return config.setCity(wall, Math.round(level), city);
 }
 
 function buildingExtraInfo(div, id, name, level) {
