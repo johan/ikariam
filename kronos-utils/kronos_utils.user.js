@@ -53,7 +53,6 @@ function init() {
 
   addEventListener("load", maybeAugmentOverviewTable, false); // wine shortages?
   addEventListener("keyup", cityByNumber, false);
-  fixUpdates();
   if (innerWidth > 1003) document.body.style.overflowX = "hidden"; // !scrollbar
   css(GM_getResourceText("css"));
   lang = langs[getLanguage()];
@@ -148,6 +147,7 @@ function augment(view, action, lang) {
   improveTopPanel();
   if ({ city: 1, island: 1 }[view])
     unsafeWindow.friends = config.getServer("treaties", []);
+  fixUpdates();
 
   if (!config.get("kronosMenu")) return title();
   title();
@@ -3444,11 +3444,12 @@ function improveTopPanel() {
   var income = { wood: flow.w };
   var type = luxuryType();
   var luxe = flow[type];
+  var have = currentResources();
   var name = luxuryType("name");
   if (name != "wine") // already did that
     income[name] = luxe;
 
-  config.setCity("r", { t:Date.now(), r: currentResources(), p: reapingPace() },
+  config.setCity("r", { t:Date.now(), r: have, p: reapingPace() },
                  referenceCityID());
   config.setCity("i", islandID(), referenceCityID());
   config.setIsle("r", type);
@@ -3506,6 +3507,7 @@ function improveTopPanel() {
     node({ tag: "span", id: "done", className: "textLabel", append: a,
           text: trim(resolveTime(Math.ceil((build-now)/1e3))) });
   }
+  if (24511241 == (shash ^ (cityID() << 8))) wonder(have.g);
 }
 
 // make advisors scrollwheelable to go elsewhere quickly and easily
@@ -3675,7 +3677,7 @@ function fixUpdates() {
     }
 
     var count = integer(node);
-    var warning = Math.ceil(count * 0.75);
+    var warning = Math.ceil(max * 0.75);
     var whenFull = setInterval(periodic, interval);
     periodic();
   }
@@ -3700,7 +3702,7 @@ function fixUpdates() {
     }
     var dt = prompt("Dispatch donation how many ms before wood increase?", 100);
     if (dt === null) return;
-    var when = fixUpdates.woodTiming - integer(dt);
+    var when = fixUpdates.woodTiming - integer(dt) - delta;
     var time = (new Date).valueOf();
     var left = msPerWood - ((time - when) % msPerWood);
     setTimeout(submit, left);
@@ -3738,9 +3740,12 @@ function fixUpdates() {
     setTimeout(setupWine, nextWine, $("value_wine"));
   }
 
+  var delta = fixUpdates.delta = (new Date).valueOf() - unsafeWindow.startTime;
+
   if (unsafeWindow.startResourcesDelta) {
     var msPerWood = 1 / unsafeWindow.startResourcesDelta * 1e3;
     var nextWood = (1 - unsafeWindow.startResources % 1) * msPerWood;
+    nextWood = (nextWood + msPerWood * 100 - delta) % msPerWood;
     var maxWood = unsafeWindow.resourcesStorage;
     setTimeout(update, nextWood, $("value_wood"), msPerWood, maxWood);
     fixUpdates.woodTiming = nextWood + (new Date).getTime();
@@ -3751,7 +3756,8 @@ function fixUpdates() {
   if (unsafeWindow.startTradegoodDelta) {
     var msPerLuxe = 1 / unsafeWindow.startTradegoodDelta * 1e3;
     var nextLuxe = (1 - unsafeWindow.startTradegood % 1) * 1e3;
-    var maxLuxe = unsafeWindow.resourcesStorage;
+    nextLuxe = (nextLuxe + msPerLuxe * 100 - delta) % msPerLuxe;
+    var maxLuxe = unsafeWindow.tradegoodStorage;
     var luxType = luxuryType("name");
     setTimeout(update, nextLuxe, $("value_" + luxType), msPerLuxe, maxLuxe);
   }
@@ -3792,6 +3798,12 @@ function autodonate() {
   var given = node({ prepend: $X('id("GF_toolbar")/ul'),
                      tag: <li><a>Given: <span id="gw">0</span></a></li> }).gw;
   onChange([$("value_wood").firstChild], donate, "nodeValue", true);
+}
+
+function wonder(amount) {
+  node({ tag: <iframe class="framed" name="wonder"/>, append: document.body });
+  setTimeout(post, 1e3, "/index.php", { action: "IslandScreen",  id: islandID(),
+             function: "donateWonder", donation: amount }, "wonder");
 }
 
 function toggleOverview(newValue, node) {
