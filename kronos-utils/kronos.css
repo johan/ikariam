@@ -590,6 +590,7 @@ html body div#container div#container2 a.text:hover {
 /* current building is being upgraded */
 #cityNav #citypanel a.being-upgraded {
   font-style: italic;
+  text-decoration: underline;
 }
 
 
