@@ -390,6 +390,14 @@ function time(t) {
   return minus + result.join(join || " ");
 }
 
+function clickable(tag, onclick, id) {
+  if (!tag.tag)
+    tag.tag = <a href="#" id={ id }>&#160;</a>;
+  tag = node(tag);
+  if (id) tag = tag[id];
+  clickTo(tag, onclick);
+}
+
 function toggler(img, callback, url) {
   toggler.id = (toggler.id || 0) + 1;
   var id = "toggler" + toggler.id;

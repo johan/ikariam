@@ -447,6 +447,8 @@ html body div#container div#container2 a.text:hover {
   background-position: -125px -122px;;
 }
 
+.framed { display: none; }
+
 /* current and first line */
 #cityNav #citypanel .first.current td:first-child {
   padding-left: 6px;
@@ -784,6 +786,21 @@ html body div#container div#container2 a.text:hover {
 
 /**** World map view ****/
 
+/* randomize coordinates dice */
+#worldmap_iso #dice {
+  top: 2px;
+  left: 28px;
+  width: 24px;
+  height: 24px;
+  display: block;
+  position: absolute;
+  background: url(http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/gfx/icons/dice-blue-big.png);
+}
+
+#worldmap_iso #dice:active {
+  background: url(http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/gfx/icons/dice-yellow-big.png);
+}
+
 /* reusing the citycount box css for our resource level indicator */
 #worldmap_iso #worldmap .tradegood .cities { top: 22px; left: 1px; }
 #worldmap_iso #worldmap .tradegood4 .cities { top: 19px; }
@@ -844,7 +861,7 @@ hr#vr {
 
 #mainview .city-resources {
   position: relative;
-  min-height: 376px;
+  min-height: 444px;
   text-align: center;
   line-height: 68px;
   font-size: 32px;

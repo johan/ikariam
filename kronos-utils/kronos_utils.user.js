@@ -1313,13 +1313,17 @@ function levelBat() { // Ajout d'un du level sur les batiments.
 }
 
 function worldmap_isoView() {
-  function doubleClickableCoords() {
-    function invertCoord(e) {
-      var input = e.target;
-      var value = integer(input);
-      input.value = 100 - value;
+  function randomizableCoords() {
+    function changeCoords(e) {
+      function edit(n) {
+        with ($(n))
+          value = e.altKey ? 100 - value : Math.floor(100 * Math.random());
+      }
+      edit("inputXCoord");
+      edit("inputYCoord");
+      click($X('id("mapCoordInput")/input[@name="submit"]'));
     }
-    dblClickTo($x('id("mapCoordInput")/input[@type="text"]'), invertCoord);
+    clickable({ prepend: $("mapCoordInput") }, changeCoords, "dice");
   }
 
   function showResources() {
@@ -1369,7 +1373,7 @@ function worldmap_isoView() {
   var setMark = unsafeWindow.mark;
   unsafeWindow.mark = mark;
 
-  doubleClickableCoords();
+  randomizableCoords();
 }
 
 // island view selected city
