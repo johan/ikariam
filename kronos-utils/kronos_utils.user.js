@@ -30,7 +30,7 @@
 // @require        memory.js
 // ==/UserScript==
 
-var kronos = this, version = "0.5", lang, scientists, growthDebug = 0;
+var kronos = this, version = "0.6", lang, scientists, growthDebug = 0;
 if (config.get("debug")) unsafeWindow.kronos = kronos;
 if (/^http:\/\/ikariam.immortal-nights.com\/ikafight/i.test(location.href))
   augmentIkaFight();
