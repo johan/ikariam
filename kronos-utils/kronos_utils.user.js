@@ -4656,8 +4656,11 @@ function cityName(id) {
 }
 
 function cityNames() {
+  function noCoords(name) {
+    return name.replace(/^(\[\d+:\d+\] )?/, "");
+  }
   return cityNames.names = cityNames.names ||
-    pluck(get("citynames"), "textContent");
+    pluck(get("citynames"), "textContent").map(noCoords);
 }
 
 function isCapital(city) {
