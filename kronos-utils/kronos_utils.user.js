@@ -1130,6 +1130,7 @@ function buildingExpansionNeeds(b, level) {
   if (config.getServer("techs.2020")) factor -= 0.02; // Pulley
   if (config.getServer("techs.2060")) factor -= 0.04; // Geometry
   if (config.getServer("techs.2100")) factor -= 0.08; // Spirit Level
+  if (config.getServer("techs.2999")) factor -= 0.02; // Economic Future
   for (var r in needs)
     if ("t" == r) // no time discount
       value[r] = needs[r];
@@ -1510,7 +1511,7 @@ function islandView() {
     setTimeout(focusCity, 200, city);
   levelTown();
   levelResources();
-  var island = integer(urlParse("id", $X('id("advCities")/a').search));
+  var island = integer(urlParse("id", $X('id("advCities")//a').search));
   travelDistanceBreadcrumbs(island);
 
   var c = $x('id("cities")/li[contains(@class,"level") and ' +
@@ -2882,7 +2883,7 @@ function financesView() {
 }
 
 function cityView() {
-  var id = urlParse("id", $X('id("advCities")/a').search);
+  var id = urlParse("id", $X('id("advCities")//a').search);
   if (id) {
     var name = mainviewCityName();
     if (name) config.setCity("n", name, id);
@@ -3478,7 +3479,7 @@ function improveTopPanel() {
   ap.addEventListener("mouseover", hilightShip, false);
   ap.addEventListener("mouseout", unhilightShip, false);
   clickTo(ap, urlTo("merchantNavy"));
-  dblClickTo($X('id("advMilitary")/a'),
+  dblClickTo($X('id("advMilitary")//a'),
              url("?view=militaryAdvisorMilitaryMovements"), null, true);
 
   $x('id("cityResources")/ul[@class="resources"]/li/div[@class="tooltip"]').
@@ -3558,7 +3559,7 @@ function advisorLocations() {
   if (culture) places.advDiplomacy.splice(-3, 0, culture);
 
   for (var adv in places) {
-    var a = $X('id("'+ adv +'")/a');
+    var a = $X('id("'+ adv +'")//a');
     urls[adv] = a.href;
     a.addEventListener("DOMMouseScroll", onScrollWheel, false);
     a.addEventListener("mouseout", revert, false);
@@ -4639,7 +4640,7 @@ function mainviewCityID() {
   if (city) return integer(urlParse("id", city.search));
   if ({ island: 1, resource: 1, tradegood: 1 }[document.body.id])
     return cityID();
-  if ((city = urlParse("id", $X('id("advCities")/a').search)))
+  if ((city = urlParse("id", $X('id("advCities")//a').search)))
     return integer(city);
   return cityID();
 }
