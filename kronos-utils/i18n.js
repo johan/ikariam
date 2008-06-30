@@ -10,7 +10,7 @@ var DEBUT = new Date();
 
 var langs = { // Indexed on ISO 639-1 language ids (since country != language)
 
-en: { // English language strings maintained by myself. :-)
+en: { // English texts by myself. :-)
     language: "English", // The name of the translation language; not English!
     finished: " Finished ", // Building / resource upgrades, unit construction
     execTime: "Time of execution", // Shown in tooltip for the language choice
@@ -50,7 +50,7 @@ stillRemains: "Still remains:", // donations left until the resource upgrades
         Red$: "Red",
 },
 
-sv: { // Swedish strings also maintained by myself:
+sv: { // Swedish translation also by myself:
     language: "Svenska",
     finished: " Färdigt ",
     execTime: "Exekveringstid",
@@ -90,7 +90,7 @@ stillRemains: "Återstår:",
         Red$: "Röd",
 },
 
-fr: { // French version maintained by Kissy
+fr: { // French translation by Kissy
     language: "Français",
     finished: " Fini à ",
     execTime: "Temps d'exécution",
@@ -130,7 +130,7 @@ stillRemains: "Restes:",
         Red$: "Rouge",
 },
 
-de: { // German version maintained by pusteblume and AbrahamLincoln:
+de: { // German translation by pusteblume and AbrahamLincoln:
     language: "Deutsch",
     finished: " Beendet ",
     execTime: "benötigte Zeit zum Ausführen",
@@ -170,7 +170,7 @@ stillRemains: "Bis dahin fehlen noch:",
         Red$: "Rot",
 },
 
-cs: { // Czech translation maintained by Sisel:
+cs: { // Czech translation by Sisel
     language: "Czech",
     finished: " Dokončeno ",
     execTime: "Čas dokončení",
@@ -210,7 +210,7 @@ stillRemains: "Stále zůstává:",
         Red$: "Červená",
 },
 
-pl: { // Polish translation maintained by drivex:
+pl: { // Polish translation by drivex
     language: "Polski",
     finished: " Koniec o: ",
     execTime: "Czas wykonania",
@@ -270,7 +270,7 @@ stillRemains: "Mai raman:",
         Red$: "Rosu",
 },
 
-it: { // Italia language strings maintained by Uomo Merendina. :-)
+it: { // Italian translation by Uomo Merendina. :-)
     language: "Italiano",
     finished: " Finito: ",
     execTime: "Tempo di esecuzione",
@@ -310,7 +310,7 @@ stillRemains: "Mancano ancora:",
         Red$: "Rosso",
 },
 
-ru: { // Russian translation updated by XtoZee
+ru: { // Russian translation by XtoZee
     language: "Русский",
     finished: " Завершение ",
     execTime: "Время выполнения",
@@ -390,7 +390,7 @@ stillRemains: "Nog nodig:",
         Red$: "Rood",
 },
 
-es: { // Espanol translation upgraded by sekathree:
+es: { // Spanish translation upgraded by sekathree
     language: "Espanol",
     finished: " termina a las ",
     execTime: "Tiempo de ejecucion",
@@ -470,7 +470,7 @@ stillRemains: "Mangler endnu:",
         Red$: "Rød",
 },
 
-pt: { // Portuguese translation by anónimo:
+pt: { // Portuguese translation by anónimo
     language: "Português",
     finished: " termina às ",
     execTime: "Tempo de construção",
@@ -510,7 +510,7 @@ stillRemains: "Ainda são necessários:",
         Red$: "Vermelho",
 },
 
-tr: { // Turkish translation maintained by Kingbeam
+tr: { // Turkish translation by Kingbeam
     language: "Turkish",
     finished: " Bitiş Tarihi: ",
     execTime: "Uygulama Zamanı",
@@ -550,7 +550,7 @@ stillRemains: "Yeni Seviye İçin Gereken Miktar:",
         Red$: "Kırmızı",
 },
 
-pl: { // Polish translation maintained by LukiQ
+pl: { // Polish translation by LukiQ
     language: "Polski",
     finished: " Koniec o: ",
     execTime: "Czas wykonania",
@@ -590,7 +590,7 @@ stillRemains: "Pozostanie:",
         Red$: "Czerwony",
 },
 
-hr: { // Croatian translation maintained by Ivan Bižaca
+hr: { // Croatian translation by Ivan Bižaca
     language: "Hrvatski",
     finished: " Gotovo ",
     execTime: "Vrijeme učitavanja",
@@ -630,7 +630,7 @@ stillRemains: "Fali:",
         Red$: "Crvena",
 },
 
-hu: { // hungarian translation by cs
+hu: { // Hungarian translation by cs
     language: "Magyar", 
     finished: " Elkészül ", 
     execTime: "Végrehajtás ideje", 
@@ -670,7 +670,7 @@ stillRemains: "Szükséges még:",
         Red$: "Vörös",
 },
 
-zh: {
+zh: { // Traditional chinese translation by Botherlong
     language: "中文",
     finished: " 完成 ",
     execTime: "完成時間",
