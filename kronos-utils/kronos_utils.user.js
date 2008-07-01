@@ -28,6 +28,7 @@
 // @require        support.js
 // @require        config.js
 // @require        memory.js
+// @unwrap
 // ==/UserScript==
 
 var kronos = this, version = "0.6", lang, scientists, growthDebug = 0;
