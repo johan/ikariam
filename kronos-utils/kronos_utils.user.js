@@ -828,7 +828,7 @@ function detailedCombatView() {
     levels[unit.id] = { a: att, d: def };
     att = <img alt={"["+ att +"]"} src={ gfx.sword(att) }/>;
     def = <img alt={"["+ def +"]"} src={ gfx.shield(def) }/>;
-    att.@style = def.@style = "margin-right: 2px";
+    att.@style = def.@style = "margin-left: -31px; position: absolute;";
     node({ prepend: attack[i], tag: att });
     node({ prepend: defend[i], tag: def });
   }
@@ -2923,7 +2923,7 @@ function corruption(city, fullpct) {
   var colonies = cityIDs().length - 1;
   var building = "palace" + (isCapital(city) ? "" : "Colony");
   var governor = buildingLevel(building, 0, city);
-  var a = 10; // absorption factor; see http://ikariam.wikia.com/wiki/Corruption
+  var a = 1; // absorption factor; see http://ikariam.wikia.com/wiki/Corruption
   var max = governor >= colonies ? 0 : (1 - (governor+1) / (colonies+1)) * 100;
   var real = governor >= colonies ? 0 : (1 - (governor+a) / (colonies+a)) * 100;
   growthDebug && console.log("Max ("+ max.toFixed(2) +"%) / actual corruption: "
