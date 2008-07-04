@@ -3701,7 +3701,8 @@ function fixUpdates() {
     }
 
     function full() {
-      //clearInterval(whenFull); // wine consumption could make more room
+      if ("value_wine" != node.id || (reapingPace().W || 0) <= 0)
+        clearInterval(whenFull); // wine consumption could make more room
       node.className = "storage_full";
     }
 
