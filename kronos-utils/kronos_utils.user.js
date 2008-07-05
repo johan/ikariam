@@ -2664,7 +2664,7 @@ function merchantNavyView() {
   }
 
   pruneTodayDates('tr/td', table);
-  $x('tr/td/div[@onmouseover]', table).forEach(showResources);
+  $x('(tr/td | tr/td/div)[@onmouseover]', table).forEach(showResources);
 }
 
 
