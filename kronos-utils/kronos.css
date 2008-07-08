@@ -622,6 +622,14 @@ html body div#container div#container2 a.text:hover {
 
 /**** Loot view ****/
 
+#mainview #finishedReports table.operations tr.today {
+  background-color: rgba(255,128,128,0.2);
+}
+
+#mainview #finishedReports table.operations tr.today.warn {
+  background-color: rgba(255,128,128,0.3);
+}
+
 #mainview #loot-report td.subject {
   white-space: nowrap;
 }

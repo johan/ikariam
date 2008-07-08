@@ -140,6 +140,23 @@ var costs = [
   #1#
 ];
 
+/*
+// military score contribution: 8 slingers => 1,264 == 8 * 3.95 * slinger.w
+var key = { n: "name", i: "image",
+  // build costs:
+  p: "people", w: "wood", W: "wine", C: "crystal", S: "sulfur", b: "buildtime",
+  u: "upkeep", m: "minlevel", o: "optlevel",
+  // unit stats:
+  a: "attack", d: "defend", s: "stamina", c: "class", v: "speed", x: "special"
+};
+
+s: 10 Slingers die against no wall or a level 3+ wall
+s: 12 Swordsmen only die against level 5+ wall
+s: 14 Phalanx dies against level 14+ wall
+s: 12 Archer
+s: 16 Rams
+
+*/
 
 // land units:
 var troops = {
@@ -200,20 +217,9 @@ var noShips = [0,   80,  158,  160,  238,  240,  316,  318,  320,  396,  398,
 
 /*
 
-
-// military score contribution: 8 slingers => 1,264 == 8 * 3.95 * slinger.w
-var key = { n: "name", i: "image",
-  // build costs:
-  p: "people", w: "wood", W: "wine", C: "crystal", S: "sulfur", b: "buildtime",
-  u: "upkeep", m: "minlevel", o: "optlevel",
-  // unit stats:
-  a: "attack", d: "defend", s: "stamina", c: "class", v: "speed", x: "special"
-};
-
 hideout ?view=safehouse&id=51713&position=3
 spy orders url for city :
 http://s9.ikariam.org/index.php?
 view=safehouseMissions&id=51713&position=3&spy=20190
-
 
 */

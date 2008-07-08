@@ -506,6 +506,8 @@ function makeLootTable(table, reports) {
     delete report.tr;
     var loot = report.l;
     var has = ["loot"];
+    if (/\btoday\b/.test(tr.className||""))
+      has.push("today");
     for (var c = 3; c < cols.length; c++) {
       var td = tr.insertCell(c);
       var r = cols[c];
@@ -521,8 +523,10 @@ function makeLootTable(table, reports) {
       if ("#" == r) {
         var wonToday = hits[report.c] || ""
         td.innerHTML = wonToday;
-        if (wonToday > 5)
-          td.className = "warn"; // bash alert!
+        if (wonToday > 5) {
+          addClass(td, "warn"); // bash alert!
+          has.push("warn");
+        }
       }
       if (!loot || !loot[r]) continue;
       td.className = "number";
@@ -530,7 +534,7 @@ function makeLootTable(table, reports) {
       td.innerHTML = visualResources(got, { size: 0.5 });
       has.push(r);
     }
-    tr.className = (tr.className||"").replace(/^.*( non-filtered)?$/,
+    tr.className = (tr.className||"").replace(/^.*( non-filtered)*$/,
                                               has.join(" ") + "$1");
   }
 
@@ -730,20 +734,27 @@ function militaryAdvisorCombatReportsView() {
 
   var city = config.getServer("cities", {});
   for (var i = reports.length; --i >= 0;) {
-    var a = $X('.//a', reports[i]);
+    var tr = reports[i];
+    var a = $X('.//a', tr);
     var r = allreps[repId[i]];
 
     if (!r.c) my.unknowns.push(a);
     var recent = r.t > Date.now() - (25 * 36e5);
-    // we won, we don't know what city, it's the past 24h (+ DST safety margin)
-    if (r.w && !r.c && recent) {
-      a.style.fontStyle = "italic"; // Warn about it! Read that report, please.
-      a.innerHTML = "?: "+ a.innerHTML;
+    // we won, it's the past 24h (+ DST safety margin)
+    if (r.w && recent) {
+      if (r.c) {
+        addClass(tr, "today");
+      } else { // but we don't know what city it was
+        a.style.fontStyle = "italic"; // Warn about it! Read that report, please.
+        a.innerHTML = "?: "+ a.innerHTML;
+      }
     }
 
     if (r.c) {
-      if (recent)
+      if (recent) {
         var c = cities[r.c] = 1 + (cities[r.c] || 0);
+        if (c > 5) addClass(tr, "warn");
+      }
       var name = city[r.c].n;
       var text = a.textContent;
       text = text.slice(0, text.lastIndexOf(name));
