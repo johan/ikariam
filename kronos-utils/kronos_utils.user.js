@@ -592,7 +592,8 @@ function makeLootTable(table, reports) {
   scrollWheelable(filters);
   filters.forEach(listen);
 
-  var yesterday = Date.now() - (24 * 36e5);
+  var yesterday = Date.now() - (24 * 36e5) -
+    (unsafeWindow.startTime - unsafeWindow.startServerTime);
   for (var i = 0; r = reports[i]; i++) {
     var recent = r.t > yesterday;
     if (recent && r.w && r.c)
@@ -713,6 +714,8 @@ function militaryAdvisorCombatReportsView() {
       w ? history.won++ : history.lost++;
       newreps[r] = { t: t, w: 0 + w };
       allreps[r] = newreps[r];
+    } else {
+      allreps[r].w = 0 + w;
     }
     rows[n] = copy(allreps[r]);
     rows[n].tr = tr;
@@ -733,13 +736,14 @@ function militaryAdvisorCombatReportsView() {
   reports.forEach(fileReport);
 
   var city = config.getServer("cities", {});
+  var yesterday = Date.now() - (25 * 36e5);
   for (var i = reports.length; --i >= 0;) {
     var tr = reports[i];
     var a = $X('.//a', tr);
     var r = allreps[repId[i]];
 
     if (!r.c) my.unknowns.push(a);
-    var recent = r.t > Date.now() - (25 * 36e5);
+    var recent = r.t > yesterday;
     // we won, it's the past 24h (+ DST safety margin)
     if (r.w && recent) {
       if (r.c) {
