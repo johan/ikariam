@@ -33,3 +33,23 @@
 #ot-1 .ot-project img {
   vertical-align: middle;
 }
+
+/* progress bar styling */
+
+#ot-1 table.ot-pct {
+  width: 100%;
+  margin-bottom: -3px;
+}
+
+#ot-1 table.ot-pct td {
+  height: 4px;
+}
+
+#ot-1 .ot-pct .left { background-color: green; }
+#ot-1 .ot-pct .warn { background-color: #C00000; }
+#ot-1 .ot-pct .eeks { background-color: #FF0000; }
+#ot-1 .ot-pct .full { background-color: #FF0000; }
+
+#ot-1 .ot-current {
+  background-color: #CDA55F;
+}

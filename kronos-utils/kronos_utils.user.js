@@ -4359,30 +4359,35 @@ function getMaxPopulation(townHallLevel) {
   return maxPopulation;
 }
 
+function cityMaxPopulation(id) {
+  return projectPopulation({ maxpop: 1, city: id });
+}
+
 function projectPopulation(opts) {
   function getGrowth(population) {
     return (happy - Math.floor(population + corr * happy)) / 50;
   }
+  var cid = opts && opts.city || cityID();
   var wellDigging = 50 * isCapital() * config.getServer("techs.3010");
   var holiday = 25 * config.getServer("techs.2080", 0);
-  var tavern = 12 * buildingLevel("tavern", 0);
+  var tavern = 12 * buildingLevel("tavern", 0, cid);
   var wineLevel = opts && opts.hasOwnProperty("wine") ? opts.wine :
-    config.getCity(["x", buildingIDs.tavern], 0);
+    config.getCity(["x", buildingIDs.tavern], 0, cid);
   var wine = 80 * buildingCapacities.tavern.indexOf(wineLevel);
-  var museum = 20 * buildingLevel("museum", 0);
-  var culture = 50 * config.getCity(["x", buildingIDs.museum], 0);
+  var museum = 20 * buildingLevel("museum", 0, cid);
+  var culture = 50 * config.getCity(["x", buildingIDs.museum], 0, cid);
   var utopia = config.getServer("techs.2120", 0); // +200 happy in capital city
   var happy = 196 + wellDigging + holiday + tavern + wine + museum + culture +
-    (200 * utopia * isCapital());
+    (200 * utopia * isCapital(cid));
 
   var population = opts && opts.population || getPopulation();
   growthDebug && console.log("well digging: "+ wellDigging +", holiday: "+
                              holiday +", tavern:"+ tavern +", wine: "+ wine +
                              ", museum: "+ museum +", culture: "+ culture +
-                             ", utopia: "+ (200 * utopia * isCapital()) +" = "+
-                             happy + " base happiness");
+                             ", utopia: "+ (200 * utopia * isCapital(cid)) +
+                             " = "+ happy + " base happiness");
 
-  var corr = corruption();
+  var corr = corruption(cid);
   growthDebug && console.log("Actual corruption rate ("+ (100*corr).toFixed(2) +
                              ") * base happiness => "+ Math.floor(corr*happy) +
                              " unhappy citizens from corruption");
@@ -4397,7 +4402,8 @@ function projectPopulation(opts) {
 
   var time = 0;
   var currentGrowth = initialGrowth;
-  var maximumPopulation = getMaxPopulation();
+  var maximumPopulation = getMaxPopulation(buildingLevel("townHall", 1,0, cid));
+  if (opts && opts.maxpop) return maximumPopulation;
   while (growthSignSame(currentGrowth) && (population < maximumPopulation)) {
     currentGrowth = getGrowth(population);
     population += currentGrowth / 4; // add 15 minutes of growth

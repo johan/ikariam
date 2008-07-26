@@ -10,7 +10,7 @@
 
 var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
   "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
-  "formatNumber";
+  "cityID,formatNumber,cityMaxPopulation,buildingCapacities";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
 
@@ -59,7 +59,7 @@ function draw() {
 
   table.tr.th += <th id="ot-prod">{ lang.projects||"Projects" }</th>;
 
-  var ids = cityIDs(), names = cityNames(), tot = {};
+  var ids = cityIDs(), names = cityNames(), tot = {}, current = cityID();
   var Ptot = 0, ptot = 0, wtot = 0, Wtot = 0, Mtot = 0, Ctot = 0, Stot = 0;
   for (var i = 0; i < ids.length; i++) {
     var cid = ids[i], iid = config.getCity(["i"], null, cid);
@@ -71,13 +71,21 @@ function draw() {
     var row = <tr>
       <td class="ot-city"><a href={ curl }>{ cname }</a></td>
       <td class="ot-isle">[<a href={ iurl }>{ iname }</a>]</td>
-      <td class="ot-hall new"><a href={ hurl }>{ formatNumber(data.P) }</a></td>
+      <td class="ot-hall new"><a href={ hurl }>{ formatNumber(data.P) }</a>
+      { pct(data.P, cityMaxPopulation(cid)) }</td>
       <td class="ot-free">{ formatNumber(data.p) }</td>
     </tr>;
+    if (current == cid) row.@class = "ot-current";
     var pace = cityReapingPace(cid); data.g = pace.g;
     for each (n in stuff) {
-      var v = formatNumber(data[n], "g" == n);
-      row.td += <td class="ot-stuff new">{ v }</td>;
+      var v = formatNumber(data[n], "g" == n), p = "";
+      if ("g" != n) {
+        var level = config.getCity(["l", buildingIDs.warehouse], 0, cid);
+        var wood = buildingCapacities.warehouse.w[level || 0];
+        var rest = buildingCapacities.warehouse.r[level || 0];
+        p = pct(data[n], "w" == n ? wood : rest, true);
+      }
+      row.td += <td class="ot-stuff new">{ v }{ p }</td>;
       //row.td += <td class="ot-growth">{ v }</td>;
     }
     var b = cityProject(cid) || "";
@@ -103,4 +111,21 @@ function draw() {
   table.tr += sum;
 
   node({ append: document.body, tag: table });
+}
+
+// onmouseover="Tip('<table border=0 cellspacing=4 cellpadding=4><tr><td>67.528 total capacity<br>55% full<br>80.0 h to full</td></tr></table>', STICKY, false, FOLLOWMOUSE, false, DELAY, 1, SHADOW, false, ABOVE, true);"
+function pct(lvl, tot, warn) {
+  var l = Math.round(100 * lvl / tot), r = 100 - l, w = "";
+  var h = "Tip('<table border=0 cellspacing=4 cellpadding=4><tr><td>" +
+    formatNumber(tot) +" total capacity<br>"+ l +"% full</td></tr></table>'," +
+    "STICKY, false, FOLLOWMOUSE, false, DELAY, 1, SHADOW, false, ABOVE, true);";
+  if (warn) {
+    if (l > 80) w = " warn";
+    if (l > 95) w = " eeks";
+    if (l > 99) w = " full";
+  }
+  return <table onmouseover={ h } class="ot-pct"><tr class="ot-pct">
+    <td width={ l+"%" } class={ "ot-pct left"+w }/>
+    <td width={ r+"%" } class="ot-pct"/>
+  </tr></table>;
 }
