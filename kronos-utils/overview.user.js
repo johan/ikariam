@@ -9,8 +9,8 @@
 // ==/UserScript==
 
 var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
-  "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign" +
-  "";
+  "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
+  "formatNumber";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
 
@@ -71,12 +71,12 @@ function draw() {
     var row = <tr>
       <td class="ot-city"><a href={ curl }>{ cname }</a></td>
       <td class="ot-isle">[<a href={ iurl }>{ iname }</a>]</td>
-      <td class="ot-hall new"><a href={ hurl }>{ data.P }</a></td>
-      <td class="ot-free">{ data.p }</td>
+      <td class="ot-hall new"><a href={ hurl }>{ formatNumber(data.P) }</a></td>
+      <td class="ot-free">{ formatNumber(data.p) }</td>
     </tr>;
     var pace = cityReapingPace(cid); data.g = pace.g;
     for each (n in stuff) {
-      var v = data[n]; if ("g" == n) v = sign(v);
+      var v = formatNumber(data[n], "g" == n);
       row.td += <td class="ot-stuff new">{ v }</td>;
       //row.td += <td class="ot-growth">{ v }</td>;
     }
@@ -91,13 +91,13 @@ function draw() {
     for (n in data)
       tot[n] = (tot[n] || 0) + data[n];
   }
-  var sum = <tr class="ot-summary">
-    <td colspan="2">{ lang.summary||"Summary:" }</td>
-    <td class="new">{ tot.P }</td>
-    <td>{ tot.p }</td>
+  var sum = <tr class="ot-totals">
+    <td colspan="2">{ lang.totals||"Totals:" }</td>
+    <td class="new">{ formatNumber(tot.P) }</td>
+    <td>{ formatNumber(tot.p) }</td>
   </tr>;
   for each (n in stuff) {
-    sum.td += <td class="new">{ tot[n] }</td>
+    sum.td += <td class="new">{ formatNumber(tot[n], n == "g") }</td>
   }
   sum.td += <td class="new"/>
   table.tr += sum;

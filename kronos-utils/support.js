@@ -66,6 +66,14 @@ function parseDate(t) {
   }
 }
 
+function formatNumber(n, signed) {
+  var res = signed ? sign(n)[0] : n < 0 ? "-" : "";
+  n = Math.abs(n).toString();
+  for (var i = n.length; (i -= 3) > 0;)
+    n = n.slice(0, i) + locale.thousandSeperator + n.slice(i);
+  return res + n;
+}
+
 function compare(a, b) {
   return a < b ? -1 : a > b ? 1 : 0;
 }
