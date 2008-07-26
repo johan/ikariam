@@ -3857,6 +3857,28 @@ function toggleOverview(newValue, node) {
   if (shown) show(table); else hide(table);
 }
 
+function cityData(id) {
+  // data is { t: timestamp, r: currentResources(), p: reapingPace() } or str
+  var data = config.getCity("r", "", id), p;
+  if (!isObject(data)) {
+    data = p = {};
+  } else {
+    p = data.p || {}; // production at time data.t
+    var dt = (Date.now() - ((new Date(data.t)).getTime())) / 3600e3;
+    data = copy(data.r || {}); // amount at time t
+    //console.log(id +": "+ Math.floor(p.w*dt) + " | "+ (data.w) +" | "+ (dt * 60));
+    for (var r in p)
+      data[r] = Math.floor((data[r] || 0) + p[r] * dt);
+  }
+  return data;
+}
+
+function cityProject(id) {
+  var t = config.getCity("t", 0, id);
+  var u = config.getCity("u", 0, id);
+  return t && t > Date.now() && u && urlParse("view", u);
+}
+
 // extended city selection panel
 function showOverview() {
   function reset(e) {
@@ -3909,18 +3931,7 @@ function showOverview() {
 
   var city = referenceCityID();
   for each (var id in cityIDs()) {
-    // data is { t: timestamp, r: currentResources(), p: reapingPace() } or str
-    var data = config.getCity("r", "", id), p;
-    if (!isObject(data)) {
-      data = p = {};
-    } else {
-      p = data.p || {}; // production at time data.t
-      var dt = (Date.now() - ((new Date(data.t)).getTime())) / 3600e3;
-      data = copy(data.r || {}); // amount at time t
-      //console.log(id +": "+ Math.floor(p.w*dt) + " | "+ (data.w) +" | "+ (dt * 60));
-      for (var r in p)
-        data[r] = Math.floor((data[r] || 0) + p[r] * dt);
-    }
+    var data = cityData(id), p = data.p || {};
     var tr = <tr/>;
     if (id == city) tr.@class = "current";
     var island = config.getCity("i", 0, id);
@@ -3962,14 +3973,9 @@ function showOverview() {
         a = "\xA0";
       } else {
         a = <a href={ urlTo(name, id) } title={ name }>{ l }</a>;
-        var t = config.getCity("t", 0, id);
-        var u = config.getCity("u", 0, id);
-        if (t && t > Date.now() && u)
-          u = urlParse("view", u);
-        else
-          u = null;
+        var project = cityProject(id);
         a.@id = name +"-"+ id;
-        if (u == name) {
+        if (project == name) {
           a.@class = "being-upgraded";
           need = buildingExpansionNeeds(name, l+1);
         } else {

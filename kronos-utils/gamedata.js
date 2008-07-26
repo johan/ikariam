@@ -12,7 +12,7 @@ var base = "http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-ut
 
 // resources:
 var resourceIDs = {
-  wood: "w", wine: "W", marble: "M", glass: "C", crystal: "C", sulfur: "S",
+  wood: "w", wine: "W", marble: "M", crystal: "C", sulfur: "S", glass: "C",
   gold: "g", time: "t", inhabitants: "p", maxActionPoints: "a"
 };
 
