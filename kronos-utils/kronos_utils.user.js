@@ -1983,6 +1983,7 @@ function drawQueue() {
 
   var ul = node({ tag: "ul", id: "q", append: document.body });
   ul.innerHTML = "";
+  q.length && show(ul) || hide(ul);
   for (var i = 0; i < q.length; i++) {
     var b = q[i];
     var what = buildingClass(b);
