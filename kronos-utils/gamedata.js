@@ -70,6 +70,7 @@ var gfx = {
      crystal: "/skin/resources/icon_glass.gif",
       sulfur: "/skin/resources/icon_sulfur.gif",
 
+         pop: "/skin/resources/icon_population.gif",
      citizen: "/skin/resources/icon_citizen.gif",
       upkeep: "/skin/resources/icon_upkeep.gif",
         gold: "/skin/resources/icon_gold.gif",

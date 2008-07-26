@@ -46,8 +46,8 @@ function init(next) {
 
 function draw() {
   var table = <table id="ot-1" align="center" border="1"><tr>
-    <th id="ot-cities" colspan="2">{ lang.cityName||"City Name" }</th>
-    <th colspan="2" style={"background:url("+ gfx.citizen +") no-repeat 50%"}/>
+    <th id="ot-cities" colspan="2">{ lang.cities||"Cities" }</th>
+    <th colspan="2" style={"background:url("+ gfx.pop +") no-repeat 50%"}/>
   </tr></table>;
 
   var count = 6, stuff = [];
@@ -57,7 +57,7 @@ function draw() {
     table.tr.th += <th style={"background:url("+ gfx[n] +") no-repeat 50%"}/>;
   }
 
-  table.tr.th += <th id="ot-prod">{ lang.building||"Current Project" }</th>;
+  table.tr.th += <th id="ot-prod">{ lang.projects||"Projects" }</th>;
 
   var ids = cityIDs(), names = cityNames(), tot = {};
   var Ptot = 0, ptot = 0, wtot = 0, Wtot = 0, Mtot = 0, Ctot = 0, Stot = 0;
@@ -71,13 +71,13 @@ function draw() {
     var row = <tr>
       <td class="ot-city"><a href={ curl }>{ cname }</a></td>
       <td class="ot-isle">[<a href={ iurl }>{ iname }</a>]</td>
-      <td class="ot-hall lf"><a href={ hurl }>{ data.P }</a></td>
+      <td class="ot-hall new"><a href={ hurl }>{ data.P }</a></td>
       <td class="ot-free">{ data.p }</td>
     </tr>;
     var pace = cityReapingPace(cid); data.g = pace.g;
     for each (n in stuff) {
       var v = data[n]; if ("g" == n) v = sign(v);
-      row.td += <td class="ot-stuff lf">{ v }</td>;
+      row.td += <td class="ot-stuff new">{ v }</td>;
       //row.td += <td class="ot-growth">{ v }</td>;
     }
     var b = cityProject(cid) || "";
@@ -86,20 +86,20 @@ function draw() {
         <img src={ base +"gfx/icons/buildings/"+ b +".png" }/>
         { config.getCity(["l", buildingIDs[b]], 0, cid) + 1 }
       </>;
-    row.td += <td class="ot-project lf">{ b }</td>;
+    row.td += <td class="ot-project new">{ b }</td>;
     table.tr += row;
     for (n in data)
       tot[n] = (tot[n] || 0) + data[n];
   }
   var sum = <tr class="ot-summary">
     <td colspan="2">{ lang.summary||"Summary:" }</td>
-    <td class="lf">{ tot.P }</td>
+    <td class="new">{ tot.P }</td>
     <td>{ tot.p }</td>
   </tr>;
   for each (n in stuff) {
-    sum.td += <td class="lf">{ tot[n] }</td>
+    sum.td += <td class="new">{ tot[n] }</td>
   }
-  sum.td += <td class="lf"/>
+  sum.td += <td class="new"/>
   table.tr += sum;
 
   node({ append: document.body, tag: table });
