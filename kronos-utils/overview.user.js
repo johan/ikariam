@@ -72,7 +72,7 @@ function draw() {
       <td class="ot-city"><a href={ curl }>{ cname }</a></td>
       <td class="ot-isle">[<a href={ iurl }>{ iname }</a>]</td>
       <td class="ot-hall new"><a href={ hurl }>{ formatNumber(data.P) }</a>
-      { pct(data.P, cityMaxPopulation(cid)) }</td>
+      { ""/*pct(data.P, cityMaxPopulation(cid))*/ }</td>
       <td class="ot-free">{ formatNumber(data.p) }</td>
     </tr>;
     if (current == cid) row.@class = "ot-current";
@@ -113,12 +113,12 @@ function draw() {
   node({ append: document.body, tag: table });
 }
 
-// onmouseover="Tip('<table border=0 cellspacing=4 cellpadding=4><tr><td>67.528 total capacity<br>55% full<br>80.0 h to full</td></tr></table>', STICKY, false, FOLLOWMOUSE, false, DELAY, 1, SHADOW, false, ABOVE, true);"
 function pct(lvl, tot, warn) {
   var l = Math.round(100 * lvl / tot), r = 100 - l, w = "";
   var h = "Tip('<table border=0 cellspacing=4 cellpadding=4><tr><td>" +
-    formatNumber(tot) +" total capacity<br>"+ l +"% full</td></tr></table>'," +
-    "STICKY, false, FOLLOWMOUSE, false, DELAY, 1, SHADOW, false, ABOVE, true);";
+    formatNumber(tot) +" "+ (lang.total || "total") + "<br>" +
+    l + (lang.pctFull||"% full") + "</td></tr></table>'," +
+    "STICKY, false, FOLLOWMOUSE, false, DELAY, 1, SHADOW, false, ABOVE, true)";
   if (warn) {
     if (l > 80) w = " warn";
     if (l > 95) w = " eeks";
