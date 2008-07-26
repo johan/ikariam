@@ -3857,6 +3857,10 @@ function toggleOverview(newValue, node) {
   if (shown) show(table); else hide(table);
 }
 
+function cityReapingPace(id) {
+  return copy(config.getCity("r", {}, id).p || {});
+}
+
 function cityData(id) {
   // data is { t: timestamp, r: currentResources(), p: reapingPace() } or str
   var data = config.getCity("r", "", id), p;

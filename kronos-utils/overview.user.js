@@ -9,7 +9,8 @@
 // ==/UserScript==
 
 var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
-  "$,$x,$X,config,gfx,resourceIDs,buildingIDs,cityProject";
+  "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign" +
+  "";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
 
@@ -46,12 +47,12 @@ function init(next) {
 function draw() {
   var table = <table id="ot-1" align="center" border="1"><tr>
     <th id="ot-cities" colspan="2">{ lang.cityName||"City Name" }</th>
-    <th id="ot-people" colspan="2">{ lang.population||"Population" }</th>
+    <th colspan="2" style={"background:url("+ gfx.citizen +") no-repeat 50%"}/>
   </tr></table>;
 
-  var count = 5, stuff = [];
+  var count = 6, stuff = [];
   for (var n in resourceIDs) {
-    if (!count--) break;
+    if (!count--) break; else if ("glass" == n) continue;
     stuff.push(resourceIDs[n]);
     table.tr.th += <th style={"background:url("+ gfx[n] +") no-repeat 50%"}/>;
   }
@@ -73,9 +74,11 @@ function draw() {
       <td class="ot-hall lf"><a href={ hurl }>{ data.P }</a></td>
       <td class="ot-free">{ data.p }</td>
     </tr>;
+    var pace = cityReapingPace(cid); data.g = pace.g;
     for each (n in stuff) {
-      row.td += <td class="ot-stuff lf">{ data[n] }</td>;
-      //row.td += <td class="ot-growth">{ data[n] }</td>;
+      var v = data[n]; if ("g" == n) v = sign(v);
+      row.td += <td class="ot-stuff lf">{ v }</td>;
+      //row.td += <td class="ot-growth">{ v }</td>;
     }
     var b = cityProject(cid) || "";
     if (b)
