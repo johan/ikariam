@@ -10,7 +10,7 @@
 
 var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
   "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
-  "cityID,formatNumber,cityMaxPopulation,buildingCapacities";
+  "cityID,formatNumber,cityMaxPopulation,buildingCapacities,visualResources";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
 
@@ -71,7 +71,10 @@ function draw() {
     var data = cityData(cid), hurl = urlTo("townHall", cid);
     var row = <tr>
       <td class="ot-city"><a href={ curl }>{ cname }</a></td>
-      <td class="ot-isle">[<a href={ iurl }>{ iname }</a>]</td>
+      <td class="ot-isle">
+        <span id={ "ot-"+cid }> </span>
+        [<a href={ iurl }>{ iname }</a>]
+      </td>
       <td class="ot-hall new"><a href={ hurl }>{ formatNumber(data.P) }</a>
       { ""/*pct(data.P, cityMaxPopulation(cid))*/ }</td>
       <td class="ot-free">{ formatNumber(data.p) }</td>
@@ -101,7 +104,7 @@ function draw() {
       tot[n] = (tot[n] || 0) + data[n];
   }
   var sum = <tr class="ot-totals">
-    <td colspan="2">{ lang.totals||"Totals:" }</td>
+    <td colspan="2" class="ot-totals">{ lang.totals||"Totals:" }</td>
     <td class="new">{ formatNumber(tot.P) }</td>
     <td>{ formatNumber(tot.p) }</td>
   </tr>;
@@ -112,6 +115,16 @@ function draw() {
   table.tr += sum;
 
   node({ append: document.body, tag: table });
+
+  for (var i = 0; i < ids.length; i++) {
+    var cid = ids[i], iid = config.getCity("i", null, cid);
+    var res = config.getIsle("r", "", iid);
+    if (res) {
+      var has = {}; has[res] = "";
+      var img = visualResources(has, { size: 0.6, noMargin: 1 });
+      node({ id: "ot-" + cid, html: img });
+    }
+  }
 }
 
 function pct(lvl, tot, warn) {

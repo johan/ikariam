@@ -45,6 +45,23 @@ table#ot-1 tr th {
   background-color: #CDA55F;
 }
 
+#ot-1 tr td.ot-isle {
+  padding: 0 4px;
+  white-space: nowrap;
+  width: 1%;
+}
+
+#ot-1 tr td.ot-totals {
+  padding-right: 3px;
+  text-align: right;
+}
+
+#ot-1 tr td.ot-isle span {
+  position: relative;
+  margin-right: 2px;
+  bottom: -2px;
+}
+
 /* progress bar styling */
 
 #ot-1 table.ot-pct {
