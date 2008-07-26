@@ -1,0 +1,35 @@
+#ot-1 {
+  width: 980px;
+  border-style: dotted;
+  border-width: 1px;
+}
+
+#ot-1 th {
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: double;
+  background-color: #A8A92A;
+}
+
+#ot-1 th:first-child {
+  border-left: none;
+}
+
+#ot-1 th, #ot-1 td.new {
+  border-color: #542C0F;
+  border-left: double;
+}
+
+#ot-1 .ot-summary {
+  font-weight: bold;
+  border-top: medium double;
+}
+
+#ot-1 .ot-project {
+  font-size: 16px;
+}
+
+#ot-1 .ot-project img {
+  vertical-align: middle;
+}
