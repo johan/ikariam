@@ -1,15 +1,21 @@
-#ot-1 {
+body > table#ot-1 {
   width: 980px;
   border-style: dotted;
   border-width: 1px;
 }
 
-#ot-1 th {
+table#ot-1 tr td {
+  padding: 0;
+}
+
+table#ot-1 tr th {
+  padding: 0;
   font-size: 15px;
   font-weight: bold;
   text-align: center;
   border-bottom: double;
   background-color: #A8A92A;
+  color: #542C0F;
 }
 
 #ot-1 th:first-child {
@@ -28,10 +34,15 @@
 
 #ot-1 .ot-project {
   font-size: 16px;
+  height: 21px;
 }
 
 #ot-1 .ot-project img {
   vertical-align: middle;
+}
+
+#ot-1 .ot-current {
+  background-color: #CDA55F;
 }
 
 /* progress bar styling */
@@ -49,7 +60,3 @@
 #ot-1 .ot-pct .warn { background-color: #C00000; }
 #ot-1 .ot-pct .eeks { background-color: #FF0000; }
 #ot-1 .ot-pct .full { background-color: #FF0000; }
-
-#ot-1 .ot-current {
-  background-color: #CDA55F;
-}

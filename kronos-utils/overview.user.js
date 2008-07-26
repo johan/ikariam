@@ -33,6 +33,7 @@ function init(next) {
       location.href = base + "kronos_utils.user.js";
     return;
   }
+  if (!cityIDs().length) return;
 
   css(GM_getResourceText("ss"));
   XML.setSettings({
