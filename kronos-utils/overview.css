@@ -1,14 +1,15 @@
-body > table#ot-1 {
+body > table.ot {
   width: 980px;
   border-style: dotted;
   border-width: 1px;
+  margin-bottom: 2em;
 }
 
-table#ot-1 tr td {
+table.ot tr td {
   padding: 0;
 }
 
-table#ot-1 tr th {
+table.ot tr th {
   padding: 0;
   font-size: 15px;
   font-weight: bold;
@@ -18,45 +19,45 @@ table#ot-1 tr th {
   color: #542C0F;
 }
 
-#ot-1 th:first-child {
+.ot th:first-child {
   border-left: none;
 }
 
-#ot-1 th, #ot-1 td.new {
+.ot th, .ot td.new {
   border-color: #542C0F;
   border-left: double;
 }
 
-#ot-1 .ot-totals {
+.ot .ot-totals {
   font-weight: bold;
   border-top: medium double;
 }
 
-#ot-1 .ot-project {
+.ot .ot-project {
   font-size: 16px;
   height: 21px;
 }
 
-#ot-1 .ot-project img {
+.ot .ot-project img {
   vertical-align: middle;
 }
 
-#ot-1 .ot-current {
+.ot .ot-current {
   background-color: #CDA55F;
 }
 
-#ot-1 tr td.ot-isle {
+.ot tr td.ot-isle {
   padding: 0 4px;
   white-space: nowrap;
   width: 1%;
 }
 
-#ot-1 tr td.ot-totals {
+.ot tr td.ot-totals {
   padding-right: 3px;
   text-align: right;
 }
 
-#ot-1 tr td.ot-isle span {
+.ot tr td.ot-isle span {
   position: relative;
   margin-right: 2px;
   bottom: -2px;
@@ -64,16 +65,24 @@ table#ot-1 tr th {
 
 /* progress bar styling */
 
-#ot-1 table.ot-pct {
+.ot table.ot-pct {
   width: 100%;
   margin-bottom: -3px;
 }
 
-#ot-1 table.ot-pct td {
+.ot table.ot-pct td {
   height: 4px;
 }
 
-#ot-1 .ot-pct .left { background-color: green; }
-#ot-1 .ot-pct .warn { background-color: #C00000; }
-#ot-1 .ot-pct .eeks { background-color: #FF0000; }
-#ot-1 .ot-pct .full { background-color: #FF0000; }
+.ot .ot-pct .left { background-color: green; }
+.ot .ot-pct .warn { background-color: #C00000; }
+.ot .ot-pct .eeks { background-color: #FF0000; }
+.ot .ot-pct .full { background-color: #FF0000; }
+
+
+/* military table */
+
+body > table.ot#ot-2 tr th[style] {
+  min-width: 40px;
+  height: 40px;
+}

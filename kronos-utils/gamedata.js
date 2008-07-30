@@ -175,12 +175,12 @@ var troops = {
   307: {n:"Ram",p:8,w:198,S:128,b:"42m",u:52,m:5,o:8,a:14,d:18,A:3,D:4,s:16,c:"Machina",v:20,x:"Ram"},
   313: {n:"Archer",p:4,w:172,S:86,b:"49m",u:32,m:7,o:10,a:40,d:40,A:10,D:10,s:12,c:"Human",v:20},
   306: {n:"Catapult",p:10,w:342,S:232,b:"49m",u:72,m:10,o:14,a:36,d:28,A:9,D:7,s:16,c:"Machina",v:20,x:"Ram"},
-  304: {n:"Gunsman",p:7,w:355,S:154,b:"1h 23m",u:58,m:14,o:18,a:80,d:64,A:18,D:14,s:10,c:"Human",v:20},
+  304: {n:"Gunsman",i:"marksman",p:7,w:355,S:154,b:"1h 23m",u:58,m:14,o:18,a:80,d:64,A:18,D:14,s:10,c:"Human",v:20},
   305: {n:"Mortar",p:12,w:1325,S:938,b:"1h 53m",u:128,m:19,o:21,a:64,d:64,A:15,D:15,s:16,c:"Machina",v:20,x:"Ram"},
-  308: {n:"Steam Giant",p:6,w:1150,S:716,b:"1h 45m",u:68,m:16,o:20,a:100,d:140,A:20,D:30,s:14,c:"Machina",v:20,x:"Resistance"},
+  308: {n:"Steam Giant",i:"steamgiant",p:6,w:1150,S:716,b:"1h 45m",u:68,m:16,o:20,a:100,d:140,A:20,D:30,s:14,c:"Machina",v:20,x:"Resistance"},
   312: {n:"Gyrocopter",p:8,w:1250,S:670,b:"1h 2m",u:97,m:12,o:16,a:112,d:112,A:25,D:25,s:12,c:"Machina",v:20},
   309: {n:"Bombardier",p:24,w:2270,S:878,b:"2h 10m",u:228,m:22,o:24,a:200,d:165,A:45,D:35,s:14,c:"Machina",v:20,x:"Assault"},
-  311: {n:"Doctor",p:6,w:640,C:361,b:"1h 2m",u:244,m:11,o:12,a:4,d:28,A:0,D:0,s:14,c:"Human",v:20,x:"Healer"},
+  311: {n:"Doctor",i:"medic",p:6,w:640,C:361,b:"1h 2m",u:244,m:11,o:12,a:4,d:28,A:0,D:0,s:14,c:"Human",v:20,x:"Healer"},
   310: {n:"Cook",p:4,w:520,W:103,b:"38m",u:138,m:8,o:8,a:6,d:26,A:0,D:0,s:16,c:"Human",v:20,x:"Regeneration"}
 };
 for (var id in troops) troops[id].id = id;
@@ -194,11 +194,25 @@ var ships = {
   211: {n:"Flamethrower",p:5,w:105,S:77,b:"1h 55m",u:45,m:5,o:7,a:40,d:40,A:10,D:10,s:12,c:"Steamship",v:8,x:"Assault"},
   214: {n:"Catapult Ship",p:10,w:173,S:76,b:"3h 11m",u:57,m:7,o:10,a:60,d:60,A:12,D:12,s:16,c:"Sailer",v:6},
   215: {n:"Mortar Ship",p:22,w:456,S:282,b:"3h 38m",u:130,m:12,o:15,a:160,d:160,A:35,D:35,s:14,c:"Steamship",v:4},
-  216: {n:"Paddle Wheel Ram",p:12,w:513,S:167,b:"4h 8m",u:114,m:10,o:13,a:100,d:90,A:20,D:18,s:13,c:"Steamship",v:8,x:"Assault"},
-  212: {n:"Diving Boat",p:16,w:493,C:378,b:"5h 5m",u:126,m:15,o:16,a:110,d:155,A:20,D:30,s:10,c:"Steamship",v:2,x:"Resistance"}
+  216: {n:"Paddle Wheel Ram",i:"steamboat",p:12,w:513,S:167,b:"4h 8m",u:114,m:10,o:13,a:100,d:90,A:20,D:18,s:13,c:"Steamship",v:8,x:"Assault"},
+  212: {n:"Diving Boat",i:"submarine",p:16,w:493,C:378,b:"5h 5m",u:126,m:15,o:16,a:110,d:155,A:20,D:30,s:10,c:"Steamship",v:2,x:"Resistance"}
 };
 for (var id in ships) ships[id].id = id;
 
+function imageFromUnit(id, size) {
+  var url = "/skin/characters/military/x40_y40/y40_", suffix = "_faceright.gif";
+  if (id < 300) { // ships?
+    var data = ships[id];
+    url = "/skin/characters/fleet/40x40/ship_";
+    suffix = "_r_40x40.gif";
+  } else {
+    data = troops[id];
+  }
+  if (!data) alert("missing unit data for id "+ id.toSource());
+  var name = data.i || normalizeUnitName(data.n);
+  //if (size == 40) // 40x40
+  return url + name + suffix;
+}
 
 // islands (or the lack of them, to be precise):
 var nonIslands = { 3:1,    8:1,   10:1,   12:1,   14:1,   21:3,  138:1,  191:12,

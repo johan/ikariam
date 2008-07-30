@@ -40,6 +40,9 @@ reports: {
       m: maintenance cost,
       g: gold net income (FIXME: remove and add allocated/free pop instead),
       t: completionTime,
+      T: { -- troops:
+        <id>: count
+      },
       u: buildURL,
       U: { <id>: count },
       l: [ lvl0, ...], // building level

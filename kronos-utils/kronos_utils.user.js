@@ -56,12 +56,14 @@
 
 var kronos = this, version = "0.6", lang, scientists, growthDebug = 0;
 /*if (config.get("debug"))*/ unsafeWindow.kronos = kronos;
-if (/^http:\/\/ikariam.immortal-nights.com\/ikafight/i.test(location.href))
-  augmentIkaFight();
-if (location.hostname.match(/^s\d+\./))
-  init();
-else
-  login();
+if (document.URL == location.href) { // no network error?
+  if (/^http:\/\/ikariam.immortal-nights.com\/ikafight/i.test(location.href))
+    augmentIkaFight();
+  if (location.hostname.match(/^s\d+\./))
+    init();
+  else
+    login();
+}
 
 function init() {
   try { upgradeConfig(); }
@@ -4109,6 +4111,8 @@ function showUnitLevels(specs) {
     var stats = unitStatsFromImage($X('div[@class="unitinfo"]//img', li));
     level("att", stats, li, " (", "");
     level("def", stats, li, "/", ")");
+    var cnt = integer($X('div[@class="unitinfo"]/div[@class="unitcount"]', li));
+    config.setCity(["T", stats.id], cnt);
   }
   $x('id("units")/li[div[@class="unitinfo"]]').forEach(augmentUnit);
 }
@@ -4193,10 +4197,11 @@ function barracksView() {
   buildViewCompactor();
 }
 
+function normalizeUnitName(name) {
+  return name.replace(/[ -].*/, "").toLowerCase();
+}
+
 function unitStatsFromImage(img) {
-  function normalize(name) {
-    return name.replace(/[ -].*/, "").toLowerCase();
-  }
   var name = img.src.split("/").pop();
   if (name) {
     var junk = /^(ship|y\d+)_|_(l|r|\d+x\d+)(?=[_.])|_faceright|\....$/g;
@@ -4206,10 +4211,10 @@ function unitStatsFromImage(img) {
              steamgiant: "steam", submarine: "diving" }[name] || name;
     if (!ship)
       for (var id in troops)
-        if (normalize(troops[id].n) == name)
+        if (normalizeUnitName(troops[id].n) == name)
           return troops[id];
     for (var id in ships)
-      if (normalize(ships[id].n) == name)
+      if (normalizeUnitName(ships[id].n) == name)
         return ships[id];
   }
 }
