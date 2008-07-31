@@ -909,8 +909,8 @@ function augmentIkaFight() {
 function militaryScoreFor(unit, count) {
   if (isNumber(unit))
     unit = troops[unit] || ships[unit];
-  count = (count || 1) / 100;
-  return count * (2*unit.w + 4*(unit.C||0) + 16*(unit.S||0) + 4*(unit.S||0));
+  count = (isDefined(count) ? count : 1) / 100;
+  return count * (2*unit.w + 16*(unit.W||0) + 4*(unit.C||0) + 4*(unit.S||0));
 }
 
 function plunderView(where) {

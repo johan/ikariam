@@ -68,10 +68,13 @@ function parseDate(t) {
 
 function formatNumber(n, signed) {
   var res = signed ? sign(n)[0] : n < 0 ? "-" : "";
-  n = Math.abs(n).toString();
+  var dec = { ",":".", ".":"," }[locale.thousandSeperator], junk, decimals;
+  n = Math.abs(Math.round(100 * n)/100).toString();
+  [junk, n, decimals] = /(\d*)(\..*)?/.exec(n);
   for (var i = n.length; (i -= 3) > 0;)
     n = n.slice(0, i) + locale.thousandSeperator + n.slice(i);
-  return res + n;
+  if (decimals) decimals = dec + decimals.slice(1);
+  return res + n + (decimals||"");
 }
 
 function compare(a, b) {

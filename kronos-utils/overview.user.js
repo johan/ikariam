@@ -11,7 +11,7 @@
 var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
   "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
   "cityID,formatNumber,cityMaxPopulation,buildingCapacities,visualResources," +
-  "imageFromUnit";
+  "imageFromUnit,militaryScoreFor,integer";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
 
@@ -32,7 +32,8 @@ function init(next) {
   if (!document.domain || kronos && !cityIDs().length) return; // (not in-game)
   if (!kronos || !okay || parseFloat(version) < 0.6) {
     if (confirm(error))
-      location.href = base + "kronos_utils.user.js";
+      location.href = "http://ecmanaut.googlecode.com/svn/trunk/" +
+        "sites/ikariam.org/kronos-utils/kronos_utils.user.js";
     return;
   }
 
@@ -147,14 +148,14 @@ function military() {
       delete all[uid];
       continue;
     }
-    var url = imageFromUnit(uid);
-    table.tr.th += <th style={ "background:url("+ url +") no-repeat 50%" }/>;
+    var bg = "background:url("+ imageFromUnit(uid) +") no-repeat 50%";
+    table.tr.th += <th colspan="2" style={ bg }/>;
   }
-  table.tr.th += <th class="new">Σ</th>
+  table.tr.th += <th colspan="2" class="new">Σ</th>
 
   for (var i = 0; i < ids.length; i++) {
     var cid = ids[i];
-    var ctot = 0;
+    var ctot = 0, Ctot = 0;
     var cname = names[i];
     var curl = urlTo("city", cid);
     var data = byCity[i];
@@ -170,20 +171,33 @@ function military() {
       if (v)
         v = <a href={ uid < 300 ? surl : burl }>{ v }</a>
       row.td += <td class="ot-stuff new">{ v }</td>;
+      v = militaryScoreFor(integer(uid), integer(data[uid]));
+      if (v) {
+        Ctot += v;
+        v = formatNumber(v);
+      }
+      row.td += <td class="ot-stuff">{ v || "\xA0" }</td>;
     }
     row.td += <td class="ot-stuff new">{ ctot ? formatNumber(ctot) : "" }</td>;
+    row.td += <td class="ot-stuff">{ Ctot ? formatNumber(Ctot) : "\xA0" }</td>;
     table.tr += row;
   }
 
   var sum = <tr class="ot-totals">
     <td class="ot-totals">{ lang.totals||"Totals:" }</td>
   </tr>;
-  tot = 0;
-  for each (v in all) {
+  tot = ctot = 0;
+  for (cid in all) {
+    v = all[cid];
     sum.td += <td class="new">{ formatNumber(v) }</td>;
     tot += v;
+
+    v = militaryScoreFor(integer(cid), integer(v));
+    sum.td += <td class="">{ v ? formatNumber(v) : "\xA0" }</td>;
+    ctot += v;
   }
   sum.td += <td class="new">{ tot ? formatNumber(tot) : "" }</td>;
+  sum.td += <td class="">{ ctot ? formatNumber(ctot) : "\xA0" }</td>;
   table.tr += sum;
 
   node({ append: document.body, tag: table });
