@@ -906,6 +906,13 @@ function augmentIkaFight() {
   scrollWheelable($x('//input[@type="text"]'));
 }
 
+function militaryScoreFor(unit, count) {
+  if (isNumber(unit))
+    unit = troops[unit] || ships[unit];
+  count = (count || 1) / 100;
+  return count * (2*unit.w + 4*(unit.C||0) + 16*(unit.S||0) + 4*(unit.S||0));
+}
+
 function plunderView(where) {
   function simulateBattle() {
     function count(input) {
@@ -980,7 +987,7 @@ function plunderView(where) {
     function cost(input) {
       var n = integer(input.value);
       var unit = readUnit(input);
-      score += n * (2*unit.w + 4*(unit.C||0) + 16*(unit.S||0) + 4*(unit.S||0));
+      score += militaryScoreFor(unit, n);
       var level = config.getServer;
       offense += n * (unit.a + level("techs.units."+unit.id+".a", 0) * unit.A);
       defense += n * (unit.d + level("techs.units."+unit.id+".d", 0) * unit.D);
@@ -2584,10 +2591,12 @@ function merchantNavyView() {
     var t1 = parseDate(td[4]), c1 = td[0].firstChild;
     var t2 = parseDate(td[5]), c2 = td[1].firstChild;
     //if(compare(t1, t2) == 1)console.log(1, td[4].textContent, td[5].textContent, t1, t2);
-    rm(c2.nextSibling);
-    var player = c2.nextSibling.nodeValue.replace(/(^\( *| *\)$)/g, "");
-    rm(c2.nextSibling);
-    node({ text: player, className: "ellipsis price", append: td[1] });
+    if (c2.nextSibling) {
+      rm(c2.nextSibling);
+      var player = c2.nextSibling.nodeValue.replace(/(^\( *| *\) ?$)/g, "");
+      rm(c2.nextSibling);
+      node({ text: player, className: "ellipsis price", append: td[1] });
+    }
 
     var direction, msn, swap;
     [msn, direction, swap] = missionType(mission, compare(t1, t2), c1.nodeValue, c2.nodeValue);
