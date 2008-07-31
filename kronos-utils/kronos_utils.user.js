@@ -994,10 +994,10 @@ function plunderView(where) {
     }
     var offense = 0, defense = 0, score = 0;
     sending().forEach(cost);
-    $("militaryscore").textContent = score;
+    $("militaryscore").textContent = formatNumber(Math.round(score*100)/100);
     if (!od) return;
-    $("offense").innerHTML = offense;
-    $("defense").innerHTML = defense;
+    $("offense").innerHTML = formatNumber(offense);
+    $("defense").innerHTML = formatNumber(defense);
   }
 
   if (config.getServer("techs.units."+ (where == "fleet" ? 210 : 301), 0)) {
