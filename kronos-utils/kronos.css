@@ -896,6 +896,10 @@ hr#vr {
   top: 4px;
 }
 
+#breadcrumbs span#travel_time {
+  display: inline;
+  float: none;
+}
 
 /**** island view minimap ****/
 #breadcrumbs #miniPane {
