@@ -11,7 +11,7 @@
 var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
   "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
   "cityID,formatNumber,cityMaxPopulation,warehouseCapacity,militaryScoreFor," +
-  "visualResources,imageFromUnit,integer,secsToDHMS";
+  "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
 
@@ -66,6 +66,7 @@ function resources() {
   }
 
   table.tr.th += <th id="ot-prod">{ lang.projects||"Projects" }</th>;
+  table.tr.th += <th style={"background:url("+ gfx.time +") no-repeat 50%"}/>;
 
   var ids = cityIDs(), names = cityNames(), current = cityID();
   var tot = {}, rates = {};
@@ -113,6 +114,7 @@ function resources() {
       row.td += <td class="ot-stuff new">{ v }{ p }</td>;
       if (rate) row.td += rate;
     }
+
     var b = cityProject(cid) || "";
     if (b)
       b = <a href={ urlTo(b, cid) }>
@@ -120,6 +122,14 @@ function resources() {
         { config.getCity(["l", buildingIDs[b]], 0, cid) + 1 }
       </a>;
     row.td += <td class="ot-project new">{ b }</td>;
+
+    var t = b && config.getCity("t", 0, cid) || "";
+    if (t) {
+      console.log(t);
+      t = secsToDHMS((t - (new Date)) / 1e3, 1);
+    }
+    row.td += <td class="ot-built">{ t }</td>;
+
     table.tr += row;
     for (n in data)
       tot[n] = (tot[n] || 0) + data[n];
@@ -138,7 +148,8 @@ function resources() {
       // sum.td += <td class="ot-end">{ "" }</td>;
     }
   }
-  sum.td += <td class="new"/>
+  sum.td += <td class="new"/>;
+  sum.td += <td>@ { resolveTime(0, true) }</td>;
   table.tr += sum;
 
   node({ append: document.body, tag: table });

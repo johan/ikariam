@@ -315,6 +315,7 @@ function getServerTime(offset) {
   return offset ? new Date(t.valueOf() + offset*1e3) : t;
 }
 
+// input: s, bool; output: time or date+time
 function resolveTime(seconds, timeonly) { // Crée le temps de fin.
   function z(t) { return (t < 10 ? "0" : "") + t; }
   var t = getServerTime(seconds - (unsafeWindow.startTime -
