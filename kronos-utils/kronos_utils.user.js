@@ -1163,6 +1163,14 @@ function buildingLevels() {
   return levels;
 }
 
+function warehouseCapacity(city) {
+  var level = config.getCity(["l", buildingIDs.warehouse], 0, city);
+  var max = { w: buildingCapacities.warehouse.w[level || 0] };
+  for each (var r in ["W", "M", "C", "S"])
+    max[r] = buildingCapacities.warehouse.r[level || 0]; // FIXME: trade port!
+  return max;
+}
+
 function buildingCapacity(b, l, warehouse) {
   b = buildingClass(b);
   var c = buildingCapacities[b];

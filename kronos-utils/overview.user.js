@@ -10,8 +10,8 @@
 
 var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
   "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
-  "cityID,formatNumber,cityMaxPopulation,buildingCapacities,visualResources," +
-  "imageFromUnit,militaryScoreFor,integer";
+  "cityID,formatNumber,cityMaxPopulation,warehouseCapacity,militaryScoreFor," +
+  "visualResources,imageFromUnit,integer,secsToDHMS";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
 
@@ -24,10 +24,12 @@ function init(next) {
     else
       error = "This script needs Kronos Utils installed to work. Install now?";
 
-  if (kronos)
+  if (kronos) {
     borrowed.split(",").forEach(function borrow(ident) {
       okay = okay && (me[ident] = kronos[ident]);
     });
+    me.totals = lang.totals||"Σ";
+  }
 
   if (!document.domain || kronos && !cityIDs().length) return; // (not in-game)
   if (!kronos || !okay || parseFloat(version) < 0.6) {
@@ -58,12 +60,15 @@ function resources() {
   for (var n in resourceIDs) {
     if (!count--) break; else if ("glass" == n) continue;
     stuff.push(resourceIDs[n]);
-    table.tr.th += <th style={"background:url("+ gfx[n] +") no-repeat 50%"}/>;
+    var tr = <th style={"background:url("+ gfx[n] +") no-repeat 50%"}/>;
+    tr.@colspan = { gold: 1 }[n] || 3;
+    table.tr.th += tr;
   }
 
   table.tr.th += <th id="ot-prod">{ lang.projects||"Projects" }</th>;
 
-  var ids = cityIDs(), names = cityNames(), tot = {}, current = cityID();
+  var ids = cityIDs(), names = cityNames(), current = cityID();
+  var tot = {}, rates = {};
   for (var i = 0; i < ids.length; i++) {
     var cid = ids[i], iid = config.getCity(["i"], null, cid);
     var isle = config.getIsle([], null, iid);
@@ -82,24 +87,38 @@ function resources() {
       <td class="ot-free">{ formatNumber(data.p) }</td>
     </tr>;
     if (current == cid) row.@class = "ot-current";
+
     var pace = cityReapingPace(cid); data.g = pace.g;
     for each (n in stuff) {
       var v = formatNumber(data[n], "g" == n), p = "";
+      var rate = <></>;
       if ("g" != n) {
-        var level = config.getCity(["l", buildingIDs.warehouse], 0, cid);
-        var wood = buildingCapacities.warehouse.w[level || 0];
-        var rest = buildingCapacities.warehouse.r[level || 0];
-        p = pct(data[n], "w" == n ? wood : rest, true);
+        var max = warehouseCapacity(cid);
+        p = pct(data[n], max[n], true);
+
+        // consumption/replenish rate and emptiness/fillage times:
+        var r = pace[n] || "", t = "";
+        if (r) {
+          rates[n] = (rates[n] || 0) + r;
+          if (r > 0) {
+            t = (warehouseCapacity(cid)[n] - data[n]) * 3600 / r;
+          } else {
+            t = data[n] * 3600 / -r;
+          }
+          t = secsToDHMS(t, 0);
+          r = sign(r);
+        }
+        rate = <><td class="ot-rate">{ r }</td><td class="ot-end">{ t }</td></>;
       }
       row.td += <td class="ot-stuff new">{ v }{ p }</td>;
-      //row.td += <td class="ot-growth">{ v }</td>;
+      if (rate) row.td += rate;
     }
     var b = cityProject(cid) || "";
     if (b)
-      b = <>
+      b = <a href={ urlTo(b, cid) }>
         <img src={ base +"gfx/icons/buildings/"+ b +".png" }/>
         { config.getCity(["l", buildingIDs[b]], 0, cid) + 1 }
-      </>;
+      </a>;
     row.td += <td class="ot-project new">{ b }</td>;
     table.tr += row;
     for (n in data)
@@ -107,12 +126,17 @@ function resources() {
   }
 
   var sum = <tr class="ot-totals">
-    <td colspan="2" class="ot-totals">{ lang.totals||"Totals:" }</td>
+    <td colspan="2" class="ot-totals">{ totals }</td>
     <td class="new">{ formatNumber(tot.P) }</td>
     <td>{ formatNumber(tot.p) }</td>
   </tr>;
   for each (n in stuff) {
-    sum.td += <td class="new">{ formatNumber(tot[n], n == "g") }</td>
+    sum.td += <td class="new">{ formatNumber(tot[n], n == "g") }</td>;
+    if (n != "g") {
+      v = rates[n] ? formatNumber(rates[n], true) : "";
+      sum.td += <td colspan="2" class="ot-rate">{ v }</td>;
+      // sum.td += <td class="ot-end">{ "" }</td>;
+    }
   }
   sum.td += <td class="new"/>
   table.tr += sum;
@@ -151,7 +175,7 @@ function military() {
     var bg = "background:url("+ imageFromUnit(uid) +") no-repeat 50%";
     table.tr.th += <th colspan="2" style={ bg }/>;
   }
-  table.tr.th += <th colspan="2" class="new">Σ</th>
+  table.tr.th += <th colspan="2" class="new">{ totals }</th>
 
   for (var i = 0; i < ids.length; i++) {
     var cid = ids[i];
@@ -184,7 +208,7 @@ function military() {
   }
 
   var sum = <tr class="ot-totals">
-    <td class="ot-totals">{ lang.totals||"Totals:" }</td>
+    <td class="ot-totals">{ totals }</td>
   </tr>;
   tot = ctot = 0;
   for (cid in all) {
