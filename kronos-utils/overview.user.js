@@ -156,8 +156,7 @@ function resources() {
       // sum.td += <td class="ot-end">{ "" }</td>;
     }
   }
-  sum.td += <td class="new"/>;
-  sum.td += <td>@ { resolveTime(0, true) }</td>;
+  sum.td += <td colspan="2" class="new ot-time">@ { resolveTime(0, true) }</td>;
   table.tr += sum;
 
   node({ append: document.body, tag: table });

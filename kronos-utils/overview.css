@@ -42,6 +42,11 @@ table.ot tr th {
   vertical-align: middle;
 }
 
+.ot .ot-time {
+  text-align: right;
+  padding: 0 5px;
+}
+
 .ot .ot-current {
   background-color: #CDA55F;
 }
