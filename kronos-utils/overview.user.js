@@ -53,6 +53,7 @@ function init(next) {
 function resources() {
   var table = <table id="ot-1" class="ot" align="center" border="1"><tr>
     <th id="ot-cities" colspan="2">{ lang.cities||"Cities" }</th>
+    <th id="ot-mill"/>
     <th colspan="2" style={"background:url("+ gfx.pop +") no-repeat 50%"}/>
   </tr></table>;
 
@@ -80,8 +81,11 @@ function resources() {
     var row = <tr>
       <td class="ot-city"><a href={ curl }>{ cname }</a></td>
       <td class="ot-isle">
-        <span id={ "ot-"+cid }> </span>
         [<a href={ iurl }>{ iname }</a>]
+        <a id={ "ot-"+cid }>{ isle.R } </a>
+      </td>
+      <td class="ot-mill">
+        <a href={ urlTo("wood", undefined, { city: cid }) }>{ isle.w }</a>
       </td>
       <td class="ot-hall new"><a href={ hurl }>{ formatNumber(data.P) }</a>
       { ""/*pct(data.P, cityMaxPopulation(cid))*/ }</td>
@@ -108,6 +112,10 @@ function resources() {
           }
           t = secsToDHMS(t, 0);
           r = sign(r);
+          if (isle.r == n) {
+            var u = urlTo(n == "w" ? "wood" : "luxe", undefined, { city: cid });
+            r = <a href={ u }>{ r }</a>;
+          }
         }
         rate = <><td class="ot-rate">{ r }</td><td class="ot-end">{ t }</td></>;
       }
@@ -125,7 +133,6 @@ function resources() {
 
     var t = b && config.getCity("t", 0, cid) || "";
     if (t) {
-      console.log(t);
       t = secsToDHMS((t - (new Date)) / 1e3, 1);
     }
     row.td += <td class="ot-built">{ t }</td>;
@@ -136,7 +143,7 @@ function resources() {
   }
 
   var sum = <tr class="ot-totals">
-    <td colspan="2" class="ot-totals">{ totals }</td>
+    <td colspan="3" class="ot-totals">{ totals }</td>
     <td class="new">{ formatNumber(tot.P) }</td>
     <td>{ formatNumber(tot.p) }</td>
   </tr>;
@@ -154,13 +161,18 @@ function resources() {
 
   node({ append: document.body, tag: table });
 
+  var wood = visualResources({ w: "" }, { size: 0.6, noMargin: 1 });
+  node({ id: "ot-mill", html: wood });
+
   for (var i = 0; i < ids.length; i++) {
     var cid = ids[i], iid = config.getCity("i", null, cid);
     var res = config.getIsle("r", "", iid);
     if (res) {
       var has = {}; has[res] = "";
       var img = visualResources(has, { size: 0.6, noMargin: 1 });
-      node({ id: "ot-" + cid, html: img });
+      u = urlTo(n == "w" ? "wood" : "luxe", undefined, { city: cid });
+      var res = node({ id: "ot-" + cid, href: u });
+      res.innerHTML = img + res.innerHTML;
     }
   }
 }

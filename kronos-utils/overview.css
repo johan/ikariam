@@ -19,7 +19,7 @@ table.ot tr th {
   color: #542C0F;
 }
 
-.ot th:first-child {
+.ot th:first-child, .ot th#ot-mill {
   border-left: none;
 }
 
@@ -57,9 +57,9 @@ table.ot tr th {
   text-align: right;
 }
 
-.ot tr td.ot-isle span {
+.ot tr td.ot-isle a img {
   position: relative;
-  margin-right: 2px;
+  margin: 0 1px 0 0;
   bottom: -2px;
 }
 
@@ -78,7 +78,6 @@ table.ot tr th {
 .ot .ot-pct .warn { background-color: #C00000; }
 .ot .ot-pct .eeks { background-color: #FF0000; }
 .ot .ot-pct .full { background-color: #FF0000; }
-
 
 /* military table */
 
