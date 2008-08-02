@@ -50,6 +50,11 @@ function init(next) {
   military();
 }
 
+function resUrl(what, cid) {
+  what = { w: "wood", wood: "wood"}[what] || "luxe";
+  return urlTo(what, undefined, { city: cid });
+}
+
 function resources() {
   var table = <table id="ot-1" class="ot" align="center" border="1"><tr>
     <th id="ot-cities" colspan="2">{ lang.cities||"Cities" }</th>
@@ -84,9 +89,7 @@ function resources() {
         [<a href={ iurl }>{ iname }</a>]
         <a id={ "ot-"+cid }>{ isle.R } </a>
       </td>
-      <td class="ot-mill">
-        <a href={ urlTo("wood", undefined, { city: cid }) }>{ isle.w }</a>
-      </td>
+      <td class="ot-mill"><a href={ resUrl("w", cid) }>{ isle.w }</a></td>
       <td class="ot-hall new"><a href={ hurl }>{ formatNumber(data.P) }</a>
       { ""/*pct(data.P, cityMaxPopulation(cid))*/ }</td>
       <td class="ot-free">{ formatNumber(data.p) }</td>
@@ -112,11 +115,9 @@ function resources() {
           }
           t = secsToDHMS(t, 0);
           r = sign(r);
-          if (isle.r == n) {
-            var u = urlTo(n == "w" ? "wood" : "luxe", undefined, { city: cid });
-            r = <a href={ u }>{ r }</a>;
-          }
         }
+        if (isle.r == n || "w" == n)
+          r = <a href={ resUrl(n, cid) }>{ r }</a>;
         rate = <><td class="ot-rate">{ r }</td><td class="ot-end">{ t }</td></>;
       }
       row.td += <td class="ot-stuff new">{ v }{ p }</td>;
@@ -170,8 +171,7 @@ function resources() {
     if (res) {
       var has = {}; has[res] = "";
       var img = visualResources(has, { size: 0.6, noMargin: 1 });
-      u = urlTo(n == "w" ? "wood" : "luxe", undefined, { city: cid });
-      var res = node({ id: "ot-" + cid, href: u });
+      var res = node({ id: "ot-" + cid, href: resUrl("luxe", cid) });
       res.innerHTML = img + res.innerHTML;
     }
   }
