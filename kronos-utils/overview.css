@@ -21,7 +21,7 @@ table.ot tr th {
   color: #542C0F;
 }
 
-.ot th:first-child, .ot th#ot-mill, .ot th#ot-time {
+.ot th:first-child, .ot th#ot-isle, .ot th#ot-mill, .ot th#ot-time {
   border-left: none;
 }
 

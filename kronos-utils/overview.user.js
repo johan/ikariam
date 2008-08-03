@@ -73,7 +73,7 @@ function resources() {
   rm($("ot-1"));
   var table = <table id="ot-1" class="ot" align="center" border="1"><tr>
     { th({ bg: gfx.city }) }
-    { th({ bg: gfx.isle }) }
+    { th({ bg: gfx.isle, id: "ot-isle" }) }
     <th id="ot-mill"/>
     <th colspan="2" style={"background-image:url("+ gfx.pop +")"}/>
   </tr></table>;
@@ -103,7 +103,7 @@ function resources() {
     var data = cityData(cid), hurl = urlTo("townHall", cid);
     var row = <tr>
       <td class="ot-city"><a href={ curl }>{ cname }</a></td>
-      <td class="ot-isle new">
+      <td class="ot-isle">
         [<a href={ iurl }>{ iname }</a>]
         <a id={ "ot-"+cid }>{ isle.R } </a>
       </td>
@@ -123,7 +123,7 @@ function resources() {
         p = pct(data[n], max[n], true);
 
         // consumption/replenish rate and emptiness/fillage times:
-        var r = pace[n] || "", t = "";
+        var r = pace[n] || "", t, T = <td class="ot-end"/>;
         if (r) {
           rates[n] = (rates[n] || 0) + r;
           if (r > 0) {
@@ -131,12 +131,13 @@ function resources() {
           } else {
             t = data[n] * 3600 / -r;
           }
-          t = secsToDHMS(t, 0);
+          T.* = secsToDHMS(t, 0);
+          T.@title = lang[r > 0 ? "full" : "empty"] + resolveTime(t, 1);
           r = sign(r);
         }
         if (isle.r == n || "w" == n)
           r = <a href={ resUrl(n, cid) }>{ r }</a>;
-        rate = <><td class="ot-rate">{ r }</td><td class="ot-end">{ t }</td></>;
+        rate = <><td class="ot-rate">{ r }</td>{ T }</>;
       }
       row.td += <td class="ot-stuff new">{ v }{ p }</td>;
       if (rate) row.td += rate;
@@ -150,11 +151,14 @@ function resources() {
       </a>;
     row.td += <td class="ot-project new">{ b }</td>;
 
-    var t = b && config.getCity("t", 0, cid) || "";
+    T = <td class="ot-built"/>;
+    t = b && config.getCity("t", 0, cid) || "";
     if (t) {
-      t = secsToDHMS((t - (new Date)) / 1e3, 1);
+      t = (t - (new Date)) / 1e3;
+      T.@title = resolveTime(t).replace(/^\s*/, "");
+      T.* = secsToDHMS(t, 1);
     }
-    row.td += <td class="ot-built">{ t }</td>;
+    row.td += T;
 
     table.tr += row;
     for (n in data)
