@@ -25,6 +25,10 @@ table.ot tr th {
   border-left: none;
 }
 
+.ot th#ot-mill img {
+  margin: 0 -1px -1px 0;
+}
+
 .ot th, .ot td.new {
   border-color: #542C0F;
   border-left: double;

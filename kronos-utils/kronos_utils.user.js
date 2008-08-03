@@ -283,6 +283,11 @@ function maybeAugmentOverviewTable() {
   var td = $x('id("overview__table")/table[@class="resources_table"]/tbody/' +
               'tr[count(td) = 19 and not(@class="table_footer")]/td[11]'); // W
   if (td) td.map(wineLasts);
+  var th = $("ot-mill");
+  if (th) {
+    clickTo(th, resourceOverview);
+    th.title = "Click for complete resource overview (may take *ages* to load)";
+  }
 }
 
 function url(query) {
@@ -3648,6 +3653,11 @@ function keep(nodes) {
   nodes.forEach(retain);
 }
 
+function resUrl(what, cid) {
+  what = { w: "wood", wood: "wood" }[what] || "luxe";
+  return urlTo(what, undefined, { city: cid });
+}
+
 function resourceOverview() {
   function loaded(dom, url) {
     kronos.dom = dom; kronos.url = url;
@@ -3665,16 +3675,20 @@ function resourceOverview() {
     var b = location.href.replace(/[?#].*/, "");
     node({ tag: <li class="city-resources"
                     id={"city-"+ id}>{ cityNames()[n] }</li>, append: ul });
-    var r = b + urlTo("luxe", undefined, { city: id }) + "#keep:setWorkers";
-    var w = b + urlTo("wood", undefined, { city: id }) + "#keep:setWorkers";
+    var r = b + resUrl("luxe", id ) + "#keep:setWorkers";
+    var w = b + resUrl("wood", id ) + "#keep:setWorkers";
     wget(r, loaded, "GM");
     wget(w, loaded, "GM");
   }
+  document.body.id = "resourceOverview";
   var cities = cityIDs();
   var left = cities.length * 2;
   var info = <><div class="buildingDescription">
     <h1>Resource overview</h1>
-    <!--p>All resources of all your cities in the whole world:</p-->
+    <p>This view loads slowly since it fetches all resource pages in your
+    entire empire. It thus is not very nice on the game servers, but on the
+    other hand, Kronos otherwise is, by letting you do so much more in so
+    many fewer pageloads, so do not feel too bad about that either.</p>
   </div>
   <ul id="cities"></ul></>;
   var main = $("mainview");
@@ -3966,13 +3980,13 @@ function showOverview() {
     for each (r in res) {
       var o = data[r], v = o || "\xA0", td = null;
       if ("w" == r) {
-        v = <a class="text" href={ urlTo("wood", undefined, { city: id }) }
+        v = <a class="text" href={ resUrl("wood", id) }
                title={ sign(p[r]) }>{ v }</a>;
       } else if ("p" == r) {
         var u = urlTo("city", id, { changeCity: 1 });
         v = <a class="text" href={ u }>{ data[r] || "" }</a>;
       } else if (config.getIsle("r", "", island) == r) {
-        v = <a class="text" href={ urlTo("luxe", undefined, { city: id }) }
+        v = <a class="text" href={ resUrl("luxe", id) }
                title={ sign(p[r]) }>{ v }</a>;
       } else if ("W" == r && config.getCity("l", [], city)[buildingIDs.tavern])
         v = <div title={ sign(p.W) }>{ v }</div>;

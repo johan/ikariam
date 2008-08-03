@@ -11,7 +11,8 @@
 var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
   "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
   "cityID,formatNumber,cityMaxPopulation,warehouseCapacity,militaryScoreFor," +
-  "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime,rm,clickTo";
+  "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime,rm,clickTo," +
+  "resUrl";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
 
@@ -57,15 +58,22 @@ function redraw() {
   clickTo($("ot-time"), redraw);
 }
 
-function resUrl(what, cid) {
-  what = { w: "wood", wood: "wood" }[what] || "luxe";
-  return urlTo(what, undefined, { city: cid });
+function th(opts) {
+  var th = <th/>;
+  if (opts.bg) {
+    th.@style = "background-image:url("+ opts.bg +")";
+    delete opts.bg;
+  }
+  for (var prop in opts)
+    th["@"+prop] = opts[prop];
+  return th;
 }
 
 function resources() {
   rm($("ot-1"));
   var table = <table id="ot-1" class="ot" align="center" border="1"><tr>
-    <th id="ot-cities" colspan="2">{ lang.cities||"Cities" }</th>
+    { th({ bg: gfx.city }) }
+    { th({ bg: gfx.isle }) }
     <th id="ot-mill"/>
     <th colspan="2" style={"background-image:url("+ gfx.pop +")"}/>
   </tr></table>;
@@ -80,9 +88,8 @@ function resources() {
   }
 
   table.tr.th += <>
-    <th id="ot-prod">{ lang.projects||"Projects" }</th>
-    <th id="ot-time" title="Click to redraw the tables"
-        style={"background-image:url("+ gfx.time +")"}/>
+    { th({ id: "ot-prod", bg: gfx.build }) }
+    { th({ id: "ot-time", bg: gfx.time, title: "Click to redraw the tables" }) }
   </>;
 
   var ids = cityIDs(), names = cityNames(), current = cityID();
@@ -96,7 +103,7 @@ function resources() {
     var data = cityData(cid), hurl = urlTo("townHall", cid);
     var row = <tr>
       <td class="ot-city"><a href={ curl }>{ cname }</a></td>
-      <td class="ot-isle">
+      <td class="ot-isle new">
         [<a href={ iurl }>{ iname }</a>]
         <a id={ "ot-"+cid }>{ isle.R } </a>
       </td>
@@ -197,7 +204,7 @@ function military() {
 
   rm($("ot-2"));
   var table = <table id="ot-2" class="ot" align="center" border="1"><tr>
-    <th id="otm-cities">{ lang.cities||"Cities" }</th>
+    { th({ bg: gfx.city }) }
   </tr></table>;
 
   var ids = cityIDs(), names = cityNames(), tot = {}, current = cityID();

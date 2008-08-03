@@ -84,6 +84,9 @@ var gfx = {
         gold: "/skin/resources/icon_gold.gif",
         time: "/skin/resources/icon_time.gif",
         bulb: "/skin/layout/bulb-on.gif",
+        city: "/skin/layout/icon-city2.gif",
+        isle: "/skin/layout/icon-island.gif",
+       build: "/skin/icons/city_30x30.gif",
 
        sword: getSword,
       shield: getShield,

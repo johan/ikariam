@@ -882,6 +882,7 @@ hr#vr {
   display: block;
   height: 188px;
   width:  961px !important;
+  margin-right: -18px;
   border: 0;
 }
 
