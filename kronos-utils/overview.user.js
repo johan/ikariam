@@ -48,6 +48,7 @@ function init(next) {
   });
 
   redraw();
+  addEventListener("focus", redraw, false);
 }
 
 function redraw() {
