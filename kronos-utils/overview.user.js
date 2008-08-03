@@ -11,7 +11,7 @@
 var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
   "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
   "cityID,formatNumber,cityMaxPopulation,warehouseCapacity,militaryScoreFor," +
-  "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime";
+  "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime,rm,clickTo";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
 
@@ -46,33 +46,43 @@ function init(next) {
     ignoreComments: false,
     prettyPrinting: false, prettyIndent: 2
   });
+
+  redraw();
+}
+
+function redraw() {
   resources();
   military();
+  clickTo($("ot-time"), redraw);
 }
 
 function resUrl(what, cid) {
-  what = { w: "wood", wood: "wood"}[what] || "luxe";
+  what = { w: "wood", wood: "wood" }[what] || "luxe";
   return urlTo(what, undefined, { city: cid });
 }
 
 function resources() {
+  rm($("ot-1"));
   var table = <table id="ot-1" class="ot" align="center" border="1"><tr>
     <th id="ot-cities" colspan="2">{ lang.cities||"Cities" }</th>
     <th id="ot-mill"/>
-    <th colspan="2" style={"background:url("+ gfx.pop +") no-repeat 50%"}/>
+    <th colspan="2" style={"background-image:url("+ gfx.pop +")"}/>
   </tr></table>;
 
   var count = 6, stuff = [];
   for (var n in resourceIDs) {
     if (!count--) break; else if ("glass" == n) continue;
     stuff.push(resourceIDs[n]);
-    var tr = <th style={"background:url("+ gfx[n] +") no-repeat 50%"}/>;
+    var tr = <th style={"background-image:url("+ gfx[n] +")"}/>;
     tr.@colspan = { gold: 1 }[n] || 3;
     table.tr.th += tr;
   }
 
-  table.tr.th += <th id="ot-prod">{ lang.projects||"Projects" }</th>;
-  table.tr.th += <th style={"background:url("+ gfx.time +") no-repeat 50%"}/>;
+  table.tr.th += <>
+    <th id="ot-prod">{ lang.projects||"Projects" }</th>
+    <th id="ot-time" title="Click to redraw the tables"
+        style={"background-image:url("+ gfx.time +")"}/>
+  </>;
 
   var ids = cityIDs(), names = cityNames(), current = cityID();
   var tot = {}, rates = {};
@@ -183,6 +193,8 @@ function military() {
       all[id] = (all[id] || 0) + mil[id];
     return mil;
   }
+
+  rm($("ot-2"));
   var table = <table id="ot-2" class="ot" align="center" border="1"><tr>
     <th id="otm-cities">{ lang.cities||"Cities" }</th>
   </tr></table>;
@@ -194,7 +206,7 @@ function military() {
       delete all[uid];
       continue;
     }
-    var bg = "background:url("+ imageFromUnit(uid) +") no-repeat 50%";
+    var bg = "background-image:url("+ imageFromUnit(uid) +")";
     table.tr.th += <th colspan="2" style={ bg }/>;
   }
   table.tr.th += <th colspan="2" class="new">{ totals }</th>

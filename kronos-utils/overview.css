@@ -16,10 +16,12 @@ table.ot tr th {
   text-align: center;
   border-bottom: double;
   background-color: #A8A92A;
+  background-repeat: no-repeat;
+  background-position: 50%;
   color: #542C0F;
 }
 
-.ot th:first-child, .ot th#ot-mill {
+.ot th:first-child, .ot th#ot-mill, .ot th#ot-time {
   border-left: none;
 }
 
