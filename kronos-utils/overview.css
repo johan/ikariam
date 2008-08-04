@@ -1,3 +1,4 @@
+#options table.ot,
 body > table.ot {
   width: 980px;
   border-style: dotted;
@@ -5,10 +6,12 @@ body > table.ot {
   margin-bottom: 2em;
 }
 
+#options table.ot td,
 table.ot tr td {
   padding: 0;
 }
 
+#options table.ot th,
 table.ot tr th {
   padding: 0;
   font-size: 15px;
@@ -19,6 +22,7 @@ table.ot tr th {
   background-repeat: no-repeat;
   background-position: 50%;
   color: #542C0F;
+  width: auto;
 }
 
 .ot th:first-child, .ot th#ot-isle, .ot th#ot-mill, .ot th#ot-time {
@@ -48,6 +52,7 @@ table.ot tr th {
   vertical-align: middle;
 }
 
+#options .ot .ot-time,
 .ot .ot-time {
   text-align: right;
   padding: 0 5px;
@@ -57,12 +62,14 @@ table.ot tr th {
   background-color: #CDA55F;
 }
 
+#options .ot tr td.ot-isle,
 .ot tr td.ot-isle {
   padding: 0 4px;
   white-space: nowrap;
   width: 1%;
 }
 
+#options .ot tr td.ot-totals,
 .ot tr td.ot-totals {
   padding-right: 3px;
   text-align: right;
@@ -76,6 +83,7 @@ table.ot tr th {
 
 /* progress bar styling */
 
+#options table.ot-pct,
 .ot table.ot-pct {
   width: 100%;
   margin-bottom: -3px;
