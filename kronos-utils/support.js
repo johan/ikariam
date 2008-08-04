@@ -17,6 +17,9 @@ function isDefined(v) { return "undefined" != typeof v; }
 function isFunction(f) { return "function" == typeof f; }
 function isUndefined(u) { return "undefined" == typeof u; }
 function isTextNode(n) { return isObject(n) && n.nodeType == 3; }
+function stringOrUndefined(what) {
+  return { undefined: 1, string: 1 }[typeof what] || 0;
+}
 
 function array(a) { return isArray(a) ? a : [a]; }
 
@@ -437,6 +440,8 @@ function cityHasBuilding(b) {
   return function(city) { return config.getCity(["l", b], 0, city); };
 }
 
+function isleForCity(city) { return config.getCity("i", 0, city); }
+
 function cityName(id) {
   //return cityNames()[cityIDs().indexOf(integer(id))];
   var name = {};
@@ -446,6 +451,45 @@ function cityName(id) {
     name[ids[i]] = names[i];
   console.log(name.toSource, id);
   return name[id];
+}
+
+function militaryScoreFor(unit, count) {
+  if (isNumber(unit))
+    unit = troops[unit] || ships[unit];
+  count = (isDefined(count) ? count : 1) / 100;
+  return count * (2*unit.w + 16*(unit.W||0) + 4*(unit.C||0) + 4*(unit.S||0));
+}
+
+// alternative args formats: "isle", "x1, y1, isle", "isle, null, isle",
+// "null, null, isle" (for mainview -> isle)
+function travelTime(x1, y1, x2, y2) {
+  if (arguments.length & 1) { // a city id
+    var isle = x1 ? isleForCity(x1) : mainviewIslandID();
+    x1 = config.getIsle("x", 0, isle);
+    y1 = config.getIsle("y", 0, isle);
+    //console.log("isle %x at %x:%y", isle, x1, y1);
+    if (!x1 || !y1) return 0;
+  }
+  if (arguments.length < 4)
+    if (arguments.length == 3)
+      isle = x2 || mainviewIslandID();
+    else
+      isle = referenceIslandID();
+  if (arguments.length < 4) {
+    x2 = config.getIsle("x", 0, isle);
+    y2 = config.getIsle("y", 0, isle);
+    //console.log("to isle %x at %x:%y", isle, x2, y2);
+    if (!x2 || !y2) return 0;
+  }
+  var dx = x2 - x1, dy = y2 - y1;
+  return 60 * 20 * (1 + Math.sqrt(dx*dx + dy*dy));
+}
+
+function click(node) {
+  var event = node.ownerDocument.createEvent("MouseEvents");
+  event.initMouseEvent("click", true, true, node.ownerDocument.defaultView,
+                       1, 0, 0, 0, 0, false, false, false, false, 0, node);
+  node.dispatchEvent(event);
 }
 
 string.r = /([\x00-\x1F\\\x22])/g;
@@ -461,6 +505,11 @@ function string(s) {
     }) +'"';
   }
   return '"'+ s +'"';
+}
+
+function sum(a, b) {
+  if (1 == arguments.length) return reduce(sum, a, 0);
+  return integer(a || 0) + integer(b || 0);
 }
 
 var console = { log: function(x) {
