@@ -10,9 +10,9 @@
 
 var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
   "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
-  "cityID,formatNumber,cityMaxPopulation,warehouseCapacity,militaryScoreFor," +
+  "formatNumber,cityMaxPopulation,warehouseCapacity,militaryScoreFor,resUrl," +
   "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime,rm,clickTo," +
-  "resUrl";
+  "referenceCityID";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
 
@@ -92,7 +92,7 @@ function resources() {
     { th({ id: "ot-time", bg: gfx.time, title: "Click to redraw the tables" }) }
   </>;
 
-  var ids = cityIDs(), names = cityNames(), current = cityID();
+  var ids = cityIDs(), names = cityNames(), current = referenceCityID();
   var tot = {}, rates = {};
   for (var i = 0; i < ids.length; i++) {
     var cid = ids[i], iid = config.getCity(["i"], null, cid);
@@ -211,8 +211,8 @@ function military() {
     { th({ bg: gfx.city }) }
   </tr></table>;
 
-  var ids = cityIDs(), names = cityNames(), tot = {}, current = cityID();
-  var all = {}, byCity = ids.map(getMil);
+  var ids = cityIDs(), names = cityNames(), current = referenceCityID();
+  var tot = {}, all = {}, byCity = ids.map(getMil);
   for (var uid in all) {
     if (!all[uid]) {
       delete all[uid];
