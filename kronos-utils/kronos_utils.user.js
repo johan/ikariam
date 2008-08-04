@@ -1309,8 +1309,8 @@ function evenShips(nodes) {
     if (wine) {
       var id = integer($X('id("transport")//input[@name="destinationCityId"]'));
       var wt = wineConsumptionTime(wine, 1, id);
-      if (wt && isFinite(wt))
-        node({ id: "wineends", text: secsToDHMS(wt, 1), after: wine });
+      wt = wt && isFinite(wt) ? secsToDHMS(wt, 1) : "";
+      node({ id: "wineends", text: wt, after: wine });
     }
   }
 
@@ -1943,9 +1943,9 @@ function unconfuseFocus() {
 function onChange(nodes, cb, attribute, watch) {
   function modified(e) {
     //console.log([e.type, e.attrName, e.newValue].join());
-    if ("DOMAttrModified" != e.type ||
-        isDefined(attribute) && attribute != e.attrName)
-      return;
+    //if (({ DOMAttrModified: 1, click: 1, keyup: 1}[e.type] != 1) ||
+    //    isDefined(attribute) && attribute != e.attrName)
+    //  return console.log("nope: "+ e.attrName + " / "+ e.type);
     cb(e.newValue, e.target);
   }
 
@@ -1957,18 +1957,28 @@ function onChange(nodes, cb, attribute, watch) {
     }
     if (watch)
       node.wrappedJSObject.watch(attribute, changed);
-    else
+    else {
       node.addEventListener("DOMAttrModified", modified, false);
+      node.addEventListener("keyup", modified, false);
+      node.addEventListener("click", modified, false);
+    }
   }
+
   if (isArray(nodes))
     nodes.map(listen);
   else
     listen(nodes);
-  if (!isArray(nodes))
+  if (!isArray(nodes)) {
     nodes.addEventListener("DOMAttrModified", modified, false);
-  else
-    for each (var node in nodes)
+    nodes.addEventListener("keyup", modified, false);
+    nodes.addEventListener("click", modified, false);
+  } else {
+    for each (var node in nodes) {
       node.addEventListener("DOMAttrModified", modified, false);
+      node.addEventListener("keyup", modified, false);
+      node.addEventListener("click", modified, false);
+    }
+  }
 }
 
 function fixUpdates() {
