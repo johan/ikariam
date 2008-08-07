@@ -38,7 +38,7 @@ table.ot tr th {
   border-left: double;
 }
 
-.ot .ot-totals {
+.ot tr.ot-totals {
   font-weight: bold;
   border-top: medium double;
 }

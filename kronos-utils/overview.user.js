@@ -70,6 +70,29 @@ function th(opts) {
 }
 
 function resources() {
+  function summary(h) {
+    var first = 1 == h;
+    var period = secsToDHMS(h * 3600, 0);
+    var sum = <tr class={ first ? "ot-totals" : "" }>
+      <td colspan="3" class="ot-totals">{ period +" "+ totals }</td>
+      <td class="new">{ first ? formatNumber(tot.P) : "" }</td>
+      <td>{ first ? formatNumber(tot.p) : "" }</td>
+    </tr>;
+    for each (var n in stuff) {
+      var v = tot[n];
+      if (!first) v = n == "g" ? v * h : v + rates[n] * h;
+      sum.td += <td class="new">{ formatNumber(v, n == "g") }</td>;
+      if (n != "g") {
+        v = rates[n] ? formatNumber(rates[n] * h, true) : "";
+        sum.td += <td colspan="2" class="ot-rate">{ v }</td>;
+        // sum.td += <td class="ot-end">{ "" }</td>;
+      }
+    }
+    var time = first ? "@ " + resolveTime(0, true) : "";
+    sum.td += <td colspan="2" class="new ot-time">{ time }</td>;
+    table.tr += sum;
+  }
+
   rm($("ot-1"));
   var table = <table id="ot-1" class="ot" align="center" border="1"><tr>
     { th({ bg: gfx.city }) }
@@ -165,21 +188,8 @@ function resources() {
       tot[n] = (tot[n] || 0) + data[n];
   }
 
-  var sum = <tr class="ot-totals">
-    <td colspan="3" class="ot-totals">{ totals }</td>
-    <td class="new">{ formatNumber(tot.P) }</td>
-    <td>{ formatNumber(tot.p) }</td>
-  </tr>;
-  for each (n in stuff) {
-    sum.td += <td class="new">{ formatNumber(tot[n], n == "g") }</td>;
-    if (n != "g") {
-      v = rates[n] ? formatNumber(rates[n], true) : "";
-      sum.td += <td colspan="2" class="ot-rate">{ v }</td>;
-      // sum.td += <td class="ot-end">{ "" }</td>;
-    }
-  }
-  sum.td += <td colspan="2" class="new ot-time">@ { resolveTime(0, true) }</td>;
-  table.tr += sum;
+  var h = 1, d = h * 24, w = d * 7;
+  [h, d, w].forEach(summary);
 
   node({ append: document.body, tag: table });
 
