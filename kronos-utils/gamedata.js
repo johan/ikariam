@@ -8,6 +8,7 @@
 ///\\\   which technologies you have researched, anyway.                ///\\\
 ///\\\                                                                  ///\\\
 
+revision("$Revision$");
 var base = "http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/";
 
 // resources:

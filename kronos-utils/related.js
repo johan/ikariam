@@ -1,3 +1,5 @@
+revision("$Revision$");
+
 function augmentIkaFight() {
   var specs = (location.hash||"#").slice(1);
   if (window != top) {

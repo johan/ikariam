@@ -1,4 +1,5 @@
 // Various support functions
+revision("$Revision$");
 
 XML.setSettings({
   ignoreProcessingInstructions: false,
@@ -6,6 +7,11 @@ XML.setSettings({
   ignoreComments: false,
   prettyPrinting: false, prettyIndent: 2
 });
+
+function revision(r) {
+  if (r) rev = Math.max(integer(r), rev);
+  return rev;
+}
 
 function isNull(n) { return null === n; }
 function isArray(a) { return isObject(a) && isNumber(a.length); }

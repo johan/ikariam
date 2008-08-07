@@ -56,7 +56,7 @@
 // @unwrap
 // ==/UserScript==
 
-var kronos = this, version = "0.6", lang, scientists, growthDebug = 0;
+var kronos = this, version = "0.6", rev = 0, lang, scientists, growthDebug = 0;
 /*if (config.get("debug"))*/ unsafeWindow.kronos = kronos;
 if (document.URL == location.href) { // no network error?
   if (/^http:\/\/ikariam.immortal-nights.com\/ikafight/i.test(location.href))
@@ -68,6 +68,7 @@ if (document.URL == location.href) { // no network error?
 }
 
 function init() {
+  revision("$Revision$");
   try { upgradeConfig(); }
   catch(e if e instanceof ReferenceError) {
     if (confirm("Kronos Utils requires Greasemonkey 0.8. Click OK for an " +

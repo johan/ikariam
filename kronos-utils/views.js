@@ -1,3 +1,5 @@
+revision("$Revision$");
+
 // meta views:
 
 function financesView() {
@@ -40,7 +42,7 @@ function merchantNavyView() {
       attBack: { "-1": [L   ],  "0": [L, x],  "1": [L, x] },// 0: YOUR name :/
       buyMiss: { "-1": [R,  ],  "0": [L,  ],  "1": [R   ] },
       buyUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
-      buyBack: { "-1": [L, x],  "0": [L, x],  "1": [L, x] },
+      buyBack: { "-1": [L,  ],  "0": [L, x],  "1": [L, x] },
       selMiss: { "-1": [R   ],  "0": [R   ],  "1": [R   ] },
       selUndo: { "-1": [L   ],  "0": [L, x],  "1": [L   ] },
       selBack: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },

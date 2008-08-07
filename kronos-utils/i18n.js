@@ -1,4 +1,5 @@
 var DEBUT = new Date();
+revision("$Revision$");
 
 // *** Ahoy translators and contributors out there! This section is for you! ***
 //

@@ -11,8 +11,8 @@
 var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
   "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
   "formatNumber,cityMaxPopulation,warehouseCapacity,militaryScoreFor,resUrl," +
-  "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime,rm,clickTo," +
-  "referenceCityID";
+  "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime,rm,revision," +
+  "referenceCityID,clickTo";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
 
@@ -88,8 +88,15 @@ function resources() {
         // sum.td += <td class="ot-end">{ "" }</td>;
       }
     }
-    var time = first ? "@ " + resolveTime(0, true) : "";
-    sum.td += <td colspan="2" class="new ot-time">{ time }</td>;
+    var last = "@ " + resolveTime(0, true), rev = integer("$Revision$");
+    var a = "http://kronos-", b = ".notlong.com/";
+    if (d == h)
+      last = <><a href="http://kronos-utils.notlong.com/">Kronos Utils</a>
+               v{ version }r{ revision() }</>;
+    if (w == h)
+      last = <><a href="http://kronos-overview.notlong.com/">Kronos Overview</a>
+               r{ rev }</>;
+    sum.td += <td colspan="2" class="new ot-time">{ last }</td>;
     table.tr += sum;
   }
 
@@ -98,14 +105,14 @@ function resources() {
     { th({ bg: gfx.city }) }
     { th({ bg: gfx.isle, id: "ot-isle" }) }
     <th id="ot-mill"/>
-    <th colspan="2" style={"background-image:url("+ gfx.pop +")"}/>
+    { th({ colspan: 2, bg: gfx.pop }) }
   </tr></table>;
 
   var count = 6, stuff = [];
   for (var n in resourceIDs) {
     if (!count--) break; else if ("glass" == n) continue;
     stuff.push(resourceIDs[n]);
-    var tr = <th style={"background-image:url("+ gfx[n] +")"}/>;
+    var tr = th({ bg: gfx[n] });
     tr.@colspan = { gold: 1 }[n] || 3;
     table.tr.th += tr;
   }
@@ -228,8 +235,7 @@ function military() {
       delete all[uid];
       continue;
     }
-    var bg = "background-image:url("+ imageFromUnit(uid) +")";
-    table.tr.th += <th colspan="2" style={ bg }/>;
+    table.tr.th += th({ colspan: 2, bg: imageFromUnit(uid) });
   }
   table.tr.th += <th colspan="2" class="new">{ totals }</th>
 

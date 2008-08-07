@@ -1,6 +1,6 @@
 /*
 s10.org: {
-  techs: { <all tech id:s we have>:1 },
+  techs: { <all tech id:s we have>:1,
          .research: {
            i: 2090,
            n: "Helping hands",
@@ -17,6 +17,10 @@ s10.org: {
              x: "Description of its effect"
            }
          },
+  },
+//  citykeys: {
+//    <key>: cityID
+//  },
   battles: {
     won: 113,
    lost: 8,
@@ -68,6 +72,8 @@ reports: {
   }
 }
 */
+
+revision("$Revision$");
 
 // config.get() and config.set() store config data in (near-)json in prefs.js.
 var none = { v: 1, capital: 0, treaties: [], spies: {}, players: {},
