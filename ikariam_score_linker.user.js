@@ -125,7 +125,6 @@ function init() {
   if (cities.length) {
     cities.forEach(lookupOnClick);
     var body = document.body;
-    addEventListener("keypress", keyboard, true);
     return inlineScore && onClick(body, peek, 0, "dbl");
   }
   var player = itemValue("owner");
@@ -156,34 +155,6 @@ function focus(direction) {
   if (all.length) {
     now = all.map(function(a) { return a.id; }).indexOf(cur.id);
     click(all[(now + direction + all.length * 3) % all.length]);
-  }
-}
-
-function keyboard(e) {
-  function invoke(a) {
-    a = $X('id("actions")/ul[@class="cityactions"]/li[@class="'+ a +'"]/a');
-    return function() { if (a && a.href) location.href = a.href; };
-  }
-  function counterClockwise() { focus(-1); }
-  function clockwise() { focus(1); }
-  function tab() {
-    if (!e.altKey && !e.ctrlKey && !e.metaKey)
-      focus(e.shiftKey ? -1 : 1);
-  }
-
-  if (/^(input|textarea)$/i.test(e.target.nodeName)) return;
-
-  var keys = {
-    "\t": tab, j: counterClockwise, k: clockwise,
-    d: invoke("diplomacy"), t: invoke("transport"), f: invoke("defend_port"),
-    p: invoke("plunder"), b: invoke("blockade"), s: invoke("espionage")
-  };
-
-  var action = keys[String.fromCharCode(e.keyCode || e.charCode)];
-  if (action) {
-    e.stopPropagation();
-    e.preventDefault();
-    action();
   }
 }
 
@@ -230,7 +201,7 @@ function fetchScoresFor(name, ul, n, id) {
   for (type in show) {
     if (!(whatToShow & show[type]))
       continue;
-    if ("gold" == type && isMyCity(ul) && viewingRightCity(ul)) {
+    if ("gold" == type && 0 && isMyCity(ul) && viewingRightCity(ul)) {
       var gold = $("value_gold").innerHTML;
       updateItem(type, gold, cityinfoPanel(), null, lootable(gold));
       continue;
