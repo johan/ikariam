@@ -1517,6 +1517,7 @@ function safeMarkAll(cmd) {
 }
 
 
+// augments combat detail reports with troop strengths
 function detailedCombatView() {
   function register(unit, i) {
     if (!unit.A || !unit.D) return;
@@ -1670,7 +1671,21 @@ function plunderView(where) {
 
 
 function workshopView() {
-  function show(td, base, delta, upkeep, unit, ad) {
+  function show(td, base, delta, upkeep, unit, ad, cost, stats) {
+    function row(stats, cost, unit) {
+      console.log([stats,cost,unit].join("/"));
+      return <div class="stats">
+        <span style={"opacity:"+ opacity}>{ (stats / cost).toFixed(2) }</span>
+        <img style="margin: 0" src={ icon } height="10"/>
+        <span style={"opacity:"+ opacity}>/</span>
+        <img style="margin: 0" src={ gfx[unit] } height="10"/>
+      </div>;
+    }
+
+    var wood = stats.w, res = stats.S || stats.C || stats.W || "";
+    var which = stats.S ? "sulfur" : stats.C ? "crystal" : stats.W ? "wine" : 0;
+    var left = <div style="left: 0;"/>, right = <div style="right: 0;"/>;
+
     var img = $X('img', td);
     var type = img && img.src.match(/_([^.]+).gif$/)[1];
     var level = { bronze: 0, silber: 1, gold: 2 }[type];
@@ -1691,12 +1706,12 @@ function workshopView() {
           config.setServer(["techs", "units", unit, ad], l);
       }
       var icon = img.src.replace(type+".gif", levels[l]+".gif");
-      tag = { tag: <div class="stats">
-        <span style={"opacity:"+ opacity}>{ (l2 / upkeep).toFixed(2) }</span>
-        <img style="margin: 0" src={icon} height="10"/>
-        <span style={"opacity:"+ opacity}>/</span>
-        <img style="margin: 0" src={gfx.gold} height="10"/>
-      </div> };
+      tag = { tag: row(l2, upkeep, "gold") };
+
+      left.* = row(l2, wood, "wood") + left.*;
+      if (res)
+        right.* = row(l2, res, which) + right.*;
+
       if (!last) tag.append = td; else tag.before = last;
       last = node(tag);
       node({ className: "stats", after: img, text: l1 +" \u27A1 "+ l2,
@@ -1706,14 +1721,18 @@ function workshopView() {
            <li class="time" style={"background-image: url("+ gfx.upkeep +")"}>
              { upkeep } / h
            </li> });
+    costs = <div class="unitBuildCost">{ left }{ right }</div>;
+    node({ append: cost, tag: costs });
   }
 
   function augment(tr) {
-    var stats = unitStatsFromImage($X('td[@class="object"]/img', tr))
+    var stats = unitStatsFromImage($X('td[@class="object"]/img', tr));
     if (stats) {
       var cells = $x('td/table[@class="inside"]/tbody/tr[1]/td[1]', tr);
-      show(cells[0], stats.a, stats.A, stats.u, stats.id, "a");
-      show(cells[1], stats.d, stats.D, stats.u, stats.id, "d");
+      var att = $X('following-sibling::td[2]', cells[0]);
+      var def = $X('following-sibling::td[2]', cells[1]);
+      show(cells[0], stats.a, stats.A, stats.u, stats.id, "a", att, stats);
+      show(cells[1], stats.d, stats.D, stats.u, stats.id, "d", def, stats);
     }
   }
 

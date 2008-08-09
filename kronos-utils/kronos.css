@@ -787,11 +787,30 @@ html body div#container div#container2 a.text:hover {
   font-size: 12px;
 }
 
-#workshop-army #demo .upgrade .info .done,
-#workshop-fleet #demo .upgrade .info .done {
+#workshop-fleet #demo .upgrade .info .done,
+#workshop-army #demo .upgrade .info .done {
   font-weight: normal;
 }
 
+#workshop-fleet #demo div.unitBuildCost,
+#workshop-army #demo div.unitBuildCost {
+  position: relative;
+  margin-left: -20px;
+  margin-right: 5px;
+  bottom: -35px;
+}
+
+#workshop-fleet #demo div.unitBuildCost > div,
+#workshop-army #demo div.unitBuildCost > div {
+  position: absolute;
+  width: 75px;
+  bottom: 0;
+}
+
+#workshop-fleet #demo table.inside td.upgrade p,
+#workshop-army #demo table.inside td.upgrade p {
+  padding-bottom: 20px;
+}
 
 /**** World map view ****/
 
