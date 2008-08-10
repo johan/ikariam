@@ -1872,8 +1872,10 @@ function showWorkerYield() {
     var workers = integer(td);
     var normal = Math.min(max, workers);
     var helpers = workers - normal;
-    var yield = sign(Math.floor(normal * perNormal + helpers * perNormal / 4));
-    td.innerHTML = workers +" ("+ yield +"/"+ locale.timeunits.short.hour +")";
+    var hourly = normal * perNormal + helpers * perNormal / 4;
+    var yield = sign(Math.floor(hourly)) +"/"+ locale.timeunits.short.hour;
+    var daily = sign(Math.floor(hourly * 24)) +"/"+ locale.timeunits.short.day;
+    td.innerHTML = workers +" ("+ yield +"; "+ daily +")";
   }
   function read(what) {
     return integer(init.match(new RegExp(what + "\\s*:\\s*(\\d+)"))[1]);
