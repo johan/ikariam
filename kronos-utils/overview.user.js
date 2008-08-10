@@ -71,10 +71,16 @@ function th(opts) {
 
 function resources() {
   function summary(h) {
-    var first = 1 == h;
+    var first = 1 == h, warehouse = "";
+    if (first)
+      warehouse = <td rowspan="3" id="warehouse-event">
+        <div>{ secsToDHMS(next, 1) }<br/>{ resolveTime(next, 2) }</div>
+        <img src={ gfx.warehouse } height="42"/>
+      </td>;
     var period = secsToDHMS(h * 3600, 0);
     var sum = <tr class={ first ? "ot-totals" : "" }>
-      <td colspan="3" class="ot-totals">{ period +" "+ totals }</td>
+      { warehouse }
+      <td colspan="2" class="ot-totals">{ period +" "+ totals }</td>
       <td class="new">{ first ? formatNumber(tot.P) : "" }</td>
       <td>{ first ? formatNumber(tot.p) : "" }</td>
     </tr>;
@@ -89,6 +95,7 @@ function resources() {
       }
     }
     var last = "@ " + resolveTime(0, true), rev = integer("$Revision$");
+    var t = secsToDHMS(next, 1);
     var a = "http://kronos-", b = ".notlong.com/";
     if (d == h)
       last = <><a href="http://kronos-utils.notlong.com/">Kronos Utils</a>
@@ -101,6 +108,7 @@ function resources() {
   }
 
   rm($("ot-1"));
+  var next = 0; // seconds until next time a warehouse fills up or runs out
   var table = <table id="ot-1" class="ot" align="center" border="1"><tr>
     { th({ bg: gfx.city }) }
     { th({ bg: gfx.isle, id: "ot-isle" }) }
@@ -161,6 +169,7 @@ function resources() {
           } else {
             t = data[n] * 3600 / -r;
           }
+          next = Math.min(next, t) || t;
           T.* = secsToDHMS(t, 0);
           T.@title = lang[r > 0 ? "full" : "empty"] + resolveTime(t, 1);
           r = sign(r);

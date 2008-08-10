@@ -98,6 +98,11 @@ table.ot tr th {
 .ot .ot-pct .eeks { background-color: #FF0000; }
 .ot .ot-pct .full { background-color: #FF0000; }
 
+#warehouse-event div {
+  margin: 8px 6px 8px 0;
+  float: right;
+}
+
 /* military table */
 
 body > table.ot#ot-2 tr th[style] {
