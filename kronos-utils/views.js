@@ -1880,7 +1880,8 @@ function showWorkerYield() {
   function read(what) {
     return integer(init.match(new RegExp(what + "\\s*:\\s*(\\d+)"))[1]);
   }
-  var init = $X('//script[contains(.,"create_slider")]').textContent;
+  var init = $X('//script[contains(.,"create_slider")]');
+  if (init) init = init.textContent; else return;
   var max = read("maxValue"), overdrive = read("overcharge");
   var perNormal = document.body.id == "resource" ? 1.0 : 0.5;
   if ($X('//li[@class="gain"][contains(@alt,"10%")]')) perNormal *= 1.1;
