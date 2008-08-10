@@ -1867,6 +1867,24 @@ function tradegoodView() {
   resourceView();
 }
 
+function showWorkerYield() {
+  function showYield(td) {
+    var workers = integer(td);
+    var normal = Math.min(max, workers);
+    var helpers = workers - normal;
+    var yield = sign(Math.floor(normal * perNormal + helpers * perNormal / 4));
+    td.innerHTML = workers +" ("+ yield +"/"+ locale.timeunits.short.hour +")";
+  }
+  function read(what) {
+    return integer(init.match(new RegExp(what + "\\s*:\\s*(\\d+)"))[1]);
+  }
+  var init = $X('//script[contains(.,"create_slider")]').textContent;
+  var max = read("maxValue"), overdrive = read("overcharge");
+  var perNormal = document.body.id == "resource" ? 1.0 : 0.5;
+  if ($X('//li[@class="gain"][contains(@alt,"10%")]')) perNormal *= 1.1;
+  $x('//td[@class="countWorkers"]').forEach(showYield);
+}
+
 function resourceView() {
   function link(a) {
     var id = urlParse("destinationCityId", a.search);
@@ -1877,6 +1895,7 @@ function resourceView() {
     pillageLink(id, { after: a });
   }
 
+  showWorkerYield();
   addClass(document.body, luxuryType("name"));
   if (/#keep:setWorkers/i.test(location.hash||"")) {
     var l = integer($X('id("resUpgrade")//div[@class="buildingLevel"]'));
