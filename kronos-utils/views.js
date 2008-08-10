@@ -1099,7 +1099,7 @@ function premiumMilitaryAdvisorView() {
       for (var i = 0; i < td.length; i++) {
         var count = integer(td[i]);
         if (!isNaN(count)) {
-          console.log(cid+"/"+units[i]+": "+count);
+          //console.log(cid+"/"+units[i]+": "+count);
           config.setCity(["T", units[i]], count, cid);
         }
       }
