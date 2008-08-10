@@ -9,7 +9,7 @@ XML.setSettings({
 });
 
 function revision(r) {
-  if (r) rev = Math.max(integer(r), rev);
+  if (r) rev = Math.max(integer(r), rev || 0);
   return rev;
 }
 

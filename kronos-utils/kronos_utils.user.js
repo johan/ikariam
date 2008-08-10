@@ -56,7 +56,7 @@
 // @unwrap
 // ==/UserScript==
 
-var kronos = this, version = "0.6", rev = 0, lang, scientists, growthDebug = 0;
+var kronos = this, version = "0.6", rev, lang, scientists, growthDebug = 0;
 /*if (config.get("debug"))*/ unsafeWindow.kronos = kronos;
 if (document.URL == location.href) { // no network error?
   if (/^http:\/\/ikariam.immortal-nights.com\/ikafight/i.test(location.href))
@@ -141,6 +141,7 @@ function augment(view, action, lang) {
     case "blockade": blockadeView(); break;
     case "deployment": deploymentView(); break;
     case "merchantNavy": merchantNavyView(); break;
+    case "premiumMilitaryAdvisor": premiumMilitaryAdvisorView(); break;
     case "militaryAdvisorReportView":
       militaryAdvisorReportViewView(); break;
     case "militaryAdvisorCombatReports":

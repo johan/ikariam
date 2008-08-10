@@ -1086,6 +1086,28 @@ function diplomacyAdvisorView() {
 
 // Military stuff:
 
+// soak up all stationed military units data at once
+function premiumMilitaryAdvisorView() {
+  function parse(table) {
+    var cities = cityIDs();
+    var units = $x('tbody/tr/th[position() > 1]/img', table);
+    units = pluck(units.map(unitStatsFromImage), "id");
+    var rows = $x('tbody/tr[td]', table);
+    for each (var cid in cities) {
+      var tr = rows.shift();
+      var td = $x('td[position() > 1]', tr);
+      for (var i = 0; i < td.length; i++) {
+        var count = integer(td[i]);
+        if (!isNaN(count)) {
+          console.log(cid+"/"+units[i]+": "+count);
+          config.setCity(["T", units[i]], count, cid);
+        }
+      }
+    }
+  }
+  $x('//div[@class="content"]/table').forEach(parse);
+}
+
 function militaryAdvisorCombatReportsView() {
   function read(e) {
     if ((e.keyCode||e.charCode) != "-".charCodeAt()) return;
@@ -1826,6 +1848,25 @@ function buildViewCompactor() {
 }
 
 
+function premiumTraderView() {
+  scrollWheelable();
+  evenShips();
+}
+
+function transportView() {
+  scrollWheelable();
+  evenShips();
+}
+
+
+function takeOfferView() {
+  scrollWheelable();
+}
+
+function tradegoodView() {
+  resourceView();
+}
+
 function resourceView() {
   function link(a) {
     var id = urlParse("destinationCityId", a.search);
@@ -1857,6 +1898,7 @@ function resourceView() {
   highlightMeInTable();
   $x('id("mainview")/div[@class="othercities"]//tr/td[@class="actions"]/' +
      'a[contains(@href,"view=sendMessage")]').forEach(link);
+  scrollWheelable();
 }
 
 
