@@ -603,7 +603,8 @@ function islandView() {
   function nextprev(event) {
     var n = event.charCode || event.keyCode;
     var next = { 37: prevIsland, 39: nextIsland }[n];
-    if (next) {
+    if (next &&
+        !(event.metaKey || event.ctrlKey || event.altKey || event.shiftKey)) {
       event.stopPropagation();
       event.preventDefault();
       goto(urlTo("island", next(island)));
@@ -770,15 +771,35 @@ function levelTown() {
     if (!city) return; // new city site
     var name = $X('text()[preceding-sibling::span]', city);
     if (name) {
+      var span = /\S/.test(name.nodeValue) ? name : name.nextSibling;
       var id = integer($X('a', li).id);
       config.setCity(["l", buildingIDs.townHall], level, id);
-      name.nodeValue = level +":"+ name.nodeValue;
+
       var wl = config.getCity(["l", buildingIDs.wall], "", id);
       if ("" != wl && config.get("debug"))
-        name.nodeValue = wl +"/"+ name.nodeValue;
+        level += "/"+ wl;
+
+      name.nodeValue = level +":"+ name.nodeValue;
       name = name.parentNode;
       name.style.left = Math.round((name.offsetWidth) / -2 + 34) + "px";
+
+      // z: 0: normal, 1: vacation, 2: inactive;
+      // Z: 1/2: first seen in this state
+      var type = { vacation: 1, inactivity: 2 }[span.className] || 0;
+      var last = config.getCity("z", 0, id);
+      var time = config.getCity("Z", 0, id);
+      var now = (new Date).getTime();
+      if (type)
+        time = last == type ? time : now;
+      config.setCity("Z", time, id);
+      config.setCity("z", type, id);
+      if (time && 2 == type) {
+        time = (now - time) / 1e3;
+        time = time > 86400 ? secsToDHMS(time, 0) +" " : "";
+        span.textContent = span.textContent.replace(/\(i\)/, "("+ time +"i)");
+      }
     }
+
     var player = city.cloneNode(true);
     player.innerHTML = '<span class="before"></span>Player name' +
       '<span class="after"></span>';
@@ -1759,7 +1780,7 @@ function workshopView() {
   }
 
   function showWhy(a) {
-    a.innerHTML += ":<br/>" + a.title;
+    if (a.title) a.innerHTML = a.title;
   }
 
   var levels = ["bronze", "silber", "gold"];
