@@ -99,10 +99,10 @@ function resources() {
     var a = "http://kronos-", b = ".notlong.com/";
     if (d == h)
       last = <><a href="http://kronos-utils.notlong.com/">Kronos Utils</a>
-               v{ version }r{ revision() }</>;
+               v{ version }{ isNaN(revision()) ? "" : "r"+revision() }</>;
     if (w == h)
       last = <><a href="http://kronos-overview.notlong.com/">Kronos Overview</a>
-               r{ rev }</>;
+               { isNaN(rev) ? "" : "r" + rev }</>;
     sum.td += <td colspan="2" class="new ot-time">{ last }</td>;
     table.tr += sum;
   }
