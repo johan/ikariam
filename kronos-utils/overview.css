@@ -25,7 +25,8 @@ table.ot tr th {
   width: auto;
 }
 
-.ot th:first-child, .ot th#ot-isle, .ot th#ot-mill, .ot th#ot-time {
+.ot th:first-child, .ot th#ot-isle, .ot th#ot-mill, .ot th#ot-time,
+.ot #ot-free-citizens {
   border-left: none;
 }
 

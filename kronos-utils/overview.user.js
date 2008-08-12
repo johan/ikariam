@@ -113,7 +113,8 @@ function resources() {
     { th({ bg: gfx.city }) }
     { th({ bg: gfx.isle, id: "ot-isle" }) }
     <th id="ot-mill"/>
-    { th({ colspan: 2, bg: gfx.pop }) }
+    { th({ bg: gfx.pop }) }
+    { th({ bg: gfx.citizen, id: "ot-free-citizens" }) }
   </tr></table>;
 
   var count = 6, stuff = [];
@@ -138,6 +139,7 @@ function resources() {
     var cname = names[i], iname = isle.x +":"+ isle.y;
     var curl = urlTo("city", cid);
     var iurl = urlTo("island", { island: iid, city: cid });
+    var aurl = urlTo("academy", cid);
     var data = cityData(cid), hurl = urlTo("townHall", cid);
     var row = <tr>
       <td class="ot-city"><a href={ curl }>{ cname }</a></td>
@@ -148,7 +150,7 @@ function resources() {
       <td class="ot-mill"><a href={ resUrl("w", cid) }>{ isle.w }</a></td>
       <td class="ot-hall new"><a href={ hurl }>{ formatNumber(data.P) }</a>
       { ""/*pct(data.P, cityMaxPopulation(cid))*/ }</td>
-      <td class="ot-free">{ formatNumber(data.p) }</td>
+      <td class="ot-free"><a href={ aurl }>{ formatNumber(data.p) }</a></td>
     </tr>;
     if (current == cid) row.@class = "ot-current";
 
@@ -161,13 +163,14 @@ function resources() {
         p = pct(data[n], max[n], true);
 
         // consumption/replenish rate and emptiness/fillage times:
-        var r = pace[n] || "", t, T = <td class="ot-end"/>;
+        var r = pace[n] || "", t, T = <td class="ot-end"/>, tavern = false;
         if (r) {
           rates[n] = (rates[n] || 0) + r;
           if (r > 0) {
             t = (warehouseCapacity(cid)[n] - data[n]) * 3600 / r;
           } else {
             t = data[n] * 3600 / -r;
+            tavern = n == "W";
           }
           next = Math.min(next, t) || t;
           T.* = secsToDHMS(t, 0);
@@ -176,6 +179,8 @@ function resources() {
         }
         if (isle.r == n || "w" == n)
           r = <a href={ resUrl(n, cid) }>{ r }</a>;
+        else if (tavern)
+          r = <a href={ urlTo("tavern", cid) }>{ r }</a>;
         rate = <><td class="ot-rate">{ r }</td>{ T }</>;
       }
       row.td += <td class="ot-stuff new">{ v }{ p }</td>;
