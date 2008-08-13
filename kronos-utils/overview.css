@@ -82,6 +82,11 @@ table.ot tr th {
   bottom: -2px;
 }
 
+/* spending resources places */
+.ot tr td a.ot-hiddenlink {
+  color: inherit;
+}
+
 /* progress bar styling */
 
 #options table.ot-pct,

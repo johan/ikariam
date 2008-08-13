@@ -86,6 +86,8 @@ var gfx = {
         time: "/skin/resources/icon_time.gif",
         bulb: "/skin/layout/bulb-on.gif",
         city: "/skin/layout/icon-city2.gif",
+     bigcity: "/skin/layout/city.gif",
+        pale: "/skin/layout/icon-palm.gif",
         isle: "/skin/layout/icon-island.gif",
        build: "/skin/icons/city_30x30.gif",
 

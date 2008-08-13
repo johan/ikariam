@@ -132,7 +132,8 @@ function resources() {
   </>;
 
   var ids = cityIDs(), names = cityNames(), current = referenceCityID();
-  var tot = {}, rates = {};
+  var tot = {}, rates = {}, link = { g: "port", w: "shipyard", W: "tavern",
+                                     C: "workshop-army", S: "barracks" };
   for (var i = 0; i < ids.length; i++) {
     var cid = ids[i], iid = config.getCity(["i"], null, cid);
     var isle = config.getIsle([], null, iid);
@@ -148,29 +149,32 @@ function resources() {
         <a id={ "ot-"+cid }>{ isle.R } </a>
       </td>
       <td class="ot-mill"><a href={ resUrl("w", cid) }>{ isle.w }</a></td>
-      <td class="ot-hall new"><a href={ hurl }>{ formatNumber(data.P) }</a>
-      { ""/*pct(data.P, cityMaxPopulation(cid))*/ }</td>
-      <td class="ot-free"><a href={ aurl }>{ formatNumber(data.p) }</a></td>
+      <td class="ot-hall new">
+        <a href={ hurl }>{ formatNumber(data.P) }</a>
+      </td><td class="ot-free">
+        <a class="ot-hiddenlink" href={ aurl }>{ formatNumber(data.p) }</a>
+      </td>
     </tr>;
     if (current == cid) row.@class = "ot-current";
 
     var pace = cityReapingPace(cid); data.g = pace.g;
     for each (n in stuff) {
       var v = formatNumber(data[n], "g" == n), p = "";
+      if (link[n] && config.getCity(["l", buildingIDs[link[n]]], 0, cid))
+        v = <a class="ot-hiddenlink" href={ urlTo(link[n], cid) }>{ v }</a>;
       var rate = <></>;
       if ("g" != n) {
         var max = warehouseCapacity(cid);
         p = pct(data[n], max[n], true);
 
         // consumption/replenish rate and emptiness/fillage times:
-        var r = pace[n] || "", t, T = <td class="ot-end"/>, tavern = false;
+        var r = pace[n] || "", t, T = <td class="ot-end"/>;
         if (r) {
           rates[n] = (rates[n] || 0) + r;
           if (r > 0) {
             t = (warehouseCapacity(cid)[n] - data[n]) * 3600 / r;
           } else {
             t = data[n] * 3600 / -r;
-            tavern = n == "W";
           }
           next = Math.min(next, t) || t;
           T.* = secsToDHMS(t, 0);
@@ -179,8 +183,6 @@ function resources() {
         }
         if (isle.r == n || "w" == n)
           r = <a href={ resUrl(n, cid) }>{ r }</a>;
-        else if (tavern)
-          r = <a href={ urlTo("tavern", cid) }>{ r }</a>;
         rate = <><td class="ot-rate">{ r }</td>{ T }</>;
       }
       row.td += <td class="ot-stuff new">{ v }{ p }</td>;
@@ -239,7 +241,7 @@ function military() {
 
   rm($("ot-2"));
   var table = <table id="ot-2" class="ot" align="center" border="1"><tr>
-    { th({ bg: gfx.city }) }
+    { th({ bg: gfx.bigcity || gfx.city }) }
   </tr></table>;
 
   var ids = cityIDs(), names = cityNames(), current = referenceCityID();
