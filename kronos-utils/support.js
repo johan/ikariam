@@ -419,17 +419,19 @@ function clickable(tag, onclick, id) {
   clickTo(tag, onclick);
 }
 
-function toggler(img, callback, url) {
-  toggler.id = (toggler.id || 0) + 1;
-  var id = "toggler" + toggler.id;
+function toggler(img, callback, url, baseNode, id) {
+  if (!id) {
+    toggler.id = (toggler.id || 0) + 1;
+    id = "toggler" + toggler.id;
+  }
   var pane = $("miniPane") || node({ append: $("breadcrumbs"),
                                      tag: <div id="miniPane"/> }).miniPane;
   node({ tag: <a id={ id } href={ url || "#" }> <img src={ img }/></a>,
-         append: pane });
+         append: baseNode || pane });
   clickTo($(id), callback);
 }
 
-function cssToggler(id, enabled, img, css, cb) {
+function cssToggler(id, enabled, img, css, cb, baseNode) {
   function toggle() {
     css.disabled = config.set("default-"+id, !css.disabled);
     if (isFunction(cb)) cb(!css.disabled);
@@ -438,7 +440,7 @@ function cssToggler(id, enabled, img, css, cb) {
   css = node({ tag: "style", text: css,
                append: document.documentElement.firstChild });
   css.disabled = config.get("default-"+id, !enabled);
-  toggler(img, toggle, "#"+id);
+  toggler(img, toggle, "#"+id, baseNode, id);
 }
 
 function cityHasBuilding(b) {

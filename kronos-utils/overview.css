@@ -87,6 +87,17 @@ table.ot tr th {
   color: inherit;
 }
 
+/* table toggler */
+
+#ot-toggler {
+  position: absolute;
+  opacity: 0.3;
+  left: 8px;
+  top: 22px;
+}
+
+#ot-toggler:hover { opacity: 0.5; }
+
 /* progress bar styling */
 
 #options table.ot-pct,

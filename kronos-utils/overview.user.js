@@ -12,7 +12,7 @@ var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
   "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
   "formatNumber,cityMaxPopulation,warehouseCapacity,militaryScoreFor,resUrl," +
   "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime,rm,revision," +
-  "referenceCityID,clickTo";
+  "referenceCityID,clickTo,cssToggler:6";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
 
@@ -26,8 +26,10 @@ function init(next) {
       error = "This script needs Kronos Utils installed to work. Install now?";
 
   if (kronos) {
-    borrowed.split(",").forEach(function borrow(ident) {
+    borrowed.split(",").forEach(function borrow(ident, argc) {
+      [ident, argc] = ident.split(":");
       okay = okay && (me[ident] = kronos[ident]);
+      if (argc && argc != me[ident].length) okay = false;
     });
     me.totals = lang.totals||"Σ";
   }
@@ -47,6 +49,9 @@ function init(next) {
     ignoreComments: false,
     prettyPrinting: false, prettyIndent: 2
   });
+
+  cssToggler("ot-toggler", false, gfx.plus, "table.ot { display: none; }",
+             null, $("footer"));
 
   redraw();
   addEventListener("focus", redraw, false);

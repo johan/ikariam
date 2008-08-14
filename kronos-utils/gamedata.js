@@ -87,8 +87,9 @@ var gfx = {
         bulb: "/skin/layout/bulb-on.gif",
         city: "/skin/layout/icon-city2.gif",
      bigcity: "/skin/layout/city.gif",
-        pale: "/skin/layout/icon-palm.gif",
+        palm: "/skin/layout/icon-palm.gif",
         isle: "/skin/layout/icon-island.gif",
+        plus: "/skin/buttons/premiumadvisors_plus.gif",
        build: "/skin/icons/city_30x30.gif",
 
        sword: getSword,
