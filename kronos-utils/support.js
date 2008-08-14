@@ -440,7 +440,7 @@ function cssToggler(id, enabled, img, css, cb, baseNode) {
   css = node({ tag: "style", text: css,
                append: document.documentElement.firstChild });
   css.disabled = config.get("default-"+id, !enabled);
-  toggler(img, toggle, "#"+id, baseNode, id);
+  toggler(img, toggle, "#"+id, baseNode, baseNode && id);
 }
 
 function cityHasBuilding(b) {
@@ -520,8 +520,9 @@ function sum(a, b) {
   return integer(a || 0) + integer(b || 0);
 }
 
-var console = { log: function(x) {
-  if (!config.get("debug")) return;
-  x = isString(x) ? string(x) : x;
-  location.href = "javascript:void console.log(" + x +")";
-}};
+if (!console.time)
+  var console = { log: function(x) {
+    if (!config.get("debug")) return;
+    x = isString(x) ? string(x) : x;
+    location.href = "javascript:void console.log(" + x +")";
+  }};
