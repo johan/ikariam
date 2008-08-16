@@ -600,6 +600,10 @@ function buildingExtraInfo(div, id, name, level) {
       if (originalLevel != level && wood && rest)
         annotate(wood +"/"+ rest);
       break;
+
+    case "port":
+      annotate(kronos.buildingCapacity("port", level) * -20);
+      break;
   }
 }
 
@@ -1639,10 +1643,10 @@ function dblClickTo(node, action, condition, capture) {
   clickTo(node, action, condition, capture, "dblclick");
 }
 
-function clickTo(node, action, condition, capture, event, when) {
+function clickTo(div, action, condition, capture, event, when) {
   if (isArray(node)) return map(clickTo, arguments);
-  if (node) {
-    node.addEventListener(event || "click", function(e) {
+  if (div) {
+    div.addEventListener(event || "click", function(e) {
       if (e.button || when && !when(e)) return;
       if (!condition || $X(condition, e.target)) {
         e.stopPropagation();
@@ -1653,7 +1657,7 @@ function clickTo(node, action, condition, capture, event, when) {
           goto(action);
       }
     }, !!capture);
-    node.style.cursor = "pointer";
+    div.style.cursor = "pointer";
   }
 }
 
@@ -2692,11 +2696,15 @@ function projectCompletion(id, className, loc) {
   return time;
 }
 
+function greek(hostname) {
+  return "αβγδεζηθικλμνξοπρστυφχψω".charAt(integer(hostname) - 1);
+}
+
 function title(detail) {
   var server = location.hostname.match(/^s(\d+)\.(.*)/), host = "";
   if (server) {
     host = " "+ server[2];
-    server = "αβγδεζηθικλμνξοπρστυφχψω".charAt(parseInt(server[1], 10)-1);
+    server = greek(server[1]);
   }
   if (!detail)
     detail = $X('id("breadcrumbs")/*[last()]');
@@ -2735,9 +2743,9 @@ function clickResourceToSell() {
 Ajout du panel dans le menu
 ---------------------*/
 function panelInfo() { // Ajoute un element en plus dans le menu.
-  var r = revision(), panel = <div class="dynamic">
+  var r = revision() ? "r" + revision() : "", panel = <div class="dynamic">
     <h3 class="header">
-      <a href="http://kronos-utils.notlong.com/">Kronos</a> { version }r{ r }:
+      <a href="http://kronos-utils.notlong.com/">Kronos</a> { version }{ r }:
       <a href={"#"+ config.get("language")} id="language">{ lang.language }</a>
       <a href={ urlTo("library") } title="Library" class="help">
         <span class="textLabel">Library</span>
