@@ -39,7 +39,7 @@ function merchantNavyView() {
       colUndo: { "-1": [L,  ],  "0": [L   ],  "1": [L   ] },
       attMiss: { "-1": [R,  ],  "0": [L, x],  "1": [L, x] },
       attUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
-      attBack: { "-1": [L   ],  "0": [L, x],  "1": [L, x] },// 0: YOUR name :/
+      attBack: { "-1": [L   ],  "0": [L   ],  "1": [L, x] },// 0: YOUR name :/
       buyMiss: { "-1": [R,  ],  "0": [L,  ],  "1": [R   ] },
       buyUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
       buyBack: { "-1": [L,  ],  "0": [L, x],  "1": [L, x] },
@@ -1716,7 +1716,7 @@ function plunderView(where) {
 function workshopView() {
   function show(td, base, delta, upkeep, unit, ad, cost, stats) {
     function row(stats, cost, unit) {
-      console.log([stats,cost,unit].join("/"));
+      //console.log([stats,cost,unit].join("/"));
       return <div class="stats">
         <span style={"opacity:"+ opacity}>{ (stats / cost).toFixed(2) }</span>
         <img style="margin: 0" src={ icon } height="10"/>
@@ -1764,7 +1764,7 @@ function workshopView() {
            <li class="time" style={"background-image: url("+ gfx.upkeep +")"}>
              { upkeep } / h
            </li> });
-    costs = <div class="unitBuildCost">{ left }{ right }</div>;
+    var costs = <div class="unitBuildCost">{ left }{ right }</div>;
     node({ append: cost, tag: costs });
   }
 
@@ -1907,6 +1907,11 @@ function showWorkerYield() {
   var perNormal = document.body.id == "resource" ? 1.0 : 0.5;
   if ($X('//li[@class="gain"][contains(@alt,"10%")]')) perNormal *= 1.1;
   $x('//td[@class="countWorkers"]').forEach(showYield);
+  $x('//td[@class="cityname"]/a').forEach(showPlayerInactivity);
+}
+
+function showPlayerInactivity(a) {
+  var cid = urlParse("selectCity", a.search);
 }
 
 function resourceView() {
