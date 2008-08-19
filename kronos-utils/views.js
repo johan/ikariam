@@ -1257,10 +1257,13 @@ function militaryAdvisorReportViewView() {
 
   if (q.combatId) {
     var wall = $X('id("ergebnis")//td[img[contains(@src,"wall.gif")]]');
+    var buildings = config.getCity("l", {}, city);
     var defense = $X('following-sibling::td[contains(.,"%")]', wall);
     if (defense && wall) {
       var text = wall.lastChild, txt = text.nodeValue;
-      text.nodeValue = txt.replace(":", " "+ wallLevel(defense, city) +":");
+      wall = buildings[buildingIDs.wall] = wallLevel(defense, city);
+      text.nodeValue = txt.replace(":", " "+ wall +":");
+      config.setCity("l", buildings, city);
     }
     url += "detailedCombatId="+ q.combatId +'#before=id("troopsReport"):'+
       encodeURIComponent(encodeURIComponent(trim(panel.innerHTML)));
@@ -1571,8 +1574,9 @@ function detailedCombatView() {
     def = Math.min(3, def);
     units[unit.id] = n[i];
     levels[unit.id] = { a: att, d: def };
-    att = <img alt={"["+ att +"]"} src={ gfx.sword(att) }/>;
-    def = <img alt={"["+ def +"]"} src={ gfx.shield(def) }/>;
+    var at = "["+ att +"]", dt = "["+ def +"]";
+    att = <img alt={ at } title={ at } src={ gfx.sword(att) }/>;
+    def = <img alt={ dt } title={ dt } src={ gfx.shield(def) }/>;
     att.@style = def.@style = "margin-left: -31px; position: absolute;";
     node({ prepend: attack[i], tag: att });
     node({ prepend: defend[i], tag: def });
@@ -1601,14 +1605,23 @@ function detailedCombatView() {
 
 
 function deploymentView() {
-  plunderView("army");
+  sendUnits("army");
 }
 
 function blockadeView() {
-  plunderView("fleet");
+  sendUnits("fleet");
 }
 
-function plunderView(where) {
+function plunderView() {
+  var city = sendUnits();
+  var wall = config.getCity(["l", buildingIDs.wall], NaN, city);
+  if (!isNaN(wall)) {
+    node({ append: $X('//div[@class="content"]/p/strong'), tag: <> (<img src={
+           gfx.citywall } style="margin-bottom: -2px;"/> { wall })</> });
+  }
+}
+
+function sendUnits(where) {
   function simulateBattle() {
     function count(input) {
       var unit = readUnit(input);
@@ -1631,7 +1644,6 @@ function plunderView(where) {
     send.forEach(count);
     var to = $X('id("mainview")//input[@name="destinationCityId"]');
     if (to) {
-      var city = integer(to);
       var player = config.getCity("o", "", city);
       if (player) {
         var nmiLevels = config.getServer(["players", player, "u"], {});
@@ -1707,9 +1719,23 @@ function plunderView(where) {
   onChange($x('//input[@type="text" and starts-with(@id,"cargo_")]'),
            updateMilitaryScores, "value", "watch");
 
+  var to = $X('id("mainview")//input[@name="destinationCityId"]');
+  var city = to && integer(to);
+
   scrollWheelable();
   dontSubmitZero(2, 'id("selectArmy")//input[@type="submit"]');
   toggler(gfx.swords, ikaFight);
+
+  var level = config.getCity(["l", buildingIDs.townHall], undefined, city);
+  if (level) {
+    var owner = config.getCity("o", 0, city);
+    var type = ["", "vacation", "inactivity"][config.getCity("z", 0, city)];
+    var col = config.getServer("treaties", []).indexOf(owner)+1 ? "green" : "";
+    node({ prepend: $X('//div[@class="content"]/p[strong]'), tag:
+           <div class="k-target-city"><img src={ gfx.islecity(level, col) }/>
+           <div class={ type }>{ level }</div></div> });
+  }
+  return city;
 }
 
 

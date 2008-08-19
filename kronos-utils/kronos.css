@@ -971,19 +971,31 @@ hr#vr {
   width:  674px;
 }
 
+.k-target-city {
+  float: right;
+  font-size: 16px;
+  text-align: center;
+  margin-right: -15px;
+}
+
+.k-target-city .inactivity {
+  font-style: italic;
+  opacity: 0.4;
+}
+
 
 /**** resource view ****/
 #tradegood.wine #mainview #setWorkers .workers {
-  background-image: url(http://duckpit.hamptonlane.co.uk/images/ikariam/kronos/workers/worker_wine.png);
+  background-image: url(http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/gfx/worker_wine.png);
 }
 #tradegood.marble #mainview #setWorkers .workers {
-  background-image: url(http://duckpit.hamptonlane.co.uk/images/ikariam/kronos/workers/worker_marble.png);
+  background-image: url(http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/gfx/worker_marble.png);
 }
 #tradegood.crystal #mainview #setWorkers .workers {
-  background-image: url(http://duckpit.hamptonlane.co.uk/images/ikariam/kronos/workers/worker_crystal.png);
+  background-image: url(http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/gfx/worker_crystal.png);
 }
 #tradegood.sulfur #mainview #setWorkers .workers {
-  background-image: url(http://duckpit.hamptonlane.co.uk/images/ikariam/kronos/workers/worker_sulphur.png);
+  background-image: url(http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/gfx/worker_sulphur.png);
 }
 
 

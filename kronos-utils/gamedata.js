@@ -71,6 +71,13 @@ function getShield(level) {
   if (!level) return "http://img262.imageshack.us/img262/800/72814733ej8.gif";
   return "/skin/layout/shield-icon"+ (4-level) +".gif";
 }
+function getCity(level, col) {
+  var levels = [1, 2, 4, 7, 10, 13, 16, 18], lvl;
+  do {
+    lvl = levels.indexOf(level--) + 1;
+  } while (!lvl);
+  return "/skin/img/island/city_"+ lvl +"_"+ (col || "red") +".gif";
+}
 
 var gfx = {
         wood: "/skin/resources/icon_wood.gif",
@@ -87,6 +94,7 @@ var gfx = {
         bulb: "/skin/layout/bulb-on.gif",
         city: "/skin/layout/icon-city2.gif",
      bigcity: "/skin/layout/city.gif",
+    citywall: "/skin/layout/icon-wall.gif",
         palm: "/skin/layout/icon-palm.gif",
         isle: "/skin/layout/icon-island.gif",
         plus: "/skin/buttons/premiumadvisors_plus.gif",
@@ -94,8 +102,10 @@ var gfx = {
 
        sword: getSword,
       shield: getShield,
+    islecity: getCity,
 
       swords: "/skin/layout/icon-crossedswords.gif", // 33x27
+   bigshield: "/skin/unitdesc/unit_defend.gif", // 26x26
       attack: "/skin/layout/sword-icon-report.gif",
       defend: "/skin/layout/shield-icon-report.gif",
      stamina: "/skin/layout/icon-endurance2.gif",
