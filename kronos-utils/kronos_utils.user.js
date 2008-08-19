@@ -539,13 +539,14 @@ function haveEnoughToUpgrade(b, level, have) {
 }
 
 function wallLevel(defense, city) {
-  var level = 0, defense = number(defense), wall = ["l", buildingIDs.townHall];
+  var level = 0, defense = number(defense);
+  var levels = config.getCity("l", {}, city);
   if (defense) {
-    var townHall = config.getCity(wall, null, city);
+    var townHall = levels[buildingIDs.townHall];
     if (!townHall) return undefined;
     level = Math.sqrt(defense * townHall / 10);
   }
-  return config.setCity(wall, Math.round(level), city);
+  return config.setCity(["l", buildingIDs.townWall], Math.round(level), city);
 }
 
 function buildingExtraInfo(div, id, name, level) {
@@ -556,7 +557,7 @@ function buildingExtraInfo(div, id, name, level) {
     div.style.width = "auto";
   }
 
-  if (("wall" != name) && !isMyCity()) return;
+  if (("wall" != name) && ("port" != name) && !isMyCity()) return;
   var originalLevel = buildingLevel(id, 0, "saved");
 
   switch (name) {
