@@ -56,7 +56,9 @@ reports: {
       r: { }, // saved resource inventory / info for the city
       x: { bID:building-special - tavern: wine level; academy: scientists,
            r: resourceWorkers, w: woodWorkers, museum: culture items },
-      b: { bID:time busy to }
+      b: { bID:time busy to },
+      z: 0: normal, 1: vacation, 2: inactive
+      Z: normal: last seen; vacation/inactive: 1st-seen
     }, ...
   },
   islands: {
@@ -81,6 +83,15 @@ var none = { v: 1, capital: 0, treaties: [], spies: {}, players: {},
 
 var data = eval(GM_getValue("config", {}) || {});
 var server = eval(GM_getValue(location.host, none) || none);
+
+function getServers() {
+  function domain(s) { return s.split("ikariam.").pop(); }
+  function byDomain(a, b) {
+    var A = domain(a), B = domain(b);
+    return A == B ? integer(a) - integer(b) : A > B;
+  }
+  return GM_listValues().filter(/^s\d/).sort(byDomain);
+}
 
 function saveConfig() {
   if (isDefined(data))

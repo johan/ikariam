@@ -12,7 +12,7 @@ var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
   "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
   "formatNumber,cityMaxPopulation,warehouseCapacity,militaryScoreFor,resUrl," +
   "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime,rm,revision," +
-  "referenceCityID,clickTo,cssToggler:6";
+  "referenceCityID,clickTo,cssToggler:6,upgradedUnitStats";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
 
@@ -258,11 +258,16 @@ function military() {
     }
     table.tr.th += th({ colspan: 2, bg: imageFromUnit(uid) });
   }
-  table.tr.th += <th colspan="2" class="new">{ totals }</th>
+  table.tr.th += <>
+    <th colspan="2" class="new">{ totals }</th>
+    {th({ "class": "same", bg: gfx.swords })}
+    {th({ "class": "same", bg: gfx.bigshield })}
+  </>;
 
+  var Atot = 0, Dtot = 0;
   for (var i = 0; i < ids.length; i++) {
     var cid = ids[i];
-    var ctot = 0, Ctot = 0;
+    var ctot = 0, Ctot = 0, atot = 0, dtot = 0;
     var cname = names[i];
     var curl = urlTo("city", cid);
     var data = byCity[i];
@@ -273,10 +278,14 @@ function military() {
     </tr>;
     if (current == cid) row.@class = "ot-current";
     for (uid in all) {
+      var stats = upgradedUnitStats(uid);
       ctot += data[uid] || 0;
-      var v = data[uid] ? formatNumber(data[uid]) : "";
-      if (v)
-        v = <a href={ uid < 300 ? surl : burl }>{ v }</a>
+      var n = data[uid], v = n ? formatNumber(n) : "";
+      if (v) {
+        v = <a href={ uid < 300 ? surl : burl }>{ v }</a>;
+        atot += n * stats.a;
+        dtot += n * stats.d;
+      }
       row.td += <td class="ot-stuff new">{ v }</td>;
       v = militaryScoreFor(integer(uid), integer(data[uid]));
       if (v) {
@@ -287,25 +296,59 @@ function military() {
     }
     row.td += <td class="ot-stuff new">{ ctot ? formatNumber(ctot) : "" }</td>;
     row.td += <td class="ot-stuff">{ Ctot ? formatNumber(Ctot) : "\xA0" }</td>;
+    row.td += <td class="ot-stuff">{ atot ? formatNumber(atot) : "\xA0" }</td>;
+    row.td += <td class="ot-stuff">{ dtot ? formatNumber(dtot) : "\xA0" }</td>;
     table.tr += row;
+    Atot += atot;
+    Dtot += dtot;
   }
 
   var sum = <tr class="ot-totals">
     <td class="ot-totals">{ totals }</td>
+  </tr>, sta = <tr class="ot-stats">
+    <td class="ot-stats"><img src={ gfx.attack }/> </td>
+  </tr>, std = <tr class="ot-stats">
+    <td class="ot-stats"><img src={ gfx.defend }/> </td>
   </tr>;
-  tot = ctot = 0;
-  for (cid in all) {
-    v = all[cid];
-    sum.td += <td class="new">{ formatNumber(v) }</td>;
-    tot += v;
+  tot = ctot = atot = dtot = 0;
+  for (uid in all) {
+    var n = all[uid];
+    sum.td += <td class="new">{ formatNumber(n) }</td>;
+    tot += n;
 
-    v = militaryScoreFor(integer(cid), integer(v));
+    v = militaryScoreFor(integer(uid), integer(n));
     sum.td += <td class="">{ v ? formatNumber(v) : "\xA0" }</td>;
     ctot += v;
+
+    stats = upgradedUnitStats(uid);
+    var att = stats.la, def = stats.ld;
+    var at = "["+ att +"]", dt = "["+ def +"]", A = stats.A, D = stats.D;
+    att = A ? <img alt={ at } title={ at } src={ gfx.sword(att) }/> : "";
+    def = D ? <img alt={ dt } title={ dt } src={ gfx.shield(def) }/> : "";
+    sta.td += <td class="new" colspan="2"> { att } { n * stats.a }</td>;
+    std.td += <td class="new" colspan="2"> { def } { n * stats.d }</td>;
+
+    atot += n * stats.a;
+    dtot += n * stats.d;
   }
-  sum.td += <td class="new">{ tot ? formatNumber(tot) : "" }</td>;
-  sum.td += <td class="">{ ctot ? formatNumber(ctot) : "\xA0" }</td>;
+
+   tot =  tot ? formatNumber( tot) : "";
+  ctot = atot ? formatNumber(ctot) : "\xA0";
+  atot = atot ? formatNumber(atot) : "\xA0";
+  dtot = dtot ? formatNumber(dtot) : "\xA0";
+  Atot = Atot ? formatNumber(Atot) : "\xA0";
+  Dtot = Dtot ? formatNumber(Dtot) : "\xA0";
+
+  sta.td += <td class="new left" colspan="4" id="ot-atot">{ atot }</td>;
+  std.td += <td class="new left" colspan="4">{ dtot }</td>;
+  sum.td += <td class="new">{ tot }</td>;
+  sum.td += <td class="">{ ctot }</td>;
+  sum.td += <td class="">{ Atot }</td>;
+  sum.td += <td class="">{ Dtot }</td>;
+
   table.tr += sum;
+  table.tr += sta;
+  table.tr += std;
 
   node({ append: document.body, tag: table });
 }

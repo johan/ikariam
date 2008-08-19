@@ -26,7 +26,7 @@ table.ot tr th {
 }
 
 .ot th:first-child, .ot th#ot-isle, .ot th#ot-mill, .ot th#ot-time,
-.ot #ot-free-citizens {
+.ot #ot-free-citizens, .ot th.same {
   border-left: none;
 }
 
@@ -39,9 +39,14 @@ table.ot tr th {
   border-left: double;
 }
 
-.ot tr.ot-totals {
+.ot tr.ot-totals, #ot-atot {
   font-weight: bold;
   border-top: medium double;
+}
+
+.ot td.left {
+  text-align: left;
+  padding-left: 4px;
 }
 
 .ot .ot-project {
@@ -74,6 +79,21 @@ table.ot tr th {
 .ot tr td.ot-totals {
   padding-right: 3px;
   text-align: right;
+}
+
+#options .ot tr.ot-stats td.ot-stats,
+.ot tr.ot-stats td.ot-stats {
+  text-align: right;
+}
+
+#options .ot tr.ot-stats td,
+.ot tr.ot-stats td {
+  font-weight: bold;
+}
+
+#options .ot tr.ot-stats td img,
+.ot tr.ot-stats td img {
+  margin-bottom: -3px;
 }
 
 .ot tr td.ot-isle a img {

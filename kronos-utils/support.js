@@ -461,6 +461,14 @@ function cityName(id) {
   return name[id];
 }
 
+function upgradedUnitStats(unit) {
+  var att = config.getServer("techs.units."+ unit +".a", 0);
+  var def = config.getServer("techs.units."+ unit +".d", 0);
+  unit = troops[unit] || ships[unit];
+  return { a: unit.a + att * unit.A, A: unit.A, la: att,
+           d: unit.d + def * unit.D, D: unit.D, ld: def };
+}
+
 function militaryScoreFor(unit, count) {
   if (isNumber(unit))
     unit = troops[unit] || ships[unit];
