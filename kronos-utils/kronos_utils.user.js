@@ -158,6 +158,7 @@ function augment(view, action, lang) {
     case "academy": academyView(); break;
     case "options": optionsView(); break;
   }
+  demolitionHelper();
 
   if (!$("tabz") && $("tearing"))
     cityTabs();
@@ -187,8 +188,32 @@ function augment(view, action, lang) {
   }
 }
 
+function demolitionHelper() {
+  function pullDown() {
+    var l = prompt("To what level do you want to demote this building? (0 to " +
+                   "remove entirely) Once started, to abort, you must close " +
+                   "the browser window. Cancel now to abort immediately.", 0);
+    if (null === l) return;
+    demolish.hash = "#purge:" + l;
+    goto(demolish.href);
+  }
+  var demolish = $X('//a[contains(@href,"function=downgradeBuilding")]');
+  if (!demolish) return;
+  altClickTo(demolish, pullDown, undefined, true);
+}
+
+function demolishBuilding(targetLevel) {
+  var hash = location.hash;
+  var q = urlParse("", location.search), level = q.level = integer(q.level) - 1;
+  if (level > targetLevel)
+    return setTimeout(function() { goto("?" + makeQuery(q) + hash); }, 100);
+}
+
 function processHash() {
   if (location.hash) {
+    if (location.hash.match(/^#purge:\d+/))
+      return demolishBuilding(integer(location.hash));
+
     var fn = location.hash.match(/^#call:(.*)/);
     if (fn && (fn = kronos[fn[1]])) setTimeout(fn, 1e3);
 
@@ -331,7 +356,8 @@ function luxuryType(type) {
 
 function goto(href) {
   //console.log("aborted goto %x", href); return;
-  location.href = href.match(/\?/) ? href : urlTo(href);
+  if (!href.match(/\?/)) return goto(urlTo(href));
+  location.href = location.href.replace(/[?#]?.*/, href);
 }
 
 function gotoCity(url, id) {
