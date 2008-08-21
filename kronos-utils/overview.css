@@ -18,11 +18,15 @@ table.ot tr th {
   font-weight: bold;
   text-align: center;
   border-bottom: double;
-  background-color: #A8A92A;
+  background-color: #AF8741;
   background-repeat: no-repeat;
   background-position: 50%;
   color: #542C0F;
   width: auto;
+}
+
+table#ot-2.ot tr th {
+  font-size: 26px;
 }
 
 .ot th:first-child, .ot th#ot-isle, .ot th#ot-mill, .ot th#ot-time,
