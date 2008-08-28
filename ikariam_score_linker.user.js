@@ -1,5 +1,5 @@
 //
-// version 0.6.1
+// version 0.6.7
 // 2008-04-04
 // Copyright (c) 2008, ImmortalNights
 // Special Enhancements: wphilipw, ecamanaut
@@ -43,6 +43,7 @@
 // 0.6.4: Bugfix for confusion when Kronos Utils adds info to the town size field. Also made sure Gold Scores don't wrap even if their contents get long.
 // 0.6.5: Paints demilitarized (but neither allied nor your own) cities yellow.
 // 0.6.6: Added some more key bindings: d/t/p/b/s, for all(?) the city actions.
+// 0.6.7: Dropped all keyboard shortcuts.
 //
 // --------------------------------------------------------------------
 //
