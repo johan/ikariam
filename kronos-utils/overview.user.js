@@ -10,9 +10,9 @@
 
 var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
   "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
-  "formatNumber,cityMaxPopulation,warehouseCapacity,militaryScoreFor,resUrl," +
+  "formatNumber,cityMaxPopulation,warehouseCapacity,milScoreFor,upkeepFor," +
   "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime,rm,revision," +
-  "referenceCityID,clickTo,cssToggler:6,upgradedUnitStats";
+  "referenceCityID,clickTo,cssToggler:6,upgradedUnitStats,resUrl";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
 
@@ -237,12 +237,22 @@ function resources() {
 }
 
 function military() {
+  function toggleFeature() {
+    what = features[1 - features.indexOf(what)];
+    config.set("ot-feature", what);
+    redraw();
+  }
   function getMil(cid) {
     var mil = config.getCity("T", {}, cid);
     for (var id in mil)
       all[id] = (all[id] || 0) + mil[id];
     return mil;
   }
+
+  var id = "ot-mil-feature";
+  var features = ["upkeep", "milScore"];
+  var what = config.get("ot-feature", features[0]);
+  var cb = this[what + "For"];
 
   rm($("ot-2"));
   var table = <table id="ot-2" class="ot" align="center" border="1"><tr>
@@ -259,7 +269,8 @@ function military() {
     table.tr.th += th({ colspan: 2, bg: imageFromUnit(uid) });
   }
   table.tr.th += <>
-    <th colspan="2" class="new">{ totals }</th>
+    <th class="new">{ totals }</th>
+    {th({ "class": "same", bg: gfx[what], id: id })}
     {th({ "class": "same", bg: gfx.swords })}
     {th({ "class": "same", bg: gfx.bigshield })}
   </>;
@@ -287,7 +298,7 @@ function military() {
         dtot += n * stats.d;
       }
       row.td += <td class="ot-stuff new">{ v }</td>;
-      v = militaryScoreFor(integer(uid), integer(data[uid]));
+      v = cb(integer(uid), integer(data[uid]));
       if (v) {
         Ctot += v;
         v = formatNumber(v);
@@ -316,7 +327,7 @@ function military() {
     sum.td += <td class="new">{ formatNumber(n) }</td>;
     tot += n;
 
-    v = militaryScoreFor(integer(uid), integer(n));
+    v = cb(integer(uid), integer(n));
     sum.td += <td class="">{ v ? formatNumber(v) : "\xA0" }</td>;
     ctot += v;
 
@@ -351,6 +362,7 @@ function military() {
   table.tr += std;
 
   node({ append: document.body, tag: table });
+  clickTo($(id), toggleFeature);
 }
 
 function pct(lvl, tot, warn) {

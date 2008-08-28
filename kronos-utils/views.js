@@ -1694,7 +1694,7 @@ function sendUnits(where) {
     function cost(input) {
       var n = integer(input.value);
       var unit = readUnit(input);
-      score += militaryScoreFor(unit, n);
+      score += milScoreFor(unit, n);
       var level = config.getServer;
       offense += n * (unit.a + level("techs.units."+unit.id+".a", 0) * unit.A);
       defense += n * (unit.d + level("techs.units."+unit.id+".d", 0) * unit.D);
@@ -1938,6 +1938,23 @@ function showWorkerYield() {
 
 function showPlayerInactivity(a) {
   var cid = urlParse("selectCity", a.search);
+/*
+      // z: 0: normal, 1: vacation, 2: inactive;
+      // Z: 1/2: first seen in this state
+      var type = { vacation: 1, inactivity: 2 }[span.className] || 0;
+      var last = config.getCity("z", 0, id);
+      var time = config.getCity("Z", 0, id);
+      var now = (new Date).getTime();
+      if (type)
+        time = last == type ? time : now;
+      config.setCity("Z", time, id);
+      config.setCity("z", type, id);
+      if (time && 2 == type) {
+        time = (now - time) / 1e3;
+        time = time > 86400 ? secsToDHMS(time, 0) +" " : "";
+        span.textContent = span.textContent.replace(/\(i\)/, "("+ time +"i)");
+      }
+*/
 }
 
 function resourceView() {

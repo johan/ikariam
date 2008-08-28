@@ -469,11 +469,30 @@ function upgradedUnitStats(unit) {
            d: unit.d + def * unit.D, D: unit.D, ld: def };
 }
 
-function militaryScoreFor(unit, count) {
+function milScoreFor(unit, count) {
   if (isNumber(unit))
     unit = troops[unit] || ships[unit];
   count = (isDefined(count) ? count : 1) / 100;
   return count * (2*unit.w + 16*(unit.W||0) + 4*(unit.C||0) + 4*(unit.S||0));
+}
+
+function upkeepFor(unit, count) {
+  if (isNumber(unit))
+    unit = troops[unit] || ships[unit];
+  count = isDefined(count) ? count : 1;
+  var factor = 1.0;
+  if (unit.id in troops) {
+    if (config.getServer("techs.4020")) factor -= 0.02; // Maps
+    if (config.getServer("techs.4050")) factor -= 0.04; // Code of Honour
+    if (config.getServer("techs.4090")) factor -= 0.08; // Logistics
+    if (config.getServer("techs.4999")) factor -= 0.02; // Military Future
+  } else {
+    if (config.getServer("techs.1020")) factor -= 0.02; // Ship Maintenance
+    if (config.getServer("techs.1050")) factor -= 0.04; // Pitch
+    if (config.getServer("techs.1090")) factor -= 0.08; // Sea Charts
+    if (config.getServer("techs.1999")) factor -= 0.02; // Seafaring Future
+  }
+  return count * unit.u * factor;
 }
 
 // alternative args formats: "isle", "x1, y1, isle", "isle, null, isle",

@@ -88,6 +88,7 @@ var gfx = {
 
          pop: "/skin/resources/icon_population.gif",
      citizen: "/skin/resources/icon_citizen.gif",
+    milScore: "/skin/unitdesc/unit_helmet.gif",
       upkeep: "/skin/resources/icon_upkeep.gif",
         gold: "/skin/resources/icon_gold.gif",
         time: "/skin/resources/icon_time.gif",
