@@ -1178,7 +1178,7 @@ function militaryAdvisorCombatReportsView() {
   reports.forEach(fileReport);
 
   var city = config.getServer("cities", {});
-  var yesterday = Date.now() - (25 * 36e5);
+  var yesterday = getServerTime(-25*3600);
   for (var i = reports.length; --i >= 0;) {
     var tr = reports[i];
     var a = $X('.//a', tr);
