@@ -1057,6 +1057,28 @@ fi: { // Finnish server
    spyWarehouse: "Vakoile varastoa",
 },
 
+gr: { // Greek server
+     buyMsn    : "Εμπόριο (Αγόρασε)",
+     buyMsnBack: "Εμπόριο (Επέστρεψε)",
+     selMsn    : "Εμπόριο(Πούλα)",
+     selMsnUndo: "Εμπόριο(Πούλα) (ακυρώθηκε)",
+     tspMsn    : "Μεταφορά",
+     tspMsnUndo: "Μεταφορά (ακυρώθηκε)",
+     tspMsnItcp: "?",
+     trpMsn    : "Επεκτείνε τα στρατεύματα",
+     trpMsnUndo: "Επεκτείνε τα στρατεύματα (ακυρώθηκε)",
+     attMsn    : "Λεηλασία",
+     attMsnBack: "Λεηλασία (Επέστρεψε)",
+     attMsnUndo: "Λεηλασία (ακυρώθηκε)",
+     colMsn    : "Αποίκισε",
+     colMsnUndo: "Αποίκισε (ακυρώθηκε)",
+
+  lackResources: "Ανεπαρκείς πόροι",
+   tooLowBldLvl: "Ανεπαρκές επίπεδο οικοδόμησης!",
+
+   spyWarehouse: "Έχει φτάσει στο μέγιστο ο αριθμός των κατασκόπων!",
+},
+
 };
 
 var shash = integer(location.hostname);
