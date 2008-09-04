@@ -1200,14 +1200,19 @@ function militaryAdvisorCombatReportsView() {
       if (recent) {
         var c = cities[r.c] = 1 + (cities[r.c] || 0);
         if (c > 5) addClass(tr, "warn");
-      }
+      } else
+        for (var ii = i-1; --ii >= 0;)
+          if (r.c == allreps[repId[ii]].c) {
+            $X('.//input', tr).checked = "checked";
+            break;
+          }
       var name = city[r.c].n;
       var text = a.textContent;
       text = text.slice(0, text.lastIndexOf(name));
       a.textContent = text;
       node({ tag: <a href={urlTo("island", { island: city[r.c].i, city: r.c })}
                      rel={"i" + r.c}>{name}</a>, after: a });
-    }
+    } else console.log(i);
   }
   var header = $X('id("troopsOverview")/div/h3');
   var loot = node({ tag: "a", text: lang.showLoot,
