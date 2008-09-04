@@ -204,7 +204,7 @@ function researchOverviewView() {
     [what, data.p] = /\(([0-9,.]+)/.exec(data.p);
     data.p = integer(data.p);
     data.d = data.d.map(linkID);
-    data.x = trim(data.x.replace(/\s+/g, " "));
+    data.x = trim(data.x.replace(/\s+/g, " ").match(/(\S+:.*)/)[1]);
     //console.log(n + data.toSource());
     info[id] = data;
     config.setServer("techs.info", info);
@@ -769,9 +769,10 @@ function levelTown() {
     var level = integer(li.className);
     var city = $X('a[@onclick]/span', li);
     if (!city) return; // new city site
-    var name = $X('text()[preceding-sibling::span]', city);
+    var name = $X('.//text()[string-length(normalize-space(.)) > 0]', city);
     if (name) {
-      var span = /\S/.test(name.nodeValue) ? name : name.nextSibling;
+      var span = name.parentNode;
+      if (span.nodeName != "SPAN") span = name.precedingSibling;
       var id = integer($X('a', li).id);
       config.setCity(["l", buildingIDs.townHall], level, id);
 
@@ -779,7 +780,8 @@ function levelTown() {
       if ("" != wl && config.get("debug"))
         level += "/"+ wl;
 
-      name.nodeValue = level +":"+ name.nodeValue;
+      var cityname = name.nodeValue;
+      name.nodeValue = level +":"+ cityname;
       name = name.parentNode;
       name.style.left = Math.round((name.offsetWidth) / -2 + 34) + "px";
 
@@ -791,12 +793,13 @@ function levelTown() {
       var now = (new Date).getTime();
       if (type)
         time = last == type ? time : now;
+      //console.log("%x %x %d:%s", type, span, id, trim(cityname));
       config.setCity("Z", time, id);
       config.setCity("z", type, id);
-      if (time && 2 == type) {
+      if (time) {
         time = (now - time) / 1e3;
-        time = time > 86400 ? secsToDHMS(time, 0) +" " : "";
-        span.textContent = span.textContent.replace(/\(i\)/, "("+ time +"i)");
+        time = time >= 86400 ? secsToDHMS(time, 0) +" " : "";
+        span.textContent = span.textContent.replace(/\((.)\)/, "("+time+"$1)");
       }
     }
 
