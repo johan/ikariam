@@ -143,7 +143,7 @@ function resources() {
     var cid = ids[i], iid = config.getCity(["i"], null, cid);
     var isle = config.getIsle([], null, iid);
     var cname = names[i], iname = isle.x +":"+ isle.y;
-    var curl = urlTo("city", cid);
+    var curl = urlTo("city", cid, { changeCity: 1 });
     var iurl = urlTo("island", { island: iid, city: cid });
     var aurl = urlTo("academy", cid);
     var data = cityData(cid), hurl = urlTo("townHall", cid);
@@ -280,7 +280,7 @@ function military() {
     var cid = ids[i];
     var ctot = 0, Ctot = 0, atot = 0, dtot = 0;
     var cname = names[i];
-    var curl = urlTo("city", cid);
+    var curl = urlTo("city", cid, { changeCity: 1 });
     var data = byCity[i];
     var burl = urlTo("barracks", cid);
     var surl = urlTo("shipyard", cid);
