@@ -190,6 +190,7 @@
   bottom: 1px;
   margin-left: 1px;
   position: absolute;
+  white-space: nowrap;
   font-size: 10px;
 }
 
