@@ -546,7 +546,7 @@ function buildingExpansionNeeds(b, level) {
   if (config.getServer("techs.2020")) factor -= 0.02; // Pulley
   if (config.getServer("techs.2060")) factor -= 0.04; // Geometry
   if (config.getServer("techs.2100")) factor -= 0.08; // Spirit Level
-  if (config.getServer("techs.2999")) factor -= 0.02; // Economic Future
+  //if (config.getServer("techs.2999")) factor -= 0.02; // Economic Future
   for (var r in needs)
     if ("t" == r) // no time discount
       value[r] = needs[r];
@@ -2260,10 +2260,10 @@ function showOverview() {
                title={ sign(p[r]) }>{ v }</a>;
       } else if ("p" == r) {
         var u = urlTo("city", id, { changeCity: 1 });
-        v = <a class="text" href={ u }>{ data[r] || "" }</a>;
+        v = <a class="text" href={ u }>{ data[r] || "0" }</a>;
       } else if (config.getIsle("r", "", island) == r) {
         v = <a class="text" href={ resUrl("luxe", id) }
-               title={ sign(p[r]) }>{ v }</a>;
+               title={ sign(p[r]) }>{ v || "0" }</a>;
       } else if ("W" == r && config.getCity("l", [], city)[buildingIDs.tavern])
         v = <div title={ sign(p.W) }>{ v }</div>;
       else
@@ -2531,6 +2531,7 @@ function getMaxPopulation(townHallLevel) {
     townHallLevel = buildingLevel("townHall", 1);
   var maxPopulation = buildingCapacity("townHall", townHallLevel);
   maxPopulation += 50 * config.getServer("techs.2080", 0); // Holiday
+  maxPopulation += 20 * config.getServer("techs.2999", 0); // Economic Future
   if (isCapital()) {
     maxPopulation += 50 * config.getServer("techs.3010", 0); // Well Digging
     maxPopulation += 200 * config.getServer("techs.2120", 0); // Utopia
@@ -2556,8 +2557,9 @@ function projectPopulation(opts) {
   var museum = 20 * buildingLevel("museum", 0, cid);
   var culture = 50 * config.getCity(["x", buildingIDs.museum], 0, cid);
   var utopia = config.getServer("techs.2120", 0); // +200 happy in capital city
+  var economic_future = 10 * config.getServer("techs.2999", 0);
   var happy = 196 + wellDigging + holiday + tavern + wine + museum + culture +
-    (200 * utopia * isCapital(cid));
+    (200 * utopia * isCapital(cid)) + economic_future; // a k a satisfaction
 
   var population = opts && opts.population || getPopulation();
   growthDebug && console.log("well digging: "+ wellDigging +", holiday: "+
