@@ -7,7 +7,7 @@
 // @include        http://s*.ikariam.com.pt/*
 // @exclude        http://board.ikariam.*/
 // @exclude        http://*.ikariam.*/index.php?view=renameCity*
-// @include        http://ikariam.immortal-nights.com/ikafight/*
+// @include        http://ikariamlibrary.com/?content=3&inline=yes&battleType=
 // @require        http://ecmanaut.googlecode.com/svn/trunk/lib/gm/wget.js
 // @resource woody header.png
 // @resource att-r arrow-right.png
@@ -59,7 +59,7 @@
 var kronos = this, version = "0.6", rev, lang, scientists, growthDebug = 0;
 /*if (config.get("debug"))*/ unsafeWindow.kronos = kronos;
 if (document.URL == location.href) { // no network error?
-  if (/^http:\/\/ikariam.immortal-nights.com\/ikafight/i.test(location.href))
+  if (/^http:\/\/ikariam/i.test(location.href))
     augmentIkaFight();
   if (location.hostname.match(/^s\d+\./))
     init();

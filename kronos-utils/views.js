@@ -1667,7 +1667,7 @@ function sendUnits(where) {
       stats["Wall Level"] = levels[buildingIDs.wall] || 0;
     }
 
-    var url = "http://ikariam.immortal-nights.com/ikafight/?battleType=";
+    var url = "http://ikariamlibrary.com/?content=3&inline=yes&battleType=";
     url += ("fleet" == where ? "sea" : "land") +"#"+ makeQuery(stats);
 
     var form = $("plunderForm") || $("blockadeForm");
