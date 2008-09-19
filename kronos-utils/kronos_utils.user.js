@@ -7,7 +7,7 @@
 // @include        http://s*.ikariam.com.pt/*
 // @exclude        http://board.ikariam.*/
 // @exclude        http://*.ikariam.*/index.php?view=renameCity*
-// @include        http://ikariamlibrary.com/?content=3&inline=yes&battleType=
+// @include        http://ikariamlibrary.com/?content=3&inline=yes&battleType=*
 // @require        http://ecmanaut.googlecode.com/svn/trunk/lib/gm/wget.js
 // @resource woody header.png
 // @resource att-r arrow-right.png
