@@ -1668,7 +1668,7 @@ function sendUnits(where) {
     }
 
     var url = "http://ikariamlibrary.com/?content=3&inline=yes&battleType=";
-    url += ("fleet" == where ? "sea" : "land") +"#"+ makeQuery(stats);
+    url += ("fleet"==where ? "sea" : "land") +"&clear=true#"+ makeQuery(stats);
 
     var form = $("plunderForm") || $("blockadeForm");
     var div = node({ before: form, tag: <div class="contentBox01h" id="f">
