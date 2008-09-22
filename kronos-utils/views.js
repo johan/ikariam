@@ -1637,16 +1637,12 @@ function sendUnits(where) {
       if (empty) // pick the maximum available, if no units were selected
         units = integer($X('preceding::div[@class="amount"][1]', input));
       if (!units) return;
-      var name = ika[unit.id] || (troops[unit.id] || ships[unit.id]).n;
       var a = config.getServer(["techs", "units", unit.id, "a"], 0);
       var d = config.getServer(["techs", "units", unit.id, "d"], 0);
-      if (a || d) { units += "."+ a +"."+ d; }
-      stats[name] = units;
+      stats[unit.id] = [units, a, d].join(".");
       return input;
     }
 
-    var ika = { 308: "Steamgiant", 312: "Gyro", 210: "Ram", 213: "Ballista",
-                214: "Catapult", 215: "Mortor", 216: "Paddle-wheel" };
     var send = sending(), stats = {};
     var empty = !sum(send); // none selected?
     send.forEach(count);
@@ -1658,13 +1654,12 @@ function sendUnits(where) {
         for (var id in nmiLevels) {
           var l = nmiLevels[id];
           var n = config.getCity(["U", id], 0, city);
-          var name = ika[id] || (troops[id] || ships[id]).n;
-          stats[name] = (stats[name] || "0.0.0") +"."+ n +"."+ l.a +"."+ l.d;
+          stats[id] = (stats[id] || "0.0.0") +"."+ n +"."+ l.a +"."+ l.d;
         }
       }
       var levels = config.getCity("l", {}, city);
-      stats["Town Level"] = levels[buildingIDs.townHall] || 0;
-      stats["Wall Level"] = levels[buildingIDs.wall] || 0;
+      stats["town"] = levels[buildingIDs.townHall] || 0;
+      stats["wall"] = levels[buildingIDs.wall] || 0;
     }
 
     var url = "http://ikariamlibrary.com/?content=3&inline=yes&battleType=";
@@ -1672,7 +1667,9 @@ function sendUnits(where) {
 
     var form = $("plunderForm") || $("blockadeForm");
     var div = node({ before: form, tag: <div class="contentBox01h" id="f">
-      <h3 class="header">ImmortalNights&apos; IkaFight</h3>
+      <h3 class="header">ImmortalNights&apos; IkaFight on
+        <a href="http://ikariamlibrary.com/" target="_blank">Ikariam Library</a>
+      </h3>
       <div class="content" id="ikafight"> </div>
       <div class="footer"> </div>
     </div> }).f;
