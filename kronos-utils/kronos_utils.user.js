@@ -324,20 +324,14 @@ function url(query) {
 }
 
 function jsVariable(nameValue) {
-  var resourceScript = $X('id("cityResources")//script');
-  if (resourceScript) {
-    var text = resourceScript.innerHTML;
-    text = text.substr(text.indexOf(nameValue+" = "),
-                       text.length);
-    text = text.substr(nameValue.length+3,
-                       text.indexOf(";")-(nameValue.length+3));
-    return text;
+  switch (nameValue) {
+    case "startResourcesDelta": return unsafeWindow.woodCounter.production;
+    case "startTradegoodDelta": return unsafeWindow.tradegoodCounter.production;
   }
 }
 
 function luxuryType(type) {
-  var script = $X('id("cityResources")/script').textContent.replace(/\s+/g," ");
-  var what = script.match(/currTradegood.*?value_([^\x22\x27]+)/)[1];
+  var what = unsafeWindow.tradegoodCounter.valueElem.id.substr(6);
   switch (type) {
     case undefined:
     case 0: return resourceIDs[what];
@@ -2092,7 +2086,7 @@ function fixUpdates() {
     config.get("live-resources", 0) &&
     console.log("Next gulp: "+ each +"(:"+ rest +") in "+
                 (nextWine/6e4).toFixed(1) +" m.");
-    setTimeout(setupWine, nextWine, $("value_wine"));
+    //setTimeout(setupWine, nextWine, $("value_wine")); // FIXME: 0.2.8 support
   }
 
   var delta = fixUpdates.delta = (new Date).valueOf() - unsafeWindow.startTime;
