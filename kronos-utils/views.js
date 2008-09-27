@@ -815,9 +815,11 @@ function levelTown() {
     player.style.left = Math.round((player.offsetWidth) / -2 + 34) + "px";
 
     var msg = $X('ul/li[@class="owner"]/a', li);
-    //player.title = msg.title;
-    clickTo(player, addToFriendList);
-    dblClickTo(player, msg.href);
+    if (msg) {
+      //player.title = msg.title;
+      clickTo(player, addToFriendList);
+      dblClickTo(player, msg.href);
+    }
   }
 
   $x('//li[starts-with(@class,"cityLocation city level")]').forEach(level);
