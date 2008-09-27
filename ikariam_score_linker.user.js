@@ -76,9 +76,8 @@ For version: 0.3.0
 Last changed: 0.6.0
 */
 
-var show = { gold: 4, military: 2, total: 1 };
+var show = { gold: 4, military: 2 };
 var post = {
-    total: "score",
  military: "army_score_main",
      gold: "trader_score_secondary"
 };
@@ -162,7 +161,6 @@ function focus(direction) {
 function fetchScoresFor(name, ul, n, id) {
   function searchbutton(type) {
     var url = "url(/skin/" + ({
-       total: "layout/medallie32x32_gold.gif) no-repeat -7px -9px",
     military: "layout/sword-icon2.gif) no-repeat 0 2px;",
         gold: "resources/icon_gold.gif) no-repeat 0 0; width:18px"
       })[type];
@@ -452,10 +450,6 @@ function displayOnOptions_fn() {
 <h3>Score Display Options</h3>
 <table border="0" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 43%; text-align: right;">Show Total Score:</td>
-    <td style="width: 57%"><input type="checkbox" id="totalScore"/></td>
-  </tr>
-  <tr>
     <td style="width:43%; text-align: right">Show Army Score:</td>
     <td><input type="checkbox" id="militaryScore"/></td>
   </tr>
@@ -502,7 +496,6 @@ Last changed: 0.6.0
 
 function changeShow_fn(e) {
   GM_setValue("show", (
-                (show.total * $('totalScore').checked) |
                 (show.military * $('militaryScore').checked) |
                 (show.gold * $('goldScore').checked)
               ) + "");
