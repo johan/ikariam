@@ -137,11 +137,12 @@ function saveCache() {
   GM_setValue(gameServer, uneval(valueCache).replace(/ /g, ""));
 }
 
-function cacheValue(id, type, value) {
+function cacheValue(id, type, value, no) {
   //console.log("caching", id, type, value);
   var city = valueCache[id] || {};
   type = type.charAt();
-  city[type] = number(value);
+  city[type.toLowerCase()] = number(value);
+  city[type.toUpperCase()] = number(no||"0");
   city.T = time();
   valueCache[id] = city;
   saving && clearTimeout(saving);
@@ -242,18 +243,20 @@ function viewingRightCity(ul) {
 }
 
 function makeShowScoreCallback(name, type, ul, n, id) {
-  return function showScore(xhr, cached) {
+  return function showScore(xhr, cached, no) {
     var score = xhr;
     if ("yes" == cached) {
       score = fmtNumber(score);
+      no = no && fmtNumber(no);
     } else { // need to parse out the score
-      score = $X('.//div[@class="content"]//tr[td[@class="name"]="' +
-                 name + '"]/td[@class="score" or @class="§"]',
-                 node("div", "", null, xhr.responseText));
+      var tr = $X('.//div[@class="content"]//tr[td[@class="name"]="' +
+                 name + '"]', node("div", "", null, xhr.responseText));
+      score = $X('td[@class="score" or @class="§"]', tr);
       score = score.innerHTML;
+      no = ($X('td[@class="place"]', tr) || {}).textContent || "";
     }
     if (score) {
-      if ("yes" != cached) cacheValue(id, type, score);
+      if ("yes" != cached) cacheValue(id, type, score, no);
 
       ul = ul || cityinfoPanel();
       var city = $X('../preceding-sibling::div[@class="cityimg"]', n);
@@ -274,6 +277,7 @@ function makeShowScoreCallback(name, type, ul, n, id) {
       // You rob gold (size * (size - 1)) % of the treasury of the city:
       if ("gold" == type)
         var max = lootable(score, ul);
+      score += " (#"+ no +")";
 
       updateItem(type, score, ul, !!n, max);
     }
@@ -321,6 +325,8 @@ function addItem(type, value, save) {
 }
 
 function updateItem(type, value, ul, islandView, append) {
+  if (value.length + (append ? append.textContent.length : 0) > 25)
+    value = value.replace(/ \(#[\d,.]+\)/, "");
   var li = getItem(type, ul);
   if (li) {
     li.lastChild.nodeValue = value;
@@ -420,7 +426,7 @@ Last changed: 0.5.0
 function requestScore(name, type, id, onload) {
   var cached = id && valueCache[id], key = type.charAt();
   if (cached && cached[key] && ((time() - cached.T) < 10))
-    return onload(cached[key], "yes");
+    return onload(cached[key.toLowerCase()], "yes", cached[key.toUpperCase()]);
   //else delete valueCache[id]; // stale -- but save for now; could be useful
 
   GM_xmlhttpRequest({
