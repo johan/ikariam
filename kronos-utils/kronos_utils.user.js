@@ -1318,7 +1318,7 @@ function evenShips(nodes) {
       }
     }
     var cid = integer($X('//input[@name="destinationCityId"]'));
-    if (cityIDs().indexOf(cid))
+    if (cityIDs().indexOf(cid) != -1)
       a.addEventListener("dblclick", invoked, true);
   }
 
