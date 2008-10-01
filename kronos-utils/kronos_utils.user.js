@@ -1301,18 +1301,46 @@ function pillageLink(id, opts) {
 }
 
 function evenShips(nodes) {
+  function maximizeToWarehouseCapacity(a) {
+    function invoked(e) {
+      var what = e.target.id.split("_")[1]; // i e slider_marble_max
+      var input = $("textfield_" + what);
+      var was = integer(input);
+      var res = resourceIDs[what];
+      var max = warehouseCapacity(cid)[res];
+      var has = cityData(cid)[res];
+      //console.log(cid, what, has +"/"+ max);
+      var add = Math.max(max - has, 0);
+      input.value = add;
+      click(input);
+      if (e.shiftKey) { // with shift, round _down_ to prior even ship
+        fillNextEvenShip({ target: input, shiftKey: e.shiftKey });
+      }
+    }
+    var cid = integer($X('//input[@name="destinationCityId"]'));
+    if (cityIDs().indexOf(cid))
+      a.addEventListener("dblclick", invoked, true);
+  }
+
   function goods() {
     return reduce(sum, nodes, 0);
   }
 
   function fillNextEvenShip(e) {
-    var input = e.target;
+    var roundDown = e.shiftKey ? 1 : 0;
+    var input = e.target || e;
     var value = integer(input);
     var count = goods();
     var remainder = (count + baseline) % 300;
     if (remainder) {
-      input.value = value + (300 - remainder);
-      e.stopPropagation();
+      var to = Math.max(0, value + (300 - remainder) - 300 * roundDown);
+      input.value = to;
+      e.stopPropagation && e.stopPropagation();
+      click(input); // have Ikariam render the change
+      var got = integer(input);
+      if (got != to) {
+        input.value = Math.max(to - 300, 0);
+      }
     }
   }
 
@@ -1359,6 +1387,8 @@ function evenShips(nodes) {
       showTime();
     }
   }
+  $x('//div[@class="sliderinput"]/a[contains(@id,"_max")]').
+    forEach(maximizeToWarehouseCapacity);
 }
 
 function scrollWheelable(nodes, cb) {
