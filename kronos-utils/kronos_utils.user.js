@@ -160,8 +160,12 @@ function augment(view, action, lang) {
   }
   demolitionHelper();
 
-  if (!$("tabz") && $("tearing"))
-    cityTabs();
+  if (!$("tabz")) {
+    var before = $X('id("tearing") | id("CityOverview") | ' +
+                    'id("mainview")//div[@class="yui-navset"] | ' +
+                    'id("mainview")//div[@class="contentBox01h"]');
+    before && cityTabs(null, before);
+  }
 
   var upgradeDiv = $("upgradeCountDown");
   var buildDiv = $("buildCountDown");
@@ -2429,7 +2433,7 @@ function unhilightShip() {
   if (ship) ship.style.backgroundPosition = "";
 }
 
-function cityTabs(cid) {
+function cityTabs(cid, before) {
   cid = cid || mainviewCityID();
   var b = document.body.id;
   var cities = cityIDs().filter(cityHasBuilding(b));
@@ -2448,12 +2452,13 @@ function cityTabs(cid) {
       td.@class = "selected";
     tabs += td;
   }
-
-  node({ before: $("tearing"), tag: <div class="militaryAdvisorTabs">
-    <table id="tabz" cellspacing="0" cellpadding="0">
-      <tr>{ tabs }</tr>
-    </table>
-  </div> });
+  if (before) {
+    node({ before: before, tag: <div class="militaryAdvisorTabs">
+      <table id="tabz" cellspacing="0" cellpadding="0">
+        <tr>{ tabs }</tr>
+      </table>
+    </div> });
+  }
 }
 
 function unitStatsFromImage(img) {
