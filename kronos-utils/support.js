@@ -327,8 +327,9 @@ function getServerTime(offset) {
 // input: s, bool; output: time or date+time
 function resolveTime(seconds, timeonly) { // Crée le temps de fin.
   function z(t) { return (t < 10 ? "0" : "") + t; }
-  var t = getServerTime(seconds - (unsafeWindow.startTime -
-                                   unsafeWindow.startServerTime) / 1e3);
+  var t0 = unsafeWindow.startTime || // 0.2.7 (and earlier)
+    integer(unsafeWindow.updateServerTime.toSource()); // 0.2.8 (onwards?)
+  var t = getServerTime(seconds - (t0 - unsafeWindow.startServerTime) / 1e3);
   var d = "", now = (new Date);
   if (t.getDate() != now.getDate() ||
       t.getMonth() != now.getMonth()) {
@@ -518,6 +519,16 @@ function travelTime(x1, y1, x2, y2) {
   }
   var dx = x2 - x1, dy = y2 - y1;
   return 60 * 20 * (1 + Math.sqrt(dx*dx + dy*dy));
+}
+
+function key(node, keyCode, charCode, mods, type) {
+  var window = node.ownerDocument.defaultView;
+  var event = node.ownerDocument.createEvent("KeyboardEvent");
+  mods = mods || {};
+  type = type || "keypress";
+  (event.initKeyEvent || event.initKeyboardEvent)(type, true, true, window,
+    !!mods.ctrl, !!mods.alt, !!mods.shift, !!mods.meta, keyCode, charCode);
+  node.dispatchEvent(event);
 }
 
 function click(node) {
