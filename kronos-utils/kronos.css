@@ -77,6 +77,9 @@
 
 /**** Our own hacks ****/
 
+/* blue links draw so much attention */
+li.owner a { color: inherit; }
+
 #island #container #mainview #islandfeatures .wine {
   left: 165px;
   top: 150px;
@@ -622,6 +625,11 @@ html body div#container div#container2 a.text:hover {
 }
 
 /**** Loot view ****/
+
+/* frees up tons of space for stuff in the loot table (maybe less pretty) */
+#militaryAdvisorCombatReports #mainview table.operations td {
+  padding: 0;
+}
 
 #mainview #finishedReports table.operations tr.today {
   background-color: rgba(255,128,128,0.2);
