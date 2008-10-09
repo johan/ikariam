@@ -1579,8 +1579,6 @@ function makeLootTable(table, reports) {
                     tag: i && i < 12 ? "th" : "td",
                     html: visualResources(t),
                     append: head });
-    if (1 == i) th.style.minWidth = "25px";
-    if (2 == i) th.style.minWidth = "68px";
     if (11 == i) th.style.width = "400px";
     if (r) { // only show filter for cols with relevant data
       var id = "#" == r ? "bash" : r;
