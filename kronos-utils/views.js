@@ -1244,6 +1244,7 @@ function militaryAdvisorCombatReportsView() {
   }
 
   function doneproceed() {
+    GM_setValue("militaryReportsCache", "");
     prettify();
   }
 
