@@ -451,6 +451,12 @@ function cityHasBuilding(b) {
 
 function isleForCity(city) { return config.getCity("i", 0, city); }
 
+function notMyEvent(e) {
+  var on = e.target, name = on && on.nodeName;
+  return /^(input|textarea)$/i.test(name||"") && // was the focused element a
+         !/radio|checkbox/i.test(on.type||"");   // text field of some sort?
+}
+
 function cityName(id) {
   //return cityNames()[cityIDs().indexOf(integer(id))];
   var name = {};

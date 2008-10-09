@@ -256,10 +256,7 @@ function unbreakSliders() {
 }
 
 function cityByNumber(e) {
-  var on = e.target, name = on && on.nodeName;
-  if (/^(input|textarea)$/i.test(name||"") &&
-      !/radio|checkbox/i.test(on.type||""))
-    return; // focused element was a text field of some sort
+  if (notMyEvent(e)) return;
   var li = $x('id("changeCityForm")//*[contains(@class,"citySelect")]/ul/li');
   var key = integer(String.fromCharCode(e.keyCode));
   if (isNaN(key)) return;
@@ -338,9 +335,20 @@ function jsVariable(nameValue) {
     return text;
   }
   switch (nameValue) {
-    case "startResourcesDelta": return unsafeWindow.woodCounter.production;
-    case "startTradegoodDelta": return unsafeWindow.tradegoodCounter.production;
+    case "startResourcesDelta": return getDecl("woodCounter").production;
+    case "startTradegoodDelta": return getDecl("tradegoodCounter").production;
   }
+}
+
+// returns param 1 from, i e, "var tradegoodCounter = getResourceCounter({
+// startdate: 1223562772, interval: 2000, available: 86990, limit: [0, 136828],
+// production: 0, valueElem: "value_sulfur" });
+function getDecl(variable) {
+  variable = "var "+ variable;
+  var tag = $X('//script[contains(.,"'+ variable +'")]');
+  var js = new RegExp(variable +"\\s*=\\s*\\S*?(\\({.*?}\\))", "m");
+  var v = tag.innerHTML.replace(/\s+/g, " ").match(js);
+  if (v) return eval(v[1]);
 }
 
 function luxuryType(type) {
@@ -349,7 +357,7 @@ function luxuryType(type) {
     script = script.textContent.replace(/\s+/g, " ");
     what = script.match(/currTradegood.*?value_([^\x22\x27]+)/)[1];
   } else { // 0.2.8 (onwards, hopefully)
-    what = unsafeWindow.tradegoodCounter.valueElem.id.substr(6);
+    what = getDecl("tradegoodCounter").valueElem.split("value_")[1];
   }
   switch (type) {
     case undefined:
