@@ -15,6 +15,24 @@ function maintenanceCost(cityID) {
   return config.getCity("m", 0, cityID);
 }
 
+function linkPlayer(name) {
+  var player = trim(name.textContent);
+  var land = country;
+  if (land.length > 3)
+    land = land.replace(/\.?\w{3}\.?/, "");
+  land = ({ org:"en", com:"us", net:"tr" })[land] || land;
+  var url = "http://ikariam.ogame-world.com/suche.php?view=weltkarte&land=" +
+    land + "&welt="+ integer(location.hostname) +"&spieler=" + player;
+  node({ tag: <><a target="_blank" href={ url }>{ player }</a></>,
+         replace: name });
+}
+
+function findPlayers() {
+  setTimeout(function() {
+    $x('//li[@class="owner"]/span/following-sibling::text()').map(linkPlayer);
+  }, 1e3);
+  console.log("!");
+}
 
 function cityView() {
   var id = urlParse("id", $X('id("advCities")//a').search);
@@ -27,6 +45,7 @@ function cityView() {
   projectCompletion("cityCountdown", null, '../preceding-sibling::a');
   levelBat();
   cssToggler("buildinglevels", false, "http://i297.photobucket.com/albums/mm209/apocalypse33/Avatar/Ava51.png", "li > div.rounded { display: none; }");
+  findPlayers();
 }
 
 
@@ -188,7 +207,8 @@ function researchOverviewView() {
     function got(node) { augment(a, parse(node, id, a), id); }
     var id = linkID(a);
     setTimeout(wget$X, Math.random() * 1000 * get.length, a.href, got,
-               './/*[@id="mainview"]//div[@class="content"]/table/tbody', 0, 1);
+               './/*[@id="mainview"]//div[@class="content"]/table/tbody',
+               !"runGM", !!"div");
   }
 
   function parse(body, id) {
@@ -600,8 +620,10 @@ function islandView() {
     }
   }
 
-  function nextprev(event) {
+  function nextprevfind(event) {
+    if (notMyEvent(event)) return;
     var n = event.charCode || event.keyCode;
+    if (n == "-".charCodeAt()) return findPlayers();
     var next = { 37: prevIsland, 39: nextIsland }[n];
     if (next &&
         !(event.metaKey || event.ctrlKey || event.altKey || event.shiftKey)) {
@@ -644,8 +666,11 @@ function islandView() {
     setTimeout(focusCity, 200, city);
   levelTown();
   levelResources();
-  var island = integer(urlParse("id", $X('id("advCities")//a').search));
-  travelDistanceBreadcrumbs(island);
+  var island = integer(urlParse("id", $X('id("wonder")/a').search));
+  if (island) {
+    addEventListener("keypress", nextprevfind, false);
+    travelDistanceBreadcrumbs(island);
+  }
 
   var c = $x('id("cities")/li[contains(@class,"level") and ' +
              ' not(contains(@class,"level0"))]/ul[@class="cityinfo"]');
@@ -657,8 +682,6 @@ function islandView() {
   showSpies();
 
   showMinimap(island);
-  if (island)
-    addEventListener("keypress", nextprev, false);
 }
 
 // island view: selected city
@@ -1142,12 +1165,34 @@ function militaryAdvisorCombatReportsView() {
   }
 
   function proceed() {
-    var a = my.unknowns.pop();
+    var a = unknowns.pop();
     if (a) {
-      setTimeout(wget, Math.random()*3e3, a.href, proceed, true, false);
+      // this recurses back into militaryAdvisorCombatReportsView in a subframe
+      wget(a.href, proceed, !!"runGM", !"div");
       a.style.opacity = "0.5";
+    } else {
+      location.href = "index.php?view=militaryAdvisorCombatReports";
     }
-    console.log(my.unknowns.length + 1);
+  }
+
+  function unpage(reports) {
+    reports.forEach(function(report) {
+      node({ tag:"tr", html:report.innerHTML, before: paginationbar });
+    });
+    proceedunpage();
+  }
+
+  function proceedunpage() {
+    var a = ppages.shift();
+    if (a) {
+      wget$x(a.href, unpage,
+             'id("finishedReports")/table[@class="operations"]//tbody/' +
+             'tr[td[contains(@class,"subject")]]', !"runGM", !!"div");
+      a.style.opacity = "0.5";
+    } else {
+      hide(paginationbar);
+      doneunpage();
+    }
   }
 
   function fileReport(tr, n) {
@@ -1158,9 +1203,7 @@ function militaryAdvisorCombatReportsView() {
     var t = parseDate(d);
     repId[n] = r;
     if (!allreps[r]) {
-      w ? history.won++ : history.lost++;
-      newreps[r] = { t: t, w: 0 + w };
-      allreps[r] = newreps[r];
+      allreps[r] = { t: t, w: 0 + w };
     } else {
       allreps[r].w = 0 + w;
     }
@@ -1168,70 +1211,103 @@ function militaryAdvisorCombatReportsView() {
     rows[n].tr = tr;
   }
 
-  tab3('id("tabz")/tbody/tr/td/a');
+  function doneunpage() {
+    GM_setValue("militaryReportsCache", table.innerHTML);
 
-  var my = militaryAdvisorCombatReportsView; my.unknowns = [];
-  var table = $X('id("finishedReports")/table[@class="operations"]');
-  if (!table) return;
-  var history = config.getServer("battles", { won: 0, lost: 0 });
-  var allreps = config.getServer("battles.reports", {});
-  var reports = $x('tbody/tr[td[contains(@class,"subject")]]', table);
-  var newreps = {};
-  var cities = {};
-  var repId = [];
-  var rows = [];
-  reports.forEach(fileReport);
+    tab3('id("tabz")/tbody/tr/td/a');
 
-  var city = config.getServer("cities", {});
-  var yesterday = getServerTime(-25*3600);
-  for (var i = reports.length; --i >= 0;) {
-    var tr = reports[i];
-    var a = $X('.//a', tr);
-    var r = allreps[repId[i]];
+    var reports = $x('id("finishedReports")/table[@class="operations"]/tbody/' +
+                     'tr[td[contains(@class,"subject")]]');
+    reports.forEach(fileReport);
 
-    if (!r.c) my.unknowns.push(a);
-    var recent = r.t > yesterday;
-    // we won, it's the past 24h (+ DST safety margin)
-    if (r.w && recent) {
-      if (r.c) {
-        addClass(tr, "today");
-      } else { // but we don't know what city it was
+    for (var i = reports.length; --i >= 0;) {
+      var tr = reports[i];
+      var a = $X('.//a', tr);
+      var r = allreps[repId[i]];
+
+      if (!r.c || (r.w && !r.l)) {
+        unknowns.push(a);
         a.style.fontStyle = "italic"; // Warn about it! Read that report, please.
         a.innerHTML = "?: "+ a.innerHTML;
       }
     }
+    var header = $X('id("troopsOverview")/div/h3');
+    var reload = node({ tag: "a", text: "Refresh",
+                        style: { marginLeft: "8px" }, append: header });
+    clickTo(reload, function() {
+      location.href = "index.php?view=militaryAdvisorCombatReports";
+    });
 
-    if (r.c) {
-      if (recent) {
-        var c = cities[r.c] = 1 + (cities[r.c] || 0);
-        if (c > 5) addClass(tr, "warn");
-      } else
-        for (var ii = i-1; --ii >= 0;)
-          if (r.c == allreps[repId[ii]].c) {
-            $X('.//input', tr).checked = "checked";
-            break;
-          }
-      var name = city[r.c].n;
-      var text = a.textContent;
-      text = text.slice(0, text.lastIndexOf(name));
-      a.textContent = text;
-      node({ tag: <a href={urlTo("island", { island: city[r.c].i, city: r.c })}
-                     rel={"i" + r.c}>{name}</a>, after: a });
-    } else console.log(i);
+    if (unknowns.length)
+      addEventListener("keypress", read, false);
+    doneproceed();
   }
-  var header = $X('id("troopsOverview")/div/h3');
-  var loot = node({ tag: "a", text: lang.showLoot,
-                    style: { marginLeft: "8px" }, append: header });
-  clickTo(loot, function() { rm(loot); makeLootTable(table, rows); });
-  if (my.unknowns.length)
-    addEventListener("keypress", read, false);
 
-  config.setServer("battles", history);
-  config.setServer("cities", city);
-  //config.setServer("reports", allreps);
-  //console.log(history.toSource());
-  //console.log(allreps.toSource());
+  function doneproceed() {
+    prettify();
+  }
+
+  function prettify() {
+    allreps = config.getServer("battles.reports",{});
+
+    cities = config.getServer("cities", {});
+    repId = [];
+    rows = [];
+
+    var reports = $x('tbody/tr[td[contains(@class,"subject")]]', table);
+    reports.forEach(fileReport);
+
+    var yesterday = getServerTime(-25*3600);
+    for (var i = reports.length; --i >= 0;) {
+      var tr = reports[i];
+      var a = $X('.//a', tr);
+      var r = allreps[repId[i]];
+
+      var recent = r.t > yesterday;
+
+      if (r.c) {
+        if (recent)
+          addClass(tr,"today");
+        else
+          for (var ii = i-1; --ii >= 0;)
+            if (r.c == allreps[repId[ii]].c) {
+              $X('.//input', tr).checked = "checked";
+              break;
+            }
+        var name = cities[r.c].n;
+        var text = a.textContent;
+        text = text.slice(0, text.lastIndexOf(name));
+        a.textContent = text;
+        node({ tag: <a href={urlTo("island", { island: cities[r.c].i, city: r.c })}
+          rel={"i" + r.c}>{name}</a>, after: a });
+      }
+    }
+    config.setServer("cities", cities);
+    config.setServer("battles.reports",allreps);
+    makeLootTable(table, rows);
+  }
+
+  var table = $X('id("finishedReports")/table[@class="operations"]');
+  if (!table) return;
+
+  var paginationbar = $X('.//tbody/tr[td[contains(@class,"all")]][1]', table);
+  var unknowns = [];
+  var pages = [];
+  var allreps = config.getServer("battles.reports", {});
+  var repId = [];
+  var rows = [];
+  var cities = config.getServer("cities", {});
+  var ppages = $x('.//a', paginationbar);
+  var crCount = $X("id('tabz')/tbody/tr/td[2]/a/em");
+
+  if (!window.frameElement) { // not started unwrapping the page?
+    proceedunpage();
+  } else { // later subpage during unwrapping ():
+    table.innerHTML = GM_getValue("militaryReportsCache", "");
+    doneunpage();
+  }
 }
+
 
 
 function militaryAdvisorReportViewView() {
@@ -1536,12 +1612,13 @@ function makeLootTable(table, reports) {
   scrollWheelable(filters);
   filters.forEach(listen);
 
-  var yesterday = Date.now() - (24 * 36e5) -
-    (unsafeWindow.startTime - unsafeWindow.startServerTime);
+  var yesterday = getServerTime(-25*3600);
+
   for (var i = 0; r = reports[i]; i++) {
     var recent = r.t > yesterday;
-    if (recent && r.w && r.c)
+    if (recent && r.c) {
       hits[r.c] = 1 + (hits[r.c] || 0);
+    }
   }
   reports.forEach(showLoot);
   unsafeWindow.markAll = safeMarkAll;
@@ -1559,6 +1636,7 @@ function makeLootTable(table, reports) {
   go = $X('input[@type="submit"]', selection);
   go.style.marginLeft = "6px";
 }
+
 
 function safeMarkAll(cmd) {
   //console.log("safe %x!", cmd);
