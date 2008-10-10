@@ -1222,7 +1222,7 @@ function militaryAdvisorCombatReportsView() {
 
     for (var i = reports.length; --i >= 0;) {
       var tr = reports[i];
-      var a = $X('.//a', tr);
+      var a = $X('.//a[not(starts-with(@href,"javascript:"))]', tr);
       var r = allreps[repId[i]];
 
       if (!r.c || (r.w && !r.l)) {
@@ -1298,7 +1298,7 @@ function militaryAdvisorCombatReportsView() {
   var repId = [];
   var rows = [];
   var cities = config.getServer("cities", {});
-  var ppages = $x('.//a', paginationbar);
+  var ppages = $x('.//a[not(starts-with(@href,"javascript:"))]', paginationbar);
   var crCount = $X("id('tabz')/tbody/tr/td[2]/a/em");
 
   if (!window.frameElement) { // not started unwrapping the page?
