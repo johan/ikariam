@@ -1258,7 +1258,7 @@ function militaryAdvisorCombatReportsView() {
     var reports = $x('tbody/tr[td[contains(@class,"subject")]]', table);
     reports.forEach(fileReport);
 
-    var yesterday = getServerTime(-25*3600);
+    var yesterday = getServerTime(-25*3600), oldjunk = 0;
     for (var i = reports.length; --i >= 0;) {
       var tr = reports[i];
       var a = $X('.//a', tr);
@@ -1268,11 +1268,12 @@ function militaryAdvisorCombatReportsView() {
 
       if (r.c) {
         if (recent)
-          addClass(tr,"today");
+          addClass(tr, "today");
         else
           for (var ii = i-1; --ii >= 0;)
             if (r.c == allreps[repId[ii]].c) {
               $X('.//input', tr).checked = "checked";
+              oldjunk++;
               break;
             }
         var name = cities[r.c].n;
@@ -1283,6 +1284,8 @@ function militaryAdvisorCombatReportsView() {
           rel={"i" + r.c}>{name}</a>, after: a });
       }
     }
+    if (oldjunk)
+      setTimeout(function() { $("command").selectedIndex = 1; }, 500);
     config.setServer("cities", cities);
     config.setServer("battles.reports",allreps);
     makeLootTable(table, rows);
