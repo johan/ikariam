@@ -100,7 +100,7 @@ function init() {
     var ul = $X('ancestor-or-self::li[1]/ul[@class="cityinfo"]', e.target);
     if ($X('li[contains(@class," name")]', ul)) return; // already fetched!
     var who = $X('li[@class="owner"]/text()[preceding::*[1]/self::span]', ul);
-    var name = trim(who.textContent);
+    var name = trim(who.textContent).replace(/\xA0/g, " ");
     fetchScoresFor(name, ul, n, number(n.parentNode.id));
   }
   function lookupOnClick(a) {
