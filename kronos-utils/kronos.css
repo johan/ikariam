@@ -665,11 +665,15 @@ html body div#container div#container2 a.text:hover {
   background: white;
 }
 #loot-report th.filter input {
+  font-size: 11px;
   border: none;
   width: 34px;
+  padding: 0;
 }
 #loot-report th.filter #vT    { width: 38px; }
 #loot-report th.filter #vbash { width: 12px; } /* background-color: #E0B16D;*/
+#loot-report td:first-child + th + th + th + th + th + th + th + th + th + th,
+#loot-report td:first-child + td + td + td + td + td + td + td + td + td + td,
 #loot-report th.filter #vbash { text-align: center; }
 #loot-report th.filter #opbash { display: none; }
 

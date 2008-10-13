@@ -1573,15 +1573,15 @@ function makeLootTable(table, reports) {
   var cols = [, , , "g", "w", "W", "M", "C", "S", "T", "#"];
   var hits = {}; // indexed on city id, values are attacks today
   var show = [];
-  var title = [, , "When",
+  var title = [, , "$time",
                "$gold", "$wood", "$wine", "$marble", "$glass", "$sulfur",
-               "Time", "#", "City"];
+               "$journeytime", "#", "$bigcity"];
   for (var i = 0; i < 13; i++) {
     var r = cols[i];
     var t = title[i] || "";
-    var th = node({ className: r ? "Time" == t ? "": "number" : "",
+    var th = node({ className: r ? "$journeytime" == t ? "": "number" : "",
                     tag: i && i < 12 ? "th" : "td",
-                    html: visualResources(t),
+                    html: visualResources(t, { maxheight:"22px" }),
                     append: head });
     if (11 == i) th.style.width = "400px";
     if (r) { // only show filter for cols with relevant data
@@ -1596,9 +1596,9 @@ function makeLootTable(table, reports) {
     } else {
       only.insertCell(i);
     }
-    if ("When" == t) clickTo(th, sortByWhen);
-    if ("City" == t) clickTo(th, sortByCity);
-    if ("Time" == t) { clickTo(th, sortByDistance); continue; }
+    if ("$time" == t) clickTo(th, sortByWhen);
+    if ("$bigcity" == t) clickTo(th, sortByCity);
+    if ("$journeytime" == t) { clickTo(th, sortByDistance); continue; }
     if ("#" == t || !r) continue;
 
     var check = node({ tag: "input", type: "checkbox", id: r, prepend: th });

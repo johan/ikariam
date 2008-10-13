@@ -1673,7 +1673,10 @@ function visualResources(what, opt) {
   };
   function replace(m, icon) {
     var margin = { glass: -3 }[icon] || -5;
-    icon = icons[icon];
+    icon = icons[icon] || <img src={ gfx[icon] }/>;
+    if (opt && opt.maxheight) {
+      icon.@style = "max-height: "+ opt.maxheight;
+    }
     if (opt && opt.size) {
       var h0 = icon.@height, h1 = Math.ceil(opt.size * h0);
       var w0 = icon.@width,  w1 = Math.ceil(opt.size * w0);
@@ -1682,7 +1685,7 @@ function visualResources(what, opt) {
       icon.@width = w1;
     }
     if (!opt || !opt.noMargin)
-      icon.@style = "margin-bottom: "+ margin +"px";
+      icon.@style = "margin-bottom: "+ margin +"px; " + ("" || icon.@style);
     return icon.toXMLString();
   }
   if (isObject(what)) {
@@ -1700,7 +1703,7 @@ function visualResources(what, opt) {
     }
     what = html.join(" \xA0 ");
   }
-  return what.replace(/\$([a-z]{4,6})/g, replace);
+  return what.replace(/\$([a-z]{4,11})/g, replace);
 }
 
 function map(func, args, self) {
@@ -2143,7 +2146,7 @@ function fixUpdates() {
     config.get("live-resources", 0) &&
     console.log("Next gulp: "+ each +"(:"+ rest +") in "+
                 (nextWine/6e4).toFixed(1) +" m.");
-    if ($X('id("GF_toolbar")//span[contains(.,"0.2.7")]'))
+    if (gameVersion() <= "0.2.7")
       setTimeout(setupWine, nextWine, $("value_wine")); // FIXME: 0.2.8 support
   }
 

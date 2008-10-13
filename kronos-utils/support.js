@@ -222,6 +222,10 @@ function $(id) {
   return document.getElementById(id);
 }
 
+function gameVersion() {
+  var v = $X('id("GF_toolbar")//li[@class="version"]/a/span');
+  return v && v.textContent.replace(/[^\d.]/g, "").replace(/^\./, "");
+}
 
 var expandos = { id: 1, className: 1, title: 1, type: 1, checked: 1 };
 

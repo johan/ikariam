@@ -92,6 +92,7 @@ var gfx = {
       upkeep: "/skin/resources/icon_upkeep.gif",
         gold: "/skin/resources/icon_gold.gif",
         time: "/skin/resources/icon_time.gif",
+ journeytime: "/skin/img/icon_target2.gif", // icon_journeytime.gif: bad bg :-(
         bulb: "/skin/layout/bulb-on.gif",
         city: "/skin/layout/icon-city2.gif",
      bigcity: "/skin/layout/city.gif",
