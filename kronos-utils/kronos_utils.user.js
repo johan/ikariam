@@ -650,7 +650,7 @@ function buildingExtraInfo(div, id, name, level) {
       break;
 
     case "port":
-      annotate(kronos.buildingCapacity("port", level) * -20);
+      annotate(buildingCapacity("port", level) * -20);
       break;
   }
 }
@@ -794,7 +794,37 @@ function linkTo(url, node, styles, opts) {
   return a;
 }
 
+function postUrlTo(url, postvars) {
+  if (!/^http/i.test( url ))
+    url = location.protocol +"//"+ location.host + url;
+  var form = <form method="POST" action={ url }/>;
+  for (var v in postvars)
+    form.* += <input type="hidden" name={ v } value={ postvars[v] }/>;
+  var body = <body onload="document.forms[0].submit()">{ form }</body>;
+  return "data:text/html,"+ encodeURIComponent(body.toXMLString());
+}
+
+// shift the necessary variables to POST, add the in-page-cookie, et cetera
+function postWrap(url) {
+  var get = urlParse(null, url);
+  if (!get.action) return url;
+//  var post = {};
+//  var postvars = "action,function,actionRequest,oldView,cityId".split(",");
+//  for (var v in postvars) {
+//    if (!get[v]) continue;
+//    post[v] = get[v];
+//    delete get[v];
+//  }
+// + makeQuery(get)
+  var cookie = $X('id("changeCityForm")//input[@name="actionRequest"]');
+  if (cookie)
+    get.actionRequest = cookie.value;
+  return postUrlTo(url.replace(/\?.*|$/, "/index.php"), get);
+}
+
 function urlTo(what, id, opts) {
+  function get() { // returns the GET url a 0.2.7 and earlier server wants
+
   function building() {
     var cid = id || c;
     var bid = buildingID(what);
@@ -877,6 +907,11 @@ function urlTo(what, id, opts) {
       }
       return url("?view=island&id="+ id + city);
   }
+  }
+  var dst = get();
+  if (gameVersion() < "0.2.8") // 0.2.8 introduced messy POST requirements
+    return dst;
+  return postWrap(dst);
 }
 
 function getQueue(city) {
