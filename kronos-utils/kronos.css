@@ -77,6 +77,13 @@
 
 /**** Our own hacks ****/
 
+/* rounded tab corners */
+.militaryAdvisorTabs #tabz td.selected a,
+.militaryAdvisorTabs #tabz td a:hover {
+  background: #FEF7E5;
+  -moz-border-radius: 10px 10px 0 0;
+}
+
 /* blue links draw so much attention */
 li.owner a { color: inherit; }
 
