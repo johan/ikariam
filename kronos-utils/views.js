@@ -962,10 +962,11 @@ function embassyView() {
     td.textContent = t.split(".").reverse().join("-");
   }
 
-  var t = $X('id("allyinfo")/tbody');
+  var t = $X('id("mainview")/div[@class="contentBox01h"][1]//tbody');
   var td = $x('tr/td[2]', t);
-  var txt = td[4].firstChild; // alliance page
+  var txt = td[4]; // alliance page
   var u = txt.textContent.match(/^http:\/\/\S*/);
+  if (u) link(u[0], txt.textContent, txt.firstChild );
   if (u) link(u[0], txt.textContent, txt );
 
   var n = td[3].textContent.split(/\s+/)[0]; // placement (i e "4 (1,340,785)")
