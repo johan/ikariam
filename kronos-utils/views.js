@@ -221,8 +221,8 @@ function researchOverviewView() {
       else
         data[i] = $x(xpath, body);
     }
-    [what, data.p] = /\(([0-9,.]+)/.exec(data.p);
-    data.p = integer(data.p);
+    var points = /\(([0-9,.]+)/.exec(data.p);
+    data.p = points ? integer(points[1]) : 0;
     data.d = data.d.map(linkID);
     data.x = trim(data.x.replace(/\s+/g, " ").match(/(\S+:.*)/)[1]);
     //console.log(n + data.toSource());
@@ -967,7 +967,6 @@ function embassyView() {
   var txt = td[4]; // alliance page
   var u = txt.textContent.match(/^http:\/\/\S*/);
   if (u) link(u[0], txt.textContent, txt.firstChild );
-  if (u) link(u[0], txt.textContent, txt );
 
   var n = td[3].textContent.split(/\s+/)[0]; // placement (i e "4 (1,340,785)")
   link(url("?view=allyHighscore&offset="+ Math.floor(integer(n)/100)),
