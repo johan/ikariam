@@ -2019,7 +2019,7 @@ function showWorkerYield() {
   var max = read("maxValue"), overdrive = read("overcharge");
   var perNormal = document.body.id == "resource" ? 1.0 : 0.5;
   if ($X('//li[@class="gain"][contains(@alt,"10%")]')) perNormal *= 1.1;
-  $x('//td[@class="countWorkers"]').forEach(showYield);
+  $x('//td[@class="cityWorkers" or @class="countWorkers"]').forEach(showYield);
   $x('//td[@class="cityname"]/a').forEach(showPlayerInactivity);
 }
 
@@ -2074,8 +2074,9 @@ function resourceView() {
   }
   stillRemains();
   highlightMeInTable();
-  $x('id("mainview")/div[@class="othercities"]//tr/td[@class="actions"]/' +
-     'a[contains(@href,"view=sendMessage")]').forEach(link);
+  $x('(//tr/td[@class="actions"]|' +
+     'id("mainview")/div[@class="othercities"]//tr/td[@class="actions"])' +
+     '/a[contains(@href,"view=sendMessage")]').forEach(link);
   scrollWheelable();
 }
 
