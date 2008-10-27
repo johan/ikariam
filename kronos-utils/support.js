@@ -204,7 +204,7 @@ function integer(n) {
     else if (n.textContent)
       n = n.textContent;
   if (isString(n))
-    n = n.replace(/[^\d-]+/g, "");
+    n = n.replace(/k\s*$/, "000").replace(/[^\d-]+/g, "");
   return n ? parseInt(n, 10) : undefined;
 }
 
