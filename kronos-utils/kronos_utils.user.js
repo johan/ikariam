@@ -2393,6 +2393,8 @@ function showOverview() {
         a.@rel = need.toSource();
         if (-1 != q.indexOf(b))
           a.@style = (a.@style||"") + "font-weight: bold;";
+        if (l >= (softCap[b] || 16))
+          a.@style = (a.@style||"") + "color: green;";
       }
       tr.td += <td class="building">{ a }</td>;
     }

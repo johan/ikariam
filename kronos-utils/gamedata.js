@@ -26,6 +26,8 @@ var buildingIDs = {
   safehouse: 16, palaceColony: 17, resource: 1, tradegood: 2
 };
 
+var softCap = [24,21 /* sawmill */,,,,,24,,24,,8,4,,,,24,20,4]; // 16 for others
+
 var buildingCapacities = {
   townHall:
     [   0,   60,   96,  143,  200,  263,  333,  410,  492,  580,  672,  769,
