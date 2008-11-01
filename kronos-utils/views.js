@@ -789,7 +789,7 @@ function levelTown() {
   }
 
   function level(li) {
-    var level = integer(li.className);
+    var level = integer($X('ul[@class="cityinfo"]/li[@class="citylevel"]', li));
     var city = $X('a[@onclick]/span', li);
     if (!city) return; // new city site
     var name = $X('.//text()[string-length(normalize-space(.)) > 0]', city);
