@@ -871,6 +871,46 @@ stillRemains: "لا يزال :",
         Red$: "احمر",
 },
 
+sr: { // Serbian translation by Nemke
+    language: "Српски",
+    finished: " Завршено ",
+    execTime: "Време извршавања",
+ researching: "Истражујемо",
+    showLoot: "Прикажи пљачке",
+       shown: "Приказано",
+      hidden: "Скривено",
+       empty: "празно: ",
+        full: "пуно: ",
+      months: ["Јан", "Феб", "Мар", "Апр", "Мај", "Јун",
+               "Јул", "Авг", "Сеп", "Окт", "Нов", "Дец"],
+ startExpand: "; Крени ширити пре ",
+     enqueue: "На чекању",
+  prependToQ: "Shift и клик за стављање на врх реда",
+  leftByThen: "Преостало ресурса ",
+shoppingList: "Листа куповине: кликни на ресурс који желиш купити",
+ unavailable: "Недовољно ресурса (укључујући производњу)",
+   popupInfo: "Кликни за инфо, користи скрол точак да би погледао друге левеле",
+ notShownNow: "Напомена: није приказано у главном погледу.",
+ readlibrary: "Kronos мора да прегледа ваша истраживања. Да ли може сада?",
+  travelTime: "Време путовања",
+   startTime: "Почетак",
+      points: "поени",
+   countdown: "Крећемо на следећу ставку у реду за ",
+   countdone: "И идемо -- Почетак следеће градње!",
+  clickToBuy: "Кликни на цену да купиш колико год желиш ресурса.",
+stillRemains: "Фали:",
+      title$: "Kronos Utils Подешавања",
+    general$: "Уопштено",
+   cityview$: "Преглед Града",
+ kronosMenu$: "Прикажи Kronos мени",
+ haveEnough$: "Боја руба грађевина које можете унапредити",
+  notEnough$: "Боја руба грађевина које неможете унапредити",
+      White$: "Бела",
+       Gray$: "Сива",
+      Green$: "Зелена",
+        Red$: "Црвена",
+},
+
 };
 
 
@@ -1099,6 +1139,28 @@ fi: { // Finnish server
 
 gr: { // Greek server
    spyWarehouse: "Κατασκόπευσε την αποθήκη εμπορευμάτων",
+},
+
+ba: { // Serbian server?
+     buyMsn    : "Trgovina(kupi)",
+     buyMsnBack: "Trgovina(kupi) (otkazano)",
+     selMsn    : "Trgovina(prodaj)",
+     selMsnUndo: "Trgovina(prodaj) (otkazano)",
+     tspMsn    : "Transport",
+     tspMsnUndo: "Transport (otkazano)",
+     tspMsnItcp: "?",
+     trpMsn    : "Premeštaj trupa",
+     trpMsnUndo: "Premeštaj trupa (otkazano)",
+     attMsn    : "Pljačkaj",
+     attMsnBack: "Pljačkaj (Return)",
+     attMsnUndo: "Pljačkaj (otkazano)",
+     colMsn    : "Koloniziraj",
+     colMsnUndo: "Koloniziraj (otkazano)",
+
+  lackResources: "Nedovoljno resursa",
+   tooLowBldLvl: "Prenizak level zgrade!",
+
+   spyWarehouse: "Špijuniraj skladište",
 },
 
 };
