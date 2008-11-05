@@ -1141,7 +1141,7 @@ gr: { // Greek server
    spyWarehouse: "Κατασκόπευσε την αποθήκη εμπορευμάτων",
 },
 
-ba: { // Serbian server?
+"ba.com": { // countries of former Jugoslavia
      buyMsn    : "Trgovina(kupi)",
      buyMsnBack: "Trgovina(kupi) (otkazano)",
      selMsn    : "Trgovina(prodaj)",
