@@ -216,9 +216,10 @@ function researchOverviewView() {
     var what = { n: 2, x: 3, p: 4, d: 'tr[6]/td[2]/ul/li/a' }, junk, t, p;
     for (var i in what) {
       var xpath = what[i];
-      if (isNumber(xpath))
-        data[i] = $X('tr['+ xpath +']/td[2]/text()[last()]', body).textContent;
-      else
+      if (isNumber(xpath)) {
+        var x = $X('tr['+ xpath +']/td[2]/text()[last()]', body);
+        data[i] = x ? x.textContent : "(0)";
+      } else
         data[i] = $x(xpath, body);
     }
     var points = /\(([0-9,.]+)/.exec(data.p);
