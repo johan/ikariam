@@ -667,7 +667,8 @@ function islandView() {
     setTimeout(focusCity, 200, city);
   levelTown();
   levelResources();
-  var island = integer(urlParse("id", $X('id("wonder")/a').search));
+  var island = integer(urlParse("id",
+                                $X('(id("wonder")|id("advCities"))/a').search));
   if (island) {
     addEventListener("keypress", nextprevfind, false);
     travelDistanceBreadcrumbs(island);
