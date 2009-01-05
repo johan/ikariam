@@ -63,15 +63,19 @@ function bind(fn, self) {
 }
 
 function parseDate(t) {
-  var Y, M, D, h, m, s = 0;
+  var Y, M, D, h, m, s = 0, now;
   if ((t = t && trim(t.textContent).split(/\D+/))) {
     if (4 == t.length) { // Military view
       [D, M, h, m] = t.map(integer);
-      Y = (new Date).getFullYear();
+      now = new Date;
+      Y = now.getFullYear();
     } else { // merchantnavyView, for instance
       [D, M, Y, h, m, s] = t.map(integer);
     }
-    return (new Date(Y, M - 1, D, h, m, s)).getTime();
+    t = new Date(Y, M - 1, D, h, m, s);
+    if (now && t > now) // assume guessed-year dates are never in the future
+      t = new Date(Y-1, M - 1, D, h, m, s);
+    return t.getTime();
   }
 }
 
