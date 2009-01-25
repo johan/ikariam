@@ -623,6 +623,8 @@ function buildingExtraInfo(div, id, name, level) {
 
     case "tavern":
       var wineMax = buildingCapacity(name, level);
+      var wineRebate = buildingLevel("vineyard", 0);
+      wineMax = Math.round(wineMax * (100 - wineRebate) / 100);
       var wineCur = config.getCity(["x", buildingIDs.tavern], 0);
       if (wineCur != wineMax)
         annotate(wineCur +"/"+ wineMax);
@@ -650,7 +652,8 @@ function buildingExtraInfo(div, id, name, level) {
       break;
 
     case "port":
-      annotate(buildingCapacity("port", level) * -20);
+      var showMultiplier = serverVersionIsAtLeast("0.3.0") ? 1 : -20;
+      annotate(buildingCapacity("port", level) * showMultiplier);
       break;
   }
 }
@@ -858,6 +861,10 @@ function urlTo(what, id, opts) {
     case "barracks":	case "museum":	case "branchOffice":
     case "embassy":	case "palace":	case "palaceColony":
     case "safehouse":	case "tavern":	case "workshop-army":
+    case "stonemason":	case "forester":case "glassblowing":
+    case "winegrower":	case "vineyard":case "carpentering":
+    case "architect":	case "optician":case "alchemist":
+    case "fireworker":
       return building();
 
     case "culturegoods":
@@ -1273,7 +1280,7 @@ function sumPrices(table, c1, c2) {
     var amount = $X('input[contains(@name,"cargo_tradegood")]', form);
     var count = prompt("Buy how much? (0 or cancel to abort)", amount.value);
     if (!count || !(count = integer(count))) return;
-    $X('input[@name="transporters"]', form).value = Math.ceil(count / 300);
+    $X('input[@name="transporters"]', form).value = Math.ceil(count / volume);
     amount.value = count;
 
     form.submit();
@@ -1284,7 +1291,7 @@ function sumPrices(table, c1, c2) {
     var td = $x('td', tr);
     if (td.length <= Math.max(c1, c2)) return;
     var n = integer(td[c1]), count = n;
-    var p = integer(td[c2]), ships = Math.ceil(count / 300);
+    var p = integer(td[c2]), ships = Math.ceil(count / volume);
     if (isNaN(n) || isNaN(p)) return;
     n *= p;
     for (var e in prefixes)
@@ -1342,7 +1349,7 @@ function sumPrices(table, c1, c2) {
     players.push(player);
   }
 
-  var players = [], cities = [];
+  var players = [], cities = [], volume = ships[201].V;
   $x('tbody/tr/td/a[contains(@href,"view=takeOffer")]', table).forEach(link);
   $x('tbody/tr[td]', table).forEach(price);
 }
@@ -1393,15 +1400,15 @@ function evenShips(nodes) {
     var input = e.target || e;
     var value = integer(input);
     var count = goods();
-    var remainder = (count + baseline) % 300;
+    var remainder = (count + baseline) % volume;
     if (remainder) {
-      var to = Math.max(0, value + (300 - remainder) - 300 * roundDown);
+      var to = Math.max(0, value + (volume - remainder) - volume * roundDown);
       input.value = to;
       e.stopPropagation && e.stopPropagation();
       click(input); // have Ikariam render the change
       var got = integer(input);
       if (got != to) {
-        input.value = Math.max(to - 300, 0);
+        input.value = Math.max(to - volume, 0);
       }
     }
   }
@@ -1431,9 +1438,9 @@ function evenShips(nodes) {
     }
   }
 
-  var baseline = $("sendSummary") || 0;
+  var baseline = $("sendSummary") || 0, volume = ships[201].V;
   if (baseline)
-    baseline = 300 - integer(baseline.textContent.split("/")[1]) % 300;
+    baseline = volume - integer(baseline.textContent.split("/")[1]) % volume;
   if (stringOrUndefined(nodes))
     nodes = $x(nodes || '//input[@type="text" and @name]');
   nodes.forEach(listen);
@@ -1462,7 +1469,7 @@ function scrollWheelable(nodes, cb) {
     if (!node || !sign) return;
     event.preventDefault();
     var alt = event.altKey ? 100 : 1;
-    var ctrl = event.ctrlKey ? 3 : 1;
+    var ctrl = event.ctrlKey ? Math.floor(ships[201].V / 100) : 1;
     var meta = event.metaKey ? 1000 : 1;
     var shift = event.shiftKey ? 10 : 1;
     var factor = meta * alt * ctrl * shift;
@@ -2213,12 +2220,12 @@ function fixUpdates() {
  1:  3/h
  2:  5/h
  3:  8/h
- 4: 11/h 
- 5: 14/h 
- 6: 17/h 
- 7: 21/h 
+ 4: 11/h
+ 5: 14/h
+ 6: 17/h
+ 7: 21/h
  8: 25/h
- 9: 29/h 
+ 9: 29/h
 10: 33/h
 11: 38/h
 12: 42/h
@@ -2323,7 +2330,11 @@ function showOverview() {
   </tr></table>;
   var names = ["townHall", "barracks", "shipyard", "port", "branchOffice",
                "tavern", "museum", "academy", "workshop", "safehouse",
-               "embassy", "warehouse", "wall", "palace"];
+               "embassy", "warehouse", "wall", "palace",
+	       "carpentering", "forester",
+	       // can only have one of each of these in a town; use 1 column!
+	       // "stonemason", "glassblowing", "winegrower", "alchemist",
+	       "vineyard", "architect", "optician", "fireworker"];
   for each (var name in names) {
     var img = <img src={gfx[name]} height={name == "wall" ? "30" : "20"}/>;
     if ("museum" == name)
@@ -2393,7 +2404,8 @@ function showOverview() {
         a.@rel = need.toSource();
         if (-1 != q.indexOf(b))
           a.@style = (a.@style||"") + "font-weight: bold;";
-        if (l >= (softCap[b] || 16))
+        if (!serverVersionIsAtLeast("0.3.0") && // only makes sense up to 0.2.8?
+	    l >= (softCap[b] || 16))
           a.@style = (a.@style||"") + "color: green;";
       }
       tr.td += <td class="building">{ a }</td>;
@@ -2646,7 +2658,7 @@ function projectPopulation(opts) {
   var tavern = 12 * buildingLevel("tavern", 0, cid);
   var wineLevel = opts && opts.hasOwnProperty("wine") ? opts.wine :
     config.getCity(["x", buildingIDs.tavern], 0, cid);
-  var wine = 80 * buildingCapacities.tavern.indexOf(wineLevel);
+  var wine = wineMultiplier * buildingCapacities.tavern.indexOf(wineLevel);
   var museum = 20 * buildingLevel("museum", 0, cid);
   var culture = 50 * config.getCity(["x", buildingIDs.museum], 0, cid);
   var utopia = config.getServer("techs.2120", 0); // +200 happy in capital city
