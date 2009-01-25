@@ -531,8 +531,50 @@ function travelTime(x1, y1, x2, y2) {
     //console.log("to isle %x at %x:%y", isle, x2, y2);
     if (!x2 || !y2) return 0;
   }
-  var dx = x2 - x1, dy = y2 - y1;
-  return 60 * 20 * (1 + Math.sqrt(dx*dx + dy*dy));
+  var dx = x2 - x1, dy = y2 - y1, v = ships[201].v;
+  if (serverVersionIsAtLeast("0.3.0"))
+    if (!dx && !dy) // Same island?
+      return 60 * 600/v;
+    else
+      return 60 * 1200/v * Math.sqrt(dx*dx + dy*dy);
+  else // 0.2.8 and below:
+    return 60 * 400/v * (1 + Math.sqrt(dx*dx + dy*dy));
+}
+
+function serverVersion() {
+  return $X('string(//li[@class="version"]//span)').replace(/^\D+|\s+/g, "");
+}
+
+function serverVersionIsAtLeast(what) {
+  var ver = serverVersion().split(".").map(integer);
+  what = what.split(".").map(integer);
+  for (var i = 0; i < what.length; i++)
+    if (ver[i] < what[i])
+      return false;
+  return true;
+}
+
+// quite bugged; doesn't think 0.3.0 is larger than 0.2.8, as 8 < 0
+function serverVersionTest(op, than) {
+  var ver = serverVersion().split(".").map(integer);
+  than = than.split(".").map(integer);
+  var cmp = ({
+    "<":  function(a, b) { return a < b; },
+    "<=": function(a, b) { return a <= b; },
+    "==": function(a, b) { return a == b; },
+    ">=": function(a, b) { return a >= b; },
+    ">":  function(a, b) { return a > b; }
+  })[op];
+  var res = ver.map(function(server, i) { return cmp(server, than[i]); }), yes;
+  for (var i = 0; i < than.length;) {
+    if (i >= ver.length)
+      return false;
+    if (!cmp(ver[i], than[i]))
+      return false;
+    if (++i == than.length && ver.length > i)
+      return op.charAt() == "<" ? true : op != "==";
+  }
+  return true;
 }
 
 function key(node, keyCode, charCode, mods, type) {
