@@ -837,7 +837,7 @@ ar: { // Arabic translation from Kissy
     execTime: "وقت التنفيذ",
  researching: "البحث",
     showLoot: "اعرض جدول النهب",
-       shown: "اعرض", 
+       shown: "اعرض",
       hidden: "اخفي",
        empty: "فارغ: ",
         full: "ممتلىء: ",
@@ -923,129 +923,35 @@ var country = location.hostname.replace(/s\d+\.|ikariam\./g, ""); // index below
 var servers = { // Indexed on hostname TLD, if your country is sX.ikariam.TLD
 
 org: #1={ // English
-// ?view=merchantNavy texts:
-     buyMsn    : "Trade(Buy)",
-     buyMsnBack: "Trade (Return)",
-     selMsn    : "Trade(Sell)",
-     selMsnUndo: "Trade(Sell) (cancelled)",
-     tspMsn    : "Transport",
-     tspMsnUndo: "Transport (cancelled)", // Undo = U-turn
-     tspMsnItcp: "?",
-     trpMsn    : "Deploy troops",
-     trpMsnUndo: "Deploy troops  (cancelled)",
-     attMsn    : "Pillage",
-     attMsnBack: "Pillage (Return)",  // Back = left arrow
-     attMsnUndo: "Pillage  (cancelled)",
-     colMsn    : "Colonise",
-     colMsnUndo: "Colonise (cancelled)",
-
 // ?view=workshop-army texts:
   lackResources: "Insufficient Resources", // Hover tooltip over "Not available"
    tooLowBldLvl: "Insufficient building level!", // buttons (with the reason)
 
 // ?view=safehouse texts:
-   spyWarehouse: "Spy out warehouse",
+   spyWarehouse: "Spy out warehouse stock",
 },
 com: #1#, // Also English; hopefully the same (until reported otherwise)
 
 se: { // Swedish server
-     buyMsn    : "Handel(Köpa)",
-     buyMsnBack: "Handel (Återvänder)",
-     selMsn    : "?",
-     selMsnUndo: "Handel(Sälja) (avbruten)",
-     trpMsn    : "Utplacera trupper",
-     trpMsnUndo: "Utplacera trupper  (avbruten)",
-     tspMsn    : "Transportera",
-     tspMsnUndo: "?",
-     attMsn    : "Plundra",
-     attMsnBack: "Plundra (återvänder)",
-     colMsn    : "Kolonisera",
-
    spyWarehouse: "Spionera på lagerlokalen",
 },
 
 fr: { // French server
-     buyMsn    : "Commerce (Acheter)",
-     buyMsnBack: "Trade (Retour)",
-     selMsn    : "Commerce (Vendre)",
-     selMsnUndo: "Commerce (Vendre) (annulé)",
-     tspMsn    : "Transport",
-     tspMsnUndo: "Transport (annulé)",
-     tspMsnItcp: "Transport intercepté",
-     attMsn    : "Piller",
-     attMsnBack: "Piller (Retour)",
-     colMsn    : "Coloniser",
-
   lackResources: "Quantité insuffisante de ressources",
    tooLowBldLvl: "Niveau de construction insuffisant !",
 
    spyWarehouse: "Espionner l´entrepôt",
 },
 
-ro: { // Romanian server
-     buyMsn    : "Schimb (Cumpara)",
-     buyMsnBack: "Schimb (Revin)",
-     selMsn    : "Schimb (Vinde)",
-     selMsnUndo: "Schimb (Vinde) (anulata)",
-     tspMsn    : "Transport",
-     tspMsnUndo: "Transport (anulata)",
-     tspMsnItcp: "?",
-     trpMsn    : "Trimite trupe",
-     trpMsnUndo: "Trimite trupe (anulata)",
-     attMsn    : "Jefuieste",
-     attMsnBack: "Jefuirea (Revin)",
-     attMsnUndo: "Jefuirea (anulata)",
-     colMsn    : "Colonizeaza",
-},
-
 ru: { // Russian server
-     buyMsn    : "Торговля (Покупка)",
-     buyMsnBack: "Торговля (Обмен)",
-     selMsn    : "Торговля (Продажа)",
-     selMsnUndo: "Торговля (Покупка) (отменено)",
-     trpMsn    : "Разместить войска",
-     trpMsnUndo: "Разместить войска (отменено)",
-     tspMsn    : "Транспорт",
-     tspMsnUndo: "Транспорт (отменено)",
-     tspMsnItcp: "?", //Атака транспорта
-     attMsn    : "Набег",
-     attMsnBack: "Набег (Возвращение)",
-     colMsn    : "Колонизировать",
-
   lackResources: "?", //Insufficient Resources
    tooLowBldLvl: "?", //Insufficient building level!
 },
 
 nl: { // Dutch server
-     buyMsn    : "Handel(Koop)",
-     buyMsnBack: "Handel (Retour)",
-     selMsn    : "Handel(Verkoop)",
-     selMsnUndo: "Handel(Verkoop) (geannuleerd)",
-     trpMsn    : "Stationeer troepen",
-     trpMsnUndo: "Stationeer troepen (geannuleerd)",
-     tspMsn    : "Transport",
-     tspMsnUndo: "Transport (geannuleerd)",
-     attMsn    : "Plunderen",
-     attMsnBack: "Plunderen (retour)",
-     colMsn    : "Koloniseren",
 },
 
 cz: { // Czech server
-     buyMsn    : "Obchod(Koupit)",
-     buyMsnBack: "Obchod (Zpět)",
-     selMsn    : "Obchod(Prodej)",
-     selMsnUndo: "Obchod(Prodej) (zrušeno)",
-     tspMsn    : "Transport",
-     tspMsnUndo: "Transport (zrušeno)",
-     tspMsnItcp: "?",
-     trpMsn    : "Umístit vojáky",
-     trpMsnUndo: "Umístit vojáky (zrušeno)",
-     attMsn    : "Drancování",
-     attMsnBack: "Drancování (Zpět)",
-     attMsnUndo: "Drancování (zrušeno)",
-     colMsn    : "Kolonizovat",
-     colMsnUndo: "Kolonizovat (zrušeno)",
-
   lackResources: "Nedostatek surovin!",
    tooLowBldLvl: "Úroveň budovy je příliš nízká!",
 
@@ -1053,20 +959,6 @@ cz: { // Czech server
 },
 
 ro: { // Romanian server
-     buyMsn    : "Schimb (Cumpara)",
-     buyMsnBack: "Schimb (Revin)",
-     selMsn    : "Schimb (Vinde)",
-     selMsnUndo: "Schimb (Vinde) (anulata)",
-     tspMsn    : "Transport",
-     tspMsnUndo: "Transport (anulata)",
-     tspMsnItcp: "?",
-     trpMsn    : "Trimite trupe",
-     trpMsnUndo: "Trimite trupe (anulata)",
-     attMsn    : "Jefuieste",
-     attMsnBack: "Jefuirea (Revin)",
-     attMsnUndo: "Jefuieste (anulata)",
-     colMsn    : "Colonizeaza",
-     colMsnBack: "?",
 },
 
 "com.pt": { // Portuguese server
@@ -1082,58 +974,18 @@ es: { // Spanish server
 },
 
 tw: { // Taiwanese server
-     buyMsn    : "貿易(購買)",
-     buyMsnBack: "貿易(返回)",
-     selMsn    : "貿易(販賣)",
-     selMsnUndo: "貿易(販賣) (已取消)",
-     tspMsn    : "運輸",
-     tspMsnUndo: "運輸 (已取消)",
-     tspMsnItcp: "攔截運輸",
-     trpMsn    : "部署軍隊",
-     trpMsnUndo: "部署軍隊 (已取消)",
-     attMsn    : "掠奪",
-     attMsnBack: "掠奪 (返回)",
-     attMsnUndo: "掠奪 (已取消)",
-     colMsn    : "殖民",
-     colMsnUndo: "殖民(已取消)",
   lackResources: "沒有足夠的資源",
    tooLowBldLvl: "建築物等級太低!",
    spyWarehouse: "刺探倉庫",
 },
 
 cn: { // Chinese server
-     buyMsn    : "贸易(购买)",
-     buyMsnBack: "贸易(返回)",
-     selMsn    : "贸易(贩卖)",
-     selMsnUndo: "贸易(贩卖) (已取消)",
-     tspMsn    : "运输",
-     tspMsnUndo: "运输 (已取消)", 
-     tspMsnItcp: "拦截运输",
-     trpMsn    : "部署军队",
-     trpMsnUndo: "部署军队 (已取消)",
-     attMsn    : "掠夺",
-     attMsnBack: "掠夺 (返回)",
-     attMsnUndo: "掠夺 (已取消)",
-     colMsn    : "殖民",
-     colMsnUndo: "殖民(已取消)",
   lackResources: "没有足够的资源",
    tooLowBldLvl: "建筑物等级太低!",
    spyWarehouse: "刺探仓库",
 },
 
 fi: { // Finnish server
-     buyMsn    : "Kauppa (Osta)",
-     buyMsnBack: "Kauppa (Osta) (peruttu)",
-     selMsn    : "Kauppa (Myy)",
-     selMsnUndo: "Kauppa (Myy) (peruttu)",
-     trpMsn    : "Levitä joukot",
-     trpMsnUndo: "Levitä joukot (peruttu)",
-     tspMsn    : "Kuljetus",
-     tspMsnUndo: "Kuljetus (peruttu)",
-     attMsn    : "Ryöstele",
-     attMsnBack: "Ryöstele (peruttu)",
-     colMsn    : "Perusta siirtokunta",
-
    spyWarehouse: "Vakoile varastoa",
 },
 
@@ -1142,21 +994,6 @@ gr: { // Greek server
 },
 
 "ba.com": { // countries of former Jugoslavia
-     buyMsn    : "Trgovina(kupi)",
-     buyMsnBack: "Trgovina(kupi) (otkazano)",
-     selMsn    : "Trgovina(prodaj)",
-     selMsnUndo: "Trgovina(prodaj) (otkazano)",
-     tspMsn    : "Transport",
-     tspMsnUndo: "Transport (otkazano)",
-     tspMsnItcp: "?",
-     trpMsn    : "Premeštaj trupa",
-     trpMsnUndo: "Premeštaj trupa (otkazano)",
-     attMsn    : "Pljačkaj",
-     attMsnBack: "Pljačkaj (Return)",
-     attMsnUndo: "Pljačkaj (otkazano)",
-     colMsn    : "Koloniziraj",
-     colMsnUndo: "Koloniziraj (otkazano)",
-
   lackResources: "Nedovoljno resursa",
    tooLowBldLvl: "Prenizak level zgrade!",
 

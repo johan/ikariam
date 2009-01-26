@@ -51,76 +51,6 @@ function cityView() {
 
 // would ideally treat the horrid tooltips as elsewhere, but they're dynamic X-|
 function merchantNavyView() {
-  function missionType(mission, t1_vs_t2, c1, c2) {
-    var R = "right", L = "left", x = "swap";
-    var data = {// arrival<end  arrival==end  arrival>end  (",  " == verified)
-      colMiss: { "-1": [R,  ],  "0": [R   ],  "1": [R   ] },
-      colUndo: { "-1": [L,  ],  "0": [L   ],  "1": [L   ] },
-      attMiss: { "-1": [R,  ],  "0": [L, x],  "1": [L, x] },
-      attUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
-      attBack: { "-1": [L   ],  "0": [L   ],  "1": [L, x] },// 0: YOUR name :/
-      buyMiss: { "-1": [R,  ],  "0": [L,  ],  "1": [R   ] },
-      buyUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
-      buyBack: { "-1": [L,  ],  "0": [L, x],  "1": [L, x] },
-      selMiss: { "-1": [R   ],  "0": [R   ],  "1": [R   ] },
-      selUndo: { "-1": [L   ],  "0": [L, x],  "1": [L   ] },
-      selBack: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
-      trpMiss: { "-1": [R   ],  "0": [R   ],  "1": [R   ] },
-      trpUndo: { "-1": [L   ],  "0": [L   ],  "1": [L   ] },
-      tspMiss: { "-1": [R,  ],  "0": [R,  ],  "1": [R   ] },
-      tspUndo: { "-1": [L   ],  "0": [L, x],  "1": [L   ] },
-    };
-    for each (var id in missions)
-      for each (var sub in ["", "Undo", "Back"])
-        if (mission == texts[id+"Msn"+sub]) {
-          data = data[id+(sub||"Miss")][t1_vs_t2].concat();
-          data.unshift(id);
-          //console.log((t1_vs_t2+"").charAt() +" "+ id+"Msn"+(sub||"Miss") +": "+ data.join(" / ") + " [" + c1+"&"+c2 +"]");
-          return data;
-        }
-    console.log(mission +" \\ "+ t1_vs_t2);
-    return ["tsp", R];
-  }
-
-  function arrowify(tr, i) {
-    var td = $x('td', tr);
-    var mission = trim(td[3].textContent), msn;
-    var t1 = parseDate(td[4]), c1 = td[0].firstChild;
-    var t2 = parseDate(td[5]), c2 = td[1].firstChild;
-    //if(compare(t1, t2) == 1)console.log(1, td[4].textContent, td[5].textContent, t1, t2);
-    if (c2.nextSibling) {
-      rm(c2.nextSibling);
-      var player = c2.nextSibling.nodeValue.replace(/(^\( *| *\) ?$)/g, "");
-      rm(c2.nextSibling);
-      node({ text: player, className: "ellipsis price", append: td[1] });
-    }
-
-    var direction, msn, swap;
-    [msn, direction, swap] = missionType(mission, compare(t1, t2), c1.nodeValue, c2.nodeValue);
-    var arrow = tr.insertCell(1);
-    if (cityNames().indexOf((swap ? c2 : c1).textContent) == -1) {
-      swap = !swap; // when possible, salvage ambiguous contexts
-    }
-    if (swap) {
-      //console.log("replacing row " + (i+1));
-      td[1].replaceChild(c1, c2);
-      td[0].appendChild(c2);
-      [c1, c2] = [c2, c1];
-    }
-    linkCity(c2, player);
-    node({ tag: <img class="arrow" src={arrows[direction][msn]}/>,
-           append: arrow });
-  }
-
-  function getter(mission, direction) {
-    return function() {
-      //console.log(mission +" + "+ direction);
-      var self = arguments.callee;
-      if (self.img) return self.img;
-      return self.img = GM_getResourceURL(mission +"-"+ direction);
-    };
-  }
-
   function showResources(td) {
     var stuff = td.getAttribute("onmouseover").match(/<img.*/) + "";
     var goods = "wood,wine,marble,glass,sulfur".split(",");
@@ -175,17 +105,6 @@ function merchantNavyView() {
   var table = $X('id("mainview")//table[@class="table01"]/tbody');
 
   tab3('id("mainview")/div/h1');
-
-  if (texts) {
-    var arrows = { left: {}, right: {} };
-    var missions = ["att", "buy", "sel", "trp", "tsp", "col"];
-    for each (var msn in missions) {
-      arrows.left.__defineGetter__(msn, getter(msn, "l"));
-      arrows.right.__defineGetter__(msn, getter(msn, "r"));
-    }
-    $x('tr[td[3]]', table).forEach(arrowify);
-    node({ tag: "th", text: " ", after: $X('tr/th[1]', table) });
-  }
 
   pruneTodayDates('tr/td', table);
   $x('(tr/td | tr/td/div)[@onmouseover]', table).forEach(showResources);
@@ -1902,6 +1821,20 @@ function workshopView() {
   $x('id("demo")//tr[td[@class="object"]]').forEach(augment);
   projectCompletion("upgradeCountdown", "done");
   $x('//a[@class="button inactive" and @title]').forEach(showWhy);
+  if (serverVersionIsAtLeast("0.3.0")) {
+    css(<><![CDATA[
+#workshop #demo div.unitBuildCost {
+  margin-left: -20px;
+  margin-right:  5px;
+  position: relative;
+  width:       160px;
+}
+
+#workshop #demo div.unitBuildCost > div {
+  position: absolute;
+}
+    ]]></>);
+  }
 }
 
 

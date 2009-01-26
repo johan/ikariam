@@ -10,18 +10,6 @@
 // @include        http://ikariamlibrary.com/?content=3&inline=yes&battleType=*
 // @require        http://ecmanaut.googlecode.com/svn/trunk/lib/gm/wget.js
 // @resource woody header.png
-// @resource att-r arrow-right.png
-// @resource att-l arrow-left.png
-// @resource buy-r arrow-right-buy.png
-// @resource buy-l arrow-left-buy.png
-// @resource sel-r arrow-right-sell.png
-// @resource sel-l arrow-left-sell.png
-// @resource trp-r arrow-right-trp.png
-// @resource trp-l arrow-left-trp.png
-// @resource tsp-r arrow-right-tsp.png
-// @resource tsp-l arrow-left-tsp.png
-// @resource col-r arrow-right-col.png
-// @resource col-l arrow-left-col.png
 // @resource all   gfx/places/all.png
 // @resource bc    gfx/places/culturegoods.png
 // @resource bw    gfx/places/wood.png
@@ -132,6 +120,7 @@ function augment(view, action, lang) {
     case "armyGarrisonEdit": dontSubmitZero(); break;
     case "shipyard": shipyardView(); break;
     case "barracks": barracksView(); break;
+    case "workshop": workshopView("both"); break;
     case "workshop-army": workshopView("troops"); break;
     case "workshop-fleet": workshopView("ships"); break;
     case "buildingGround": buildingGroundView(); break;
@@ -834,7 +823,13 @@ function urlTo(what, id, opts) {
     var l = buildingLevel(bid, undefined, null, cid);
     if (isDefined(l)) {
       var p = buildingPosition(bid, "", cid);
-      return url("?view="+ what +"&id="+ cid +"&position="+ p);
+      var hash = "";
+      if (serverVersionIsAtLeast("0.3.0") && /-/.test(what)) {
+	if (/fleet/.test(what))
+	  hash = "#tab2";
+	what = "workshop";
+      }
+      return url("?view="+ what +"&id="+ cid +"&position="+ p + hash);
     }
     return "";
   }
@@ -848,7 +843,7 @@ function urlTo(what, id, opts) {
 
   if (isUndefined(opts)) opts = {};
   var c = cityID(), i = islandID(), ci = config.getCity("i", 0, c) || i;
-  if (what == "workshop")
+  if (what == "workshop" && !serverVersionIsAtLeast("0.3.0"))
     what = "workshop-army";
   switch (what) {
     default:		return url("?view="+ what);
@@ -2298,7 +2293,7 @@ function showOverview() {
     //var is = eval(on.getAttribute("rel"));
     //on.textContent = is.l; // original level
     for each (var r in res) {
-      if ("S" == r) return; // no buildings cost sulphur or people anyway
+      if ("t" == r) return; // no buildings cost sulphur or people anyway
       var n = $(r +"_"+ id);
       var v = n.getAttribute("rel") || "\xA0";
       if (n.textContent != v) {
@@ -2331,15 +2326,17 @@ function showOverview() {
   var names = ["townHall", "barracks", "shipyard", "port", "branchOffice",
                "tavern", "museum", "academy", "workshop", "safehouse",
                "embassy", "warehouse", "wall", "palace",
-	       "carpentering", "forester",
+	       "forester", "stonemason", "carpentering",
 	       // can only have one of each of these in a town; use 1 column!
-	       // "stonemason", "glassblowing", "winegrower", "alchemist",
+	       // "winegrower", "stonemason", "glassblowing", "alchemist",
 	       "vineyard", "architect", "optician", "fireworker"];
+  if (!serverVersionIsAtLeast("0.3.0")) names.splice(14);
   for each (var name in names) {
     var img = <img src={gfx[name]} height={name == "wall" ? "30" : "20"}/>;
     if ("museum" == name)
       img = <a href={ urlTo("culturegoods") }>{ img }</a>;
-    table.tr.* += <th title={/*lang[*/name/*]*/} class={"building " + name}>
+    var title = "stonemason" == name ? "resource improver" : name;
+    table.tr.* += <th title={/*lang[*/title/*]*/} class={"building " + name}>
       { img }
     </th>;
   }
@@ -2383,6 +2380,12 @@ function showOverview() {
         name = "palaceColony";
         b = buildingIDs[name];
         l = config.getCity(["l", buildingIDs[name]], undefined, id);
+      } else if ("stonemason" == name && isUndefined(l)) {
+	for each (name in ["winegrower", "glassblowing", "alchemist"]) {
+	  b = buildingIDs[name];
+	  l = config.getCity(["l", b], undefined, id);
+	  if (!isUndefined(l)) break;
+	}
       }
       if (isUndefined(l)) {
         a = "\xA0";
