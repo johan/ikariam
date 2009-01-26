@@ -27,6 +27,13 @@ var buildingIDs = {
   stonemason: 19, glassblowing: 20, winegrower: 21, alchemist: 22,
   carpentering: 23, architect: 24, optician: 25, vineyard: 26, fireworker: 27
 };
+if (serverVersionIsAtLeast("0.3.0")) {
+  //delete buildingIDs["workshop-army"];
+  //delete buildingIDs["workshop-fleet"];
+} else
+  for (var id in buildingIDs)
+    if (buildingIDs[id] > 17)
+      delete buildingIDs[id];
 
 var softCap = [24,21 /* sawmill */,,,,,24,,24,,8,4,,,,24,20,4]; // 16 for others
 var wineMultiplier = serverVersionIsAtLeast("0.3.0") ? 60 : 80 /* <= 0.2.8 */;
@@ -338,12 +345,12 @@ var troops = serverVersionIsAtLeast("0.3.0") ? {
   311: {n:"Doctor",i:"medic",p:6,w:640,C:361,b:"1h 2m",u:244,m:11,o:12,a:4,d:28,A:0,D:0,s:14,c:"Human",v:20,x:"Healer"},
   310: {n:"Cook",p:4,w:520,W:103,b:"38m",u:138,m:8,o:8,a:6,d:26,A:0,D:0,s:16,c:"Human",v:20,x:"Regeneration"}
 };
-for (var id in troops) troops[id].id = id;
+for (id in troops) troops[id].id = id;
 
 
 // sea units:
 var ships = serverVersionIsAtLeast("0.3.0") ? {
-  201: {n:"Cargo Ship",a:0,d:0,s:4,c:"Steamship",v:20,A:0,D:0,V:500},
+  201: {n:"Cargo Ship",a:0,d:0,s:4,c:"Steamship",v:60,A:0,D:0,V:500},
   210: {n:"Ram-Ship",p:6,w:88,S:56,b:"28m 16s",u:13,m:1,o:3,a:16,d:13,A:3,D:1,s:5,c:"Sailer",v:40},
   213: {n:"Ballista Ship",p:5,w:86,S:67,b:"34m 45s",u:14,m:3,o:5,a:15,d:17,A:2,D:3,s:6,c:"Sailer",v:30,x:"Resistance"},
   211: {n:"Flamethrower",p:4,w:67,S:123,b:"32m 40s",u:20,m:6,o:8,a:39,d:17,A:6,D:3,s:5,c:"Steamship",v:33,x:"Assault"},
