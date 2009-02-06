@@ -146,6 +146,9 @@ function augment(view, action, lang) {
     case "safehouseReports": safehouseReportsView(); break;
     case "academy": academyView(); break;
     case "options": optionsView(); break;
+    default:
+      if (buildingIDs.hasOwnProperty(view))
+	;
   }
   demolitionHelper();
 
@@ -607,7 +610,9 @@ function buildingExtraInfo(div, id, name, level) {
 
     case "wall":
       var townSize = buildingLevel("townHall", 0);
-      annotate(Math.floor(Math.min(1, level / townSize) * level * 10) + "%");
+      var defense = serverVersionIsAtLeast("0.3.0") ? level * 10 :
+	Math.floor(Math.min(1, level / townSize) * level * 10);
+      annotate(defense + "%");
       break;
 
     case "tavern":
