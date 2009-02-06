@@ -845,7 +845,9 @@ function townHallView() {
     clickTo(tavern, "tavern");
     config.setCity(["l", buildingIDs.tavern], integer(tlevel) / 12, city);
     value = integer($X('div[@class="serving"]/span[@class="value"]', tavern));
-    value = buildingCapacities.tavern[value / 80];
+    value = buildingCapacities.tavern[value / wineMultiplier];
+    var wineRebate = buildingLevel("vineyard", 0);
+    value = Math.round(value * (100 - wineRebate) / 100);
     config.setCity(["x", buildingIDs.tavern], value, city);
   }
   var museum = $X('.//div[@class="cat culture"]', growth);
