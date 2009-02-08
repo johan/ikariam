@@ -593,11 +593,12 @@ function islandView() {
     travelDistanceBreadcrumbs(island);
   }
 
+  cssToggler("vacations", false, gfx.palm, // toggles showing players @ vacation
+	     "#island #mainview #cities .cityLocation.city.vacation { display: none; }");
   var c = $x('id("cities")/li[contains(@class,"level") and ' +
              ' not(contains(@class,"level0"))]/ul[@class="cityinfo"]');
   c.forEach(registerCity);
   alliancePresence();
-
   cssToggler("playernames", false, "http://i297.photobucket.com/albums/mm209/apocalypse33/Avatar/Ava52.png", "#island #container #mainview #cities .textLabel.player-name { display: none; }");
 
   showSpies();
@@ -732,6 +733,7 @@ function levelTown() {
       // z: 0: normal, 1: vacation, 2: inactive;
       // Z: 1/2: first seen in this state
       var type = { vacation: 1, inactivity: 2 }[span.className] || 0;
+      if (type == 1) li.className = "vacation " + li.className;
       var last = config.getCity("z", 0, id);
       var time = config.getCity("Z", 0, id);
       var now = (new Date).getTime();
