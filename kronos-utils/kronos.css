@@ -875,8 +875,7 @@ html body div#container div#container2 a.text:hover {
 /**** Library view ****/
 
 #researchOverview #container #mainview ul { padding: 0 !important; }
-#researchOverview #container #mainview li { padding-left: 0; }
-
+#researchOverview #container #mainview li { padding-left: 0; position: relative }
 /* Dependency hover checkboxes, or not */
 a.dependent:before { content: "\2713 "; }
 a.independent { padding-left: 9px; }
