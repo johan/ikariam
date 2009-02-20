@@ -144,7 +144,9 @@ function researchOverviewView() {
     var points = /\(([0-9,.]+)/.exec(data.p);
     data.p = points ? integer(points[1]) : 0;
     data.d = data.d.map(linkID);
-    data.x = trim(data.x.replace(/\s+/g, " ").match(/(\S+:.*)/)[1]);
+    data.x = data.x.replace(/\s+/g, " ").match(/(\S+\s*:[^:]*$)/);
+    data.x = data.x == null ? "" : data.x[1];
+    data.x = trim(data.x);
     //console.log(n + data.toSource());
     info[id] = data;
     config.setServer("techs.info", info);
