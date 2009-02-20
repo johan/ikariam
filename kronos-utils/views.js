@@ -211,8 +211,9 @@ function techinfo(what, links, div) {
                    deps: info.d };
       if (links) {
         item.a = links[j++];
-        if ((item.known = $x('ancestor::ul/@class = "explored"', item.a)))
-          config.setServer(["techs", i], 1);
+	var level = integer($X('text()', item.a).textContent);
+        if ((item.known = $x('ancestor::*/@class = "explored"', item.a)))
+          config.setServer(["techs", i], level || 1);
       }
       array.push(byID[i] = item);
     }
@@ -1645,7 +1646,7 @@ function sendUnits(where) {
       var units = integer(input.value);
       if (empty) // pick the maximum available, if no units were selected
         units = integer($X('preceding::div[@class="amount"][1]', input));
-      if (!units) return;
+      if (!units) return null;
       var a = config.getServer(["techs", "units", unit.id, "a"], 0);
       var d = config.getServer(["techs", "units", unit.id, "d"], 0);
       stats[unit.id] = [units, a, d].join(".");
@@ -1778,7 +1779,7 @@ function workshopView() {
       var l2 = l1 + delta;
       var stat = l1;
       if (l != level) {
-        opacity = "0.5"
+        opacity = "0.5";
       } else {
         opacity = "1.0";
         if (type == "gold" &&
