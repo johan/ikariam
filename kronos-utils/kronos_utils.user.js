@@ -559,12 +559,17 @@ function buildingExpansionNeeds(b, level) {
   if (config.getServer("techs.2020")) factor -= 0.02; // Pulley
   if (config.getServer("techs.2060")) factor -= 0.04; // Geometry
   if (config.getServer("techs.2100")) factor -= 0.08; // Spirit Level
-  //if (config.getServer("techs.2999")) factor -= 0.02; // Economic Future
+  //if (config.getServer("techs.2999"))               // Economic Future no
+  //  factor -= 0.02 * config.getServer("techs.2999");// longer has this effect
   for (var r in needs)
-    if ("t" == r) // no time discount
+    if ("t" == r) { // no time discount
       value[r] = needs[r];
-    else
-      value[r] = Math.floor(needs[r] * factor);
+    } else {
+      value[r] = Math.ceil(needs[r] * factor);
+      var bonus = buildingIDs[bonusBuildings[r]];
+      if (bonus && (bonus = buildingLevel(bonus)))
+        value[r] = Math.round(value[r] * (1 - 0.01 * bonus));
+    }
   return value;
 }
 

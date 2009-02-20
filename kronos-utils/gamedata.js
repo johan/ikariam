@@ -27,6 +27,9 @@ var buildingIDs = {
   stonemason: 19, glassblowing: 20, winegrower: 21, alchemist: 22,
   carpentering: 23, architect: 24, optician: 25, vineyard: 26, fireworker: 27
 };
+var bonusBuildings = serverVersionIsAtLeast("0.3.0") ? { w: "carpentering",
+  W: "vineyard", M: "architect", C: "optician", S: "fireworker" } : {};
+
 if (serverVersionIsAtLeast("0.3.0")) {
   //delete buildingIDs["workshop-army"];
   //delete buildingIDs["workshop-fleet"];
