@@ -488,6 +488,8 @@ function milScoreFor(unit, count) {
   if (isNumber(unit))
     unit = troops[unit] || ships[unit];
   count = (isDefined(count) ? count : 1) / 100;
+  if (serverVersionIsAtLeast("0.3.0"))
+    return count * (unit.w + unit.W||0 + unit.C||0 + unit.S||0) * 2;
   return count * (2*unit.w + 16*(unit.W||0) + 4*(unit.C||0) + 4*(unit.S||0));
 }
 
