@@ -1672,7 +1672,8 @@ function sendUnits(where) {
       stats["wall"] = levels[buildingIDs.wall] || 0;
     }
 
-    var url = "http://ikariamlibrary.com/?content=3&inline=yes&battleType=";
+    var url = "http://ikariamlibrary.com/?content=IkaFight&inline=yes" +
+      "&battleType=";
     url += ("fleet"==where ? "sea" : "land") +"&clear=true#"+ makeQuery(stats);
 
     var form = $("plunderForm") || $("blockadeForm");
