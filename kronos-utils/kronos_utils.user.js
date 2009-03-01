@@ -565,10 +565,11 @@ function buildingExpansionNeeds(b, level) {
     if ("t" == r) { // no time discount
       value[r] = needs[r];
     } else {
-      value[r] = Math.ceil(needs[r] * factor);
+      value[r] = needs[r] * factor;
       var bonus = buildingIDs[bonusBuildings[r]];
       if (bonus && (bonus = buildingLevel(bonus)))
-        value[r] = Math.round(value[r] * (1 - 0.01 * bonus));
+        value[r] = (value[r] * (1 - 0.01 * bonus));
+      value[r] = Math.floor(value[r]);
     }
   return value;
 }
