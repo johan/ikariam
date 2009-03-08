@@ -29,6 +29,11 @@ var buildingIDs = {
 };
 var bonusBuildings = serverVersionIsAtLeast("0.3.0") ? { w: "carpentering",
   W: "vineyard", M: "architect", C: "optician", S: "fireworker" } : {};
+var prodIncreasers = serverVersionIsAtLeast("0.3.0") ? { w: "forester",
+  W: "winegrower", M: "stonemason", C: "glassblowing", S: "alchemist" } : {};
+// wonder id to resource bonus; c is the number of these in the game as a whole:
+var wonders = [, {r:"S",c:353}, {r:"M", c:430}, {r:"W", c:395}, {r:"C", c:363},
+	       {/*w:5,*/c:955}, {/*w:6*/c:890}, {/*w:7*/c:954}, {/*w:8*/c:960}];
 
 if (serverVersionIsAtLeast("0.3.0")) {
   //delete buildingIDs["workshop-army"];

@@ -99,8 +99,8 @@ function init() {
 function augment(view, action, lang) {
   switch (view || action) {
     case "tavern": tavernView(); break;
-    case "resource":  // fall-through:
-    case "tradegood": resourceView(); // fall-through:
+    case "resource": resourceView(); scrollWheelable(); break;
+    case "tradegood": tradegoodView(); scrollWheelable(); break;
     case "takeOffer": scrollWheelable(); break;
     case "premiumTrader": // fall-through:
     case "transport": scrollWheelable(); evenShips(); break;
@@ -568,7 +568,7 @@ function buildingExpansionNeeds(b, level) {
       value[r] = needs[r] * factor;
       var bonus = buildingIDs[bonusBuildings[r]];
       if (bonus && (bonus = buildingLevel(bonus)))
-        value[r] = (value[r] * (1 - 0.01 * bonus));
+        value[r] = value[r] * (1 - 0.01 * bonus);
       value[r] = Math.floor(value[r]);
     }
   return value;

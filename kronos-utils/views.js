@@ -683,7 +683,6 @@ function levelResources() {
     var level = number(what.className);
     node({ className: "rounded", text: level, append: what });
 
-    var id = urlParse("id");
     if (id) {
       var res = what.className.split(" ")[0];
       var rid = resourceIDs[res];
@@ -695,8 +694,12 @@ function levelResources() {
       }
     }
   }
+  var id = urlParse("id");
   annotate('contains(@class,"wood")');
   annotate('not(contains(@class,"wood")) and not(@id)');
+  if (id) {
+    config.setIsle("W", number($("wonder").className), id);
+  }
 }
 
 function levelTown() {
@@ -1941,18 +1944,21 @@ function takeOfferView() {
 }
 
 function tradegoodView() {
-  resourceView();
+  resourceView(luxuryType());
 }
 
-function showWorkerYield() {
+function showWorkerYield(resourceID) {
   function showYield(td) {
     var workers = integer(td);
     var normal = Math.min(max, workers);
     var helpers = workers - normal;
-    var hourly = normal * perNormal + helpers * perNormal / 4;
-    var yield = sign(Math.floor(hourly)) +"/"+ locale.timeunits.short.hour;
+    var bBuilding = buildingLevel(building, 0, null /*, cityID*/) / 100;
+    // FIXME: if/once we've fetched a city id for above line, remove next line:
+    if (!/own/.test(td.parentNode.className||"")) bBuilding = 0;
+    var hourly = (normal + (helpers/4)) * (1 + bWonder + bBuilding);
+    var yields = sign(Math.floor(hourly)) +"/"+ locale.timeunits.short.hour;
     var daily = sign(Math.floor(hourly * 24)) +"/"+ locale.timeunits.short.day;
-    td.innerHTML = workers +" ("+ yield +"; "+ daily +")";
+    td.innerHTML = workers +" ("+ yields +"; "+ daily +")";
   }
   function read(what) {
     return integer(init.match(new RegExp(what + "\\s*:\\s*(\\d+)"))[1]);
@@ -1960,8 +1966,10 @@ function showWorkerYield() {
   var init = $X('//script[contains(.,"create_slider")]');
   if (init) init = init.textContent; else return;
   var max = read("maxValue"), overdrive = read("overcharge");
-  var perNormal = document.body.id == "resource" ? 1.0 : 0.5;
-  if ($X('//li[@class="gain"][contains(@alt,"10%")]')) perNormal *= 1.1;
+  var building = prodIncreasers[resourceID]; // "forester", "winegrower", et c
+  var iWonder = wonders[config.getIsle("W", 0)] || {};
+  var bWonder = iWonder.r == resourceID ? 0.1 : 0;
+
   $x('//td[@class="cityWorkers" or @class="countWorkers"]').forEach(showYield);
   $x('//td[@class="cityname"]/a').forEach(showPlayerInactivity);
 }
@@ -1987,17 +1995,19 @@ function showPlayerInactivity(a) {
 */
 }
 
-function resourceView() {
+function resourceView(resourceID) {
   function link(a) {
     var id = urlParse("destinationCityId", a.search);
-    var city = $X('../preceding-sibling::td[last()]', a);
+    var city = $X('../preceding-sibling::td[last()'+
+		  (serverVersionIsAtLeast("0.3.0") ? '-1' : '') +']', a);
     var link = urlTo("island", { city: id });
     if ("#" != link)
       city.innerHTML = <a href={link}>{city.textContent}</a>.toXMLString();
     pillageLink(id, { after: a });
   }
 
-  showWorkerYield();
+  resourceID = resourceID || "w";
+  showWorkerYield(resourceID);
   addClass(document.body, luxuryType("name"));
   if (/#keep:setWorkers/i.test(location.hash||"")) {
     var l = integer($X('id("resUpgrade")//div[@class="buildingLevel"]'));
