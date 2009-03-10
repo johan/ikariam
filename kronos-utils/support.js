@@ -362,13 +362,42 @@ var units = { day: 86400, hour: 3600, minute: 60, second: 1 };
 
 // input: "Nd Nh Nm Ns", output: number of seconds left
 function parseTime(t) {
+  // needed for fix of Serbian locale;
+  // returns uppercase of hour symbol, to distinguish it from sec:
+  function localizedSymbol(what) {
+    with (locale.timeunits) {
+      if (("hour" == what) && (short.hour == short.second))
+	return short.hour.toUpperCase();
+      return short[what];
+    }
+  }
+
   function parse(what, mult) {
-    var count = t.match(new RegExp("(\\d+)" + locale.timeunits.short[what]));
+    var count = t.match(new RegExp("(\\d+)" + localizedSymbol(what)));
     if (count)
       return parseInt(count[1], 10) * mult;
     return 0;
   }
   var s = 0;
+
+  // fix for Serbian (both hours and seconds are marked with the same letter):
+  if (locale.timeunits.short.hour == locale.timeunits.short.second) {
+    var dy = locale.timeunits.short.day;
+    var hr = locale.timeunits.short.hour;
+    var mn = locale.timeunits.short.minute;
+    var sc = locale.timeunits.short.second;
+    // if hours exist, make sure they are not seconds instead,
+    // and replace with uppercase cyrilic letter "С":
+    if (t.indexOf(hr) > -1) {
+      // if minute apears beyond, or day appears at all, we know the
+      // first appearance of hour symbol is really hour, and not sec:
+      if ((t.indexOf(hr) < t.indexOf(mn)) || (t.indexOf(dy) > -1)) {
+        var regExp = new RegExp(hr);
+        t = t.replace(regExp, hr.toUpperCase());
+      }
+    }
+  }
+
   for (var unit in units)
     s += parse(unit, units[unit]);
   return s;
