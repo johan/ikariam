@@ -533,13 +533,6 @@ html body div#container div#container2 a.text:hover {
   margin-top: 2px;
 }
 
-#cityNav #citypanel tr:first-child th.building.wall img {
-  clip: rect(4px, 37px, 23px, 16px);
-  position: absolute;
-  margin-left: -26px;
-  top: -3px;
-}
-
 /* Show building levels larger, hover extra jumbo large */
 #cityNav #citypanel tr td.building a {       font-size: 16px; width: 27px; }
 #cityNav #citypanel tr td.building a:hover { font-size: 22px; }
@@ -566,19 +559,19 @@ html body div#container div#container2 a.text:hover {
   background-image: url(/skin/resources/icon_citizen.gif);
 }
 #cityNav #citypanel tr:first-child th.w {
-  background-image: url(/skin/resources/icon_wood.gif);
+  background-image: url(http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/gfx/icons/wood.png);
 }
 #cityNav #citypanel tr:first-child th.W {
-  background-image: url(/skin/resources/icon_wine.gif);
+  background-image: url(http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/gfx/icons/wine.png);
 }
 #cityNav #citypanel tr:first-child th.M {
-  background-image: url(/skin/resources/icon_marble.gif);
+  background-image: url(http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/gfx/icons/marble.png);
 }
 #cityNav #citypanel tr:first-child th.C {
-  background-image: url(/skin/resources/icon_glass.gif);
+  background-image: url(http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/gfx/icons/crystal.png);
 }
 #cityNav #citypanel tr:first-child th.S {
-  background-image: url(/skin/resources/icon_sulfur.gif);
+  background-image: url(http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/gfx/icons/sulfur.png);
 }
 
 #cityNav #citypanel tr td:first-child {

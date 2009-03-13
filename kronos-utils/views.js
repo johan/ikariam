@@ -1301,7 +1301,7 @@ function militaryAdvisorReportViewView() {
 
 function militaryAdvisorMilitaryMovementsView() {
   function project(div) {
-    var li = $X('ancestor::li', div)
+    var li = $X('ancestor::li', div);
     projectCompletion(div);
     li.style.height = "52px";
   }

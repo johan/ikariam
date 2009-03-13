@@ -2337,24 +2337,25 @@ function showOverview() {
   var names = ["townHall", "barracks", "shipyard", "port", "branchOffice",
                "tavern", "museum", "academy", "workshop", "safehouse",
                "embassy", "warehouse", "wall", "palace",
-	       "forester", "stonemason", "carpentering",
+	       "forester", "reaper" /* see below comment: */, "carpentering",
 	       // can only have one of each of these in a town; use 1 column!
 	       // "winegrower", "stonemason", "glassblowing", "alchemist",
 	       "vineyard", "architect", "optician", "fireworker"];
   if (!serverVersionIsAtLeast("0.3.0")) names.splice(14);
+  var imgbase = base +"gfx/icons/buildings/";
   for each (var name in names) {
-    var img = <img src={gfx[name]} height={name == "wall" ? "30" : "20"}/>;
+    var img = <img src={base +"gfx/icons/buildings/"+ name +".png"}/>;
     if ("museum" == name)
       img = <a href={ urlTo("culturegoods") }>{ img }</a>;
-    var title = "stonemason" == name ? "resource improver" : name;
-    table.tr.* += <th title={/*lang[*/title/*]*/} class={"building " + name}>
+    var title = "reaper" == name ? "resource reaper" : name;
+    table.tr.* += <th title={/*lang[*/title/*]*/} class="building">
       { img }
     </th>;
   }
 
   var city = referenceCityID();
   for each (var id in cityIDs()) {
-    var data = cityData(id), p = data.p || {};
+    var data = cityData(id), p = data.p || {}, pace = cityReapingPace(id);
     var tr = <tr/>;
     if (id == city) tr.@class = "current";
     var island = config.getCity("i", 0, id);
@@ -2366,7 +2367,7 @@ function showOverview() {
       var o = data[r], v = o || "\xA0", td = null;
       if ("w" == r) {
         v = <a class="text" href={ resUrl("wood", id) }
-               title={ sign(p[r]) }>{ v }</a>;
+               title={ sign(pace[r]) }>{ v }</a>;
       } else if ("p" == r) {
         var u = urlTo("city", id, { changeCity: 1 });
         v = <a class="text" href={ u }>{ data[r] || "0" }</a>;
@@ -2391,8 +2392,9 @@ function showOverview() {
         name = "palaceColony";
         b = buildingIDs[name];
         l = config.getCity(["l", buildingIDs[name]], undefined, id);
-      } else if ("stonemason" == name && isUndefined(l)) {
-	for each (name in ["winegrower", "glassblowing", "alchemist"]) {
+      } else if ("reaper" == name) {
+	for each (name in ["stonemason", "winegrower",
+			   "glassblowing", "alchemist"]) {
 	  b = buildingIDs[name];
 	  l = config.getCity(["l", b], undefined, id);
 	  if (!isUndefined(l)) break;
@@ -2756,6 +2758,8 @@ function projectPopulation(opts) {
   };
 }
 
+// If we reap everything here needed to build this, when will we have enough?
+// Also, if Kronos doesn't know what goes into this upgrade, make it reportable.
 function projectBuildStart(root, result) {
   function projectWhenWeHaveResourcesToStartBuilding(ul) {
     if (!result) return;
@@ -2764,10 +2768,9 @@ function projectBuildStart(root, result) {
     var pace = reapingPace();
     var have = currentResources();
     var woodNode = $X('li[starts-with(@class,"wood")]', ul);
-    if (woodNode)
-      need.w = woodNode;
-    var needRest = $x('id("buildingUpgrade")//ul[@class="resources"]/li[not('+
-                      'contains(@class,"wood") or contains(@class,"time"))]');
+    if (woodNode) need.w = woodNode;
+    var needRest = $x('li[not(contains(@class,"wood"))]', ul);
+    var needTime = needRest.pop();
     for (var i = 0; i < needRest.length; i++) {
       var what = needRest[i];
       var id = resourceIDs[what.className.split(" ")[0]];
@@ -2793,6 +2796,33 @@ function projectBuildStart(root, result) {
         time = "\xA0("+ resolveTime(time, 1) +")";
       node.appendChild(document.createTextNode(time));
     }
+
+    var id = buildingIDs[document.body.id];
+    if (!id) return null;
+    var level = buildingLevel(id);
+    var facit = costs[id][level];
+    var techBonus =
+      config.getServer("techs.2020", 0) * 0.02 + // Pulley
+      config.getServer("techs.2060", 0) * 0.04 + // Geometry
+      config.getServer("techs.2100", 0) * 0.08;  // Spirit Level
+    for (var res in need) {
+      var rebated = integer(need[res]);
+      var buildBonus = buildingLevel(buildingIDs[bonusBuildings[res]], 0);
+      need[res] = Math.ceil(rebated / (1 - techBonus) / (1 - buildBonus/100));
+    }
+    need.t = trim(needTime.lastChild.textContent);
+    var wrong = facit && facit.toSource() != need.toSource();
+    if (!facit || wrong) {
+      costs[id][level] = need;
+      var right = costs[id].toSource().replace(/, /g, ",");
+      var a = document.createElement("a");
+      a.href = 'javascript:void prompt("'+ document.body.id + ' (' +
+	costs[id].length +')", \''+ right +'\')';
+      a.textContent = " [" + (wrong ? "!" : "?") +"]";
+      a.title = "Update Kronos Utils with this building level's data?";
+      needTime.appendChild(a);
+    }
+    return need;
   }
 
   if ($("donateForm")) return; // is a resource, not something you build/upgrade
