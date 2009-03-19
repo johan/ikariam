@@ -603,7 +603,8 @@ function islandView() {
              ' not(contains(@class,"level0"))]/ul[@class="cityinfo"]');
   c.forEach(registerCity);
   alliancePresence();
-  cssToggler("playernames", false, "http://i297.photobucket.com/albums/mm209/apocalypse33/Avatar/Ava52.png", "#island #container #mainview #cities .textLabel.player-name { display: none; }");
+  cssToggler("playernames", false, base + "gfx/icons/player-names.png",
+	     "#island #container #mainview #cities .textLabel.player-name { display: none; }");
 
   showSpies();
 
