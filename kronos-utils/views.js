@@ -44,7 +44,8 @@ function cityView() {
   }
   projectCompletion("cityCountdown", null, '../preceding-sibling::a');
   levelBat();
-  cssToggler("buildinglevels", false, "http://i297.photobucket.com/albums/mm209/apocalypse33/Avatar/Ava51.png", "li > div.rounded { display: none; }");
+  cssToggler("buildinglevels", false, base + "building-levels.png.png",
+	     "li > div.rounded { display: none; }");
   findPlayers();
 }
 
