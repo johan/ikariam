@@ -44,7 +44,7 @@ function cityView() {
   }
   projectCompletion("cityCountdown", null, '../preceding-sibling::a');
   levelBat();
-  cssToggler("buildinglevels", false, base + "building-levels.png.png",
+  cssToggler("buildinglevels", false, base + "gfx/icons/building-levels.png",
 	     "li > div.rounded { display: none; }");
   findPlayers();
 }
