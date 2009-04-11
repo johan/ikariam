@@ -201,6 +201,7 @@ function demolitionHelper() {
 function demolishBuilding(targetLevel) {
   var hash = location.hash;
   var q = urlParse("", location.search), level = q.level = integer(q.level) - 1;
+  q.actionRequest = $X('//input[@name="actionRequest"]').value;
   if (level > targetLevel)
     return setTimeout(function() { goto("?" + makeQuery(q) + hash); }, 100);
 }
