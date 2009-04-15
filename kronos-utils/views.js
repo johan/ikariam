@@ -443,8 +443,8 @@ function warehouseSpy() {
   boats.setAttribute("rowspan", "4");
   boats.className = "boats";
   node({ tag: <div>
-           <div class="loot">{ Math.ceil(loot/300) }</div>
-           <div class="all">({ Math.ceil(all/300) })</div>
+           <div class="loot">{ Math.ceil(loot/ships[201].V) }</div>
+           <!--<div class="all">({ Math.ceil(all/500) })</div>-->
          </div>, append: boats });
 }
 

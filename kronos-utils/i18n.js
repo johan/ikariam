@@ -922,7 +922,7 @@ var country = location.hostname.replace(/s\d+\.|ikariam\./g, ""); // index below
 // know how to read the page.
 var servers = { // Indexed on hostname TLD, if your country is sX.ikariam.TLD
 
-org: #1={ // English
+org: { // English
 // ?view=workshop-army texts:
   lackResources: "Insufficient Resources", // Hover tooltip over "Not available"
    tooLowBldLvl: "Insufficient building level!", // buttons (with the reason)
@@ -930,7 +930,7 @@ org: #1={ // English
 // ?view=safehouse texts:
    spyWarehouse: "Spy out warehouse stock",
 },
-com: #1#, // Also English; hopefully the same (until reported otherwise)
+// com: is also English; hopefully the same (until reported otherwise)
 
 se: { // Swedish server
    spyWarehouse: "Spionera på lagerlokalen",
@@ -998,9 +998,11 @@ gr: { // Greek server
    tooLowBldLvl: "Prenizak level zgrade!",
 
    spyWarehouse: "Špijuniraj skladište",
-},
+}
 
 };
+
+servers.com = servers.org;
 
 var shash = integer(location.hostname);
 for (var i = 0; i < country.length;) shash += country.charCodeAt(i)*(++i << 8);
