@@ -698,7 +698,7 @@ function levelResources() {
   }
   var id = urlParse("id");
   annotate('contains(@class,"wood")');
-  annotate('not(contains(@class,"wood")) and not(@id)');
+  annotate('not(contains(@class,"wood")) and not(contains(@id,"wonder"))');
   if (id) {
     config.setIsle("W", number($("wonder").className), id);
   }
@@ -1954,7 +1954,7 @@ function showWorkerYield(resourceID) {
     var workers = integer(td);
     var normal = Math.min(max, workers);
     var helpers = workers - normal;
-    var bBuilding = buildingLevel(building, 0, null /*, cityID*/) / 100;
+    var bBuilding = buildingLevel(building, 0, null /*, cityID*/) * 0.02;
     // FIXME: if/once we've fetched a city id for above line, remove next line:
     if (!/own/.test(td.parentNode.className||"")) bBuilding = 0;
     var hourly = (normal + (helpers/4)) * (1 + bWonder + bBuilding);
