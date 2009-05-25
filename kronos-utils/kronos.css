@@ -122,10 +122,24 @@ li.owner a { color: inherit; }
   font-size: 11px;
 }
 
-
+/* Display maxed buildings */
+.square {
+  background-color: #FFE710;
+  border: 2px solid #FFD700;
+  font-family: Sylfaen, "Times New Roman", sans-serif;
+  font-weight: bold;
+  font-size: 12px;
+  text-align: center;
+  position: absolute;
+  width: 18px;
+  visibility: visible;
+  cursor: pointer;
+  top: 10px;
+  left: 25px;
+  z-index: 50;
+}
 
 /* the rounded corners around level numbers, and resources needed to build */
-
 .rounded {
   background-color: #FDF8C1;
   -moz-border-radius: 1em;
@@ -414,8 +428,8 @@ html body div#container div#container2 a.text:hover {
 #container #cityResources .resources .storage_danger	{ color: #CC3300; }
 
 #container #cityResources #action-points {
-  top: -49px;
-  left: -67px;
+  top: -24px;
+  left: -64px;
 }
 
 /* city resources table */
