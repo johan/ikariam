@@ -1909,8 +1909,6 @@ function improveTopPanel() {
 
   var ap = $("value_maxActionPoints").parentNode;
   ap.id = "action-points";
-  ap.addEventListener("mouseover", hilightShip, false);
-  ap.addEventListener("mouseout", unhilightShip, false);
   clickTo(ap, urlTo("merchantNavy"));
   dblClickTo($X('id("advMilitary")//a'),
              url("?view=militaryAdvisorMilitaryMovements"), null, true);
@@ -2514,16 +2512,6 @@ function showCityBuildCompletions() {
     img.height = 10;
     img.width = 13;
   }
-}
-
-function hilightShip() {
-  var ship = get("ship");
-  if (ship) ship.style.backgroundPosition = "0 -53px";
-}
-
-function unhilightShip() {
-  var ship = get("ship");
-  if (ship) ship.style.backgroundPosition = "";
 }
 
 function cityTabs(cid, before) {
