@@ -2800,12 +2800,13 @@ function projectBuildStart(root, result) {
     for (var res in need) {
       var rebated = integer(need[res]);
       var rebateBuilding = buildingIDs[bonusBuildings[res]];
-      var buildBonus = buildingLevel(rebateBuilding, 0, !!"saved", cid);
-      need[res] = Math.ceil(rebated / (1 - techBonus) / (1 - buildBonus/100));
+      var buildBonus = buildingLevel(rebateBuilding, 0, !!"saved", cid) * 0.01;
+      need[res] = Math.ceil(rebated / (1 - techBonus) / (1 - buildBonus));
     }
-    need.t = trim(needTime.lastChild.textContent);
+    need.t = secsToDHMS(parseTime(trim(needTime.lastChild.textContent)));
     var wrong = facit && facit.toSource() != need.toSource();
-    if (!facit || wrong) {
+    if ((referenceCityID() == cid) && (!facit || wrong)) {
+      console.warn(referenceCityID(), cid);
       costs[id][level] = need;
       var right = costs[id].toSource().replace(/, /g, ",");
       var a = document.createElement("a");
