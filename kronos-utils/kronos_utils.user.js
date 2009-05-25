@@ -2762,6 +2762,7 @@ function projectPopulation(opts) {
 // If we reap everything here needed to build this, when will we have enough?
 // Also, if Kronos doesn't know what goes into this upgrade, make it reportable.
 function projectBuildStart(root, result) {
+  // now also aids with building upgrade game data corrections for Kronos Utils
   function projectWhenWeHaveResourcesToStartBuilding(ul) {
     if (!result) return;
     var time = 0;
@@ -2799,7 +2800,9 @@ function projectBuildStart(root, result) {
     }
 
     var id = buildingIDs[document.body.id];
-    if (!id) return null;
+    if (id === undefined) return null;
+
+    var cid = cityID();
     var level = buildingLevel(id);
     var facit = costs[id][level];
     var techBonus =
@@ -2808,7 +2811,8 @@ function projectBuildStart(root, result) {
       config.getServer("techs.2100", 0) * 0.08;  // Spirit Level
     for (var res in need) {
       var rebated = integer(need[res]);
-      var buildBonus = buildingLevel(buildingIDs[bonusBuildings[res]], 0);
+      var rebateBuilding = buildingIDs[bonusBuildings[res]];
+      var buildBonus = buildingLevel(rebateBuilding, 0, !!"saved", cid);
       need[res] = Math.ceil(rebated / (1 - techBonus) / (1 - buildBonus/100));
     }
     need.t = trim(needTime.lastChild.textContent);
