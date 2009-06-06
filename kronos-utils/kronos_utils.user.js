@@ -398,7 +398,8 @@ function currentResources() {
     p: getFreeWorkers(), P: getPopulation(),
     g: integer($("value_gold")), w: integer($("value_wood")),
     W: integer($("value_wine")), M: integer($("value_marble")),
-    C: integer($("value_crystal")), S: integer($("value_sulfur"))
+    C: integer($("value_crystal")), S: integer($("value_sulfur")),
+    c: integer($X('//*[@class="tooltip"][span[@class="textLabel"]]/text()'))
   };
 }
 
@@ -538,11 +539,12 @@ function buildingLevels() {
 }
 
 function warehouseCapacity(city) {
-  var level = config.getCity(["l", buildingIDs.warehouse], 0, city);
-  var max = { w: buildingCapacities.warehouse.w[level || 0] };
+  var data = config.getCity("r", 0, city);
+  var cap = data.r.wc;
+  var max = { w: cap || buildingCapacities.warehouse.w[level || 0] };
   for each (var r in ["W", "M", "C", "S"])
-    max[r] = buildingCapacities.warehouse.r[level || 0]; // FIXME: trade port!
-  return max;
+    max[r] = cap || buildingCapacities.warehouse.r[level || 0];
+  return max; // FIXME: if we don't have a tradeport, we can't ship here => 0!
 }
 
 function buildingCapacity(b, l, warehouse) {
