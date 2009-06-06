@@ -576,6 +576,7 @@ function buildingExpansionNeeds(b, level) {
 }
 
 function haveEnoughToUpgrade(b, level, have) {
+  if (level == 32) return false; //lvl 32 is max, so it's never enough [MKoR]
   var upgrade = buildingExpansionNeeds(b, level);
   have = have || currentResources();
   for (var resource in upgrade)
@@ -673,8 +674,8 @@ function annotateBuilding(li, level) {
     a.title = a.title.replace(/\d+/, level);
   } else {
     level = level || number(a.title);
-  }
-  var div = node({ className: "rounded", text: level, append: li });
+  } // [MKoR] Give maxed buildings a special visual
+  var div = (level == 32) ? node({className: "square", text: level, append: li }) : node({ className: "rounded", text: level, append: li });
   if (haveEnoughToUpgrade(a, level)) {
     div.style.backgroundColor = "#FEFCE8";
     div.style.borderColor = config.get("haveEnough");
@@ -2797,16 +2798,27 @@ function projectBuildStart(root, result) {
       config.getServer("techs.2020", 0) * 0.02 + // Pulley
       config.getServer("techs.2060", 0) * 0.04 + // Geometry
       config.getServer("techs.2100", 0) * 0.08;  // Spirit Level
-    for (var res in need) {
-      var rebated = integer(need[res]);
-      var rebateBuilding = buildingIDs[bonusBuildings[res]];
-      var buildBonus = buildingLevel(rebateBuilding, 0, !!"saved", cid) * 0.01;
-      need[res] = Math.ceil(rebated / (1 - techBonus) / (1 - buildBonus));
+    if (facit) { // only calculate if we know the base-costs
+      for (var res in need) { // does it display the right amounts?
+        var rebated = facit[res]; // integer(facit[res]);
+        var rebateBuilding = buildingIDs[bonusBuildings[res]];
+        var buildBonus = buildingLevel(rebateBuilding, 0, !!"saved", cid) * 0.01;
+        facit[res] = Math.floor(rebated * (1 - techBonus) * (1 - buildBonus));
+        //need[res] = Math.ceil(rebated / (1 - techBonus) / (1 - buildBonus/100));
+        need[res] = integer(need[res]);
+      }
     }
     need.t = secsToDHMS(parseTime(trim(needTime.lastChild.textContent)));
     var wrong = facit && facit.toSource() != need.toSource();
     if ((referenceCityID() == cid) && (!facit || wrong)) {
-      console.warn(referenceCityID(), cid);
+      for (var res in need) { // ONLY calculate the cost this way if we NEED it
+        if (res != "t") {
+          var rebated = integer(need[res]);
+          var rebateBuilding = buildingIDs[bonusBuildings[res]];
+          var buildBonus = buildingLevel(rebateBuilding, 0, !!"saved", cid) * 0.01;
+          need[res] = Math.ceil(rebated / (1 - techBonus) / (1 - buildBonus));
+        }
+      }
       costs[id][level] = need;
       var right = costs[id].toSource().replace(/, /g, ",");
       var a = document.createElement("a");
