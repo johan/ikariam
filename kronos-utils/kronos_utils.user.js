@@ -541,7 +541,7 @@ function buildingLevels() {
 function warehouseCapacity(city) {
   var level = config.getCity(["l", buildingIDs.warehouse], 0, city);
   var data = config.getCity("r", 0, city);
-  var cap = data.r.c;
+  var cap = isDefined(data.r) ? data.r.c : 0;
   var max = { w: cap || buildingCapacities.warehouse.w[level || 0] };
   for each (var r in ["W", "M", "C", "S"])
     max[r] = cap || buildingCapacities.warehouse.r[level || 0];
