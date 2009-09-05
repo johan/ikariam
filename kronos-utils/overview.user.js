@@ -11,7 +11,7 @@
 var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
   "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
   "formatNumber,cityMaxPopulation,warehouseCapacity,milScoreFor,upkeepFor," +
-  "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime,rm,revision," +
+  "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime,rm," +
   "referenceCityID,clickTo,cssToggler:6,upgradedUnitStats,resUrl";
 var me = this, tries = 0;
 setTimeout(init, 0, 10);
@@ -99,15 +99,14 @@ function resources() {
         // sum.td += <td class="ot-end">{ "" }</td>;
       }
     }
-    var last = "@ " + resolveTime(0, true), rev = integer("$Revision$");
+    var last = "@ " + resolveTime(0, true);
     var t = secsToDHMS(next, 1);
     var a = "http://kronos-", b = ".notlong.com/";
     if (d == h)
       last = <><a href="http://kronos-utils.notlong.com/">Kronos Utils</a>
-               v{ version }{ isNaN(revision()) ? "" : "r"+revision() }</>;
+               v{ version }</>;
     if (w == h)
-      last = <><a href="http://kronos-overview.notlong.com/">Kronos Overview</a>
-               { isNaN(rev) ? "" : "r" + rev }</>;
+      last = <a href="http://kronos-overview.notlong.com/">Kronos Overview</a>;
     sum.td += <td colspan="2" class="new ot-time">{ last }</td>;
     table.tr += sum;
   }

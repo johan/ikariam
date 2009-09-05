@@ -1,4 +1,3 @@
-revision("$Revision$");
 
 // meta views:
 

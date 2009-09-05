@@ -1,15 +1,4 @@
-///\\\                                                                  ///\\\
-///\\\   ######   Alert to all would-be bug-fixers out there   ######   ///\\\
-///\\\                                                                  ///\\\
-///\\\   Never *ever* post edited excerpts of this file on the board;   ///\\\
-///\\\   you will just ruin the reading experience for everyone, as I   ///\\\
-///\\\   do not take patches to this file anyway; your error probably   ///\\\
-///\\\   is elsewhere, most likely the code which tries to figure out   ///\\\
-///\\\   which technologies you have researched, anyway.                ///\\\
-///\\\                                                                  ///\\\
-
-revision("$Revision$");
-var base = "http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/";
+var base = "http://github.com/johan/ikariam/raw/master/kronos-utils/";
 
 // resources (name to the kronos id:s for data structures with info on them)
 var resourceIDs = {

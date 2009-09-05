@@ -1,4 +1,3 @@
-revision("$Revision$");
 
 function augmentIkaFight() {
   if (location.hostname != "ikariamlibrary.com") return;

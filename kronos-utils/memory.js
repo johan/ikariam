@@ -76,7 +76,6 @@ reports: {
 }
 */
 
-revision("$Revision$");
 
 // config.get() and config.set() store config data in (near-)json in prefs.js.
 var none = { v: 1, capital: 0, treaties: [], spies: {}, players: {},
