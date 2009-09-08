@@ -55,7 +55,8 @@ reports: {
       o: owner, // player name
       r: { }, // saved resource inventory / info for the city
       x: { bID:building-special - tavern: wine level; academy: scientists,
-           r: resourceWorkers, w: woodWorkers, museum: culture items },
+           r: resourceWorkers, w: woodWorkers, museum: culture items,
+           safehouse: spies built, palaceColony: spies home },
       b: { bID:time busy to },
       z: 0: normal, 1: vacation, 2: inactive
       Z: normal: last seen; vacation/inactive: 1st-seen
