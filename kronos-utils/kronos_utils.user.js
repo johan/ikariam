@@ -578,7 +578,7 @@ function buildingExpansionNeeds(b, level) {
 }
 
 function haveEnoughToUpgrade(b, level, have) {
-  if (level == 32) return false; //lvl 32 is max, so it's never enough [MKoR]
+  if (level == 32 && buildingID(b) > 9) return false; //lvl 32 is max, so it's never enough [MKoR]
   var upgrade = buildingExpansionNeeds(b, level);
   have = have || currentResources();
   for (var resource in upgrade)
@@ -676,8 +676,9 @@ function annotateBuilding(li, level) {
     a.title = a.title.replace(/\d+/, level);
   } else {
     level = level || number(a.title);
-  } // [MKoR] Give maxed buildings a special visual
-  var div = (level == 32) ? node({className: "square", text: level, append: li }) : node({ className: "rounded", text: level, append: li });
+  } // [MKoR] Give maxed buildings a special visual, buildings with id <=9 probably have more levels
+  var div = (level == 32 && id > 9) ? node({className: "square", text: level, append: li }) : node({ className: "rounded", text: level, append: li });
+
   if (haveEnoughToUpgrade(a, level)) {
     div.style.backgroundColor = "#FEFCE8";
     div.style.borderColor = config.get("haveEnough");
@@ -695,7 +696,9 @@ function showResourceNeeds(needs, parent, div, top, left) {
     rm(div);
   else
     div = node({ className: "rounded resource-list" });
-  div.innerHTML = visualResources(needs, { nonegative: true });
+  div.innerHTML = visualResources(needs, { nonegative: true }); // HTML-ize the requirements
+  if (div.innerHTML == "") div.innerHTML = "Unknown" // fix later [MKoR]
+  else if (div.innerHTML.match(/MAX/)) return;
   if (parent.id == "position3") { // far right
     div.style.top = top || "";
     div.style.left = "auto";
@@ -874,7 +877,7 @@ function urlTo(what, id, opts) {
     case "stonemason":	case "forester":case "glassblowing":
     case "winegrower":	case "vineyard":case "carpentering":
     case "architect":	case "optician":case "alchemist":
-    case "fireworker":
+    case "fireworker":  case "temple":
       return building();
 
     case "culturegoods":
@@ -1754,7 +1757,8 @@ function visualResources(what, opt) {
         html.push(count); // (build time)
     }
     what = html.join(" \xA0 ");
-  }
+  } else if (isString(what)) {
+  } else {return "Unknown"; }
   return what.replace(/\$([a-z]{4,11})/g, replace);
 }
 
@@ -2342,7 +2346,7 @@ function showOverview() {
 	       "forester", "reaper" /* see below comment: */, "carpentering",
 	       // can only have one of each of these in a town; use 1 column!
 	       // "winegrower", "stonemason", "glassblowing", "alchemist",
-	       "vineyard", "architect", "optician", "fireworker"];
+	       "vineyard", "architect", "optician", "fireworker", "temple"];
   if (!serverVersionIsAtLeast("0.3.0")) names.splice(14);
   var imgbase = base +"gfx/icons/buildings/";
   for each (var name in names) {
@@ -2551,8 +2555,9 @@ function unitStatsFromImage(img) {
     var junk = /^(ship|y\d+)_|_(l|r|\d+x\d+)(?=[_.])|_faceright|\....$/g;
     var ship = /ship_/.test(name);
     name = name.replace(junk, "");
-    name = { medic: "doctor", marksman: "gunsman", steamboat: "paddle",
-             steamgiant: "steam", submarine: "diving" }[name] || name;
+    name = serverVersionIsAtLeast("0.3.2") ? { medic: "doctor", marksman: "marksman", steamboat: "paddle",
+             steamgiant: "steam", submarine: "diving", spearman:"spear" }[name] || name : 
+			 { medic: "doctor", marksman: "gunsman", steamboat: "paddle", steamgiant: "steam", submarine: "diving"}[name] || name;
     if (!ship)
       for (var id in troops)
         if (normalizeUnitName(troops[id].n) == name)
