@@ -13,7 +13,8 @@ var buildingIDs = {
   branchOffice: 13, workshop: 15, "workshop-army": 15, "workshop-fleet": 15,
   safehouse: 16, palaceColony: 17, resource: 1, tradegood: 2, forester: 18,
   stonemason: 19, glassblowing: 20, winegrower: 21, alchemist: 22,
-  carpentering: 23, architect: 24, optician: 25, vineyard: 26, fireworker: 27
+  carpentering: 23, architect: 24, optician: 25, vineyard: 26, fireworker: 27,
+  temple: 28
 };
 var bonusBuildings = serverVersionIsAtLeast("0.3.0") ? { w: "carpentering",
   W: "vineyard", M: "architect", C: "optician", S: "fireworker" } : {};
@@ -87,7 +88,10 @@ var buildingCapacities = serverVersionIsAtLeast("0.3.0") ? {
              980, 1060, 1140, 1220, 1300, 1380, 1460, 1540, 1620, 1700,
             1780, 1860, 1940, 2020, 2100, 2180, 2260, 2340, 2420, 2500,
             2580, 2660, 2740, 2820, 2900, 2980, 3060, 3140, 3220, 3300]
-  }
+    },
+    temple: // max priests
+  [,,,,,,,,,,,,,,355
+       ],
 } : // end v0.3.0+ section.
 
 
@@ -286,7 +290,10 @@ var costs = serverVersionIsAtLeast("0.3.0") ? [
 [{w:339,M:123,t:"22m 48s"},{w:423,M:198,t:"26m 24s"},{w:520,M:285,t:"30m 13s"},{w:631,M:387,t:"34m 16s"},{w:758,M:504,t:"38m 33s"},{w:905,M:640,t:"43m 6s"},{w:1074,M:798,t:"47m 55s"},{w:1269,M:981,t:"53m 1s"},{w:1492,M:1194,t:"58m 26s"},{w:1749,M:1440,t:"1h 4m"},{w:2045,M:1726,t:"1h 10m"},{w:2384,M:2058,t:"1h 16m"},{w:2775,M:2443,t:"1h 23m"},{w:3225,M:2889,t:"1h 30m"},{w:3741,M:3407,t:"1h 38m"},{w:4336,M:4008,t:"1h 46m"},{w:5132,M:4705,t:"1h 55m"},{w:5813,M:5513,t:"2h 4m"},{w:6778,M:6450,t:"2h 14m"},{w:7748,M:7537,t:"2h 24m"},{w:8944,M:8800,t:"2h 35m"},{w:10319,M:10263,t:"2h 46m"},{w:11900,M:11961,t:"2h 59m"},{w:13718,M:13930,t:"3h 11m"},{w:15809,M:16214,t:"3h 25m"},{w:18214,M:18864,t:"3h 40m"},{w:20979,M:21938,t:"3h 55m"},{w:24159,M:25503,t:"4h 12m"},{w:27816,M:29639,t:"4h 29m"},{w:32021,M:34437,t:"4h 47m"},{w:36858,M:40002,t:"5h 7m"},{w:42419,M:46457,t:"5h 28m"},{t:"MAX"}],
 
 // fireworker (16)
-[{w:272,M:135,t:"16m 12s"},{w:353,M:212,t:"19m 48s"},{w:445,M:302,t:"23m 37s"},{w:551,M:405,t:"27m 40s"},{w:673,M:526,t:"31m 57s"},{w:813,M:665,t:"36m 30s"},{w:974,M:827,t:"41m 19s"},{w:1159,M:1015,t:"46m 25s"},{w:1373,M:1233,t:"51m 50s"},{w:1618,M:1486,t:"57m 34s"},{w:1899,M:1779,t:"1h 3m"},{w:2223,M:2120,t:"1h 10m"},{w:2596,M:2514,t:"1h 16m"},{w:3025,M:2972,t:"1h 24m"},{w:3517,M:3503,t:"1h 31m"},{w:4084,M:4119,t:"1h 40m"}]
+[{w:272,M:135,t:"16m 12s"},{w:353,M:212,t:"19m 48s"},{w:445,M:302,t:"23m 37s"},{w:551,M:405,t:"27m 40s"},{w:673,M:526,t:"31m 57s"},{w:813,M:665,t:"36m 30s"},{w:974,M:827,t:"41m 19s"},{w:1159,M:1015,t:"46m 25s"},{w:1373,M:1233,t:"51m 50s"},{w:1618,M:1486,t:"57m 34s"},{w:1899,M:1779,t:"1h 3m"},{w:2223,M:2120,t:"1h 10m"},{w:2596,M:2514,t:"1h 16m"},{w:3025,M:2972,t:"1h 24m"},{w:3517,M:3503,t:"1h 31m"},{w:4084,M:4119,t:"1h 40m"}],
+
+// temple
+[,,,,,,,,,,,,,,,{w:4734,c:7764,t:"2h 45m"}],
 ] : // end v0.3.0+ section.
 
 [ // server 0.2.8 or below:

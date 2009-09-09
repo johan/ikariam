@@ -877,7 +877,7 @@ function urlTo(what, id, opts) {
     case "stonemason":	case "forester":case "glassblowing":
     case "winegrower":	case "vineyard":case "carpentering":
     case "architect":	case "optician":case "alchemist":
-    case "fireworker":
+    case "fireworker":  case "temple":
       return building();
 
     case "culturegoods":
@@ -2346,7 +2346,7 @@ function showOverview() {
 	       "forester", "reaper" /* see below comment: */, "carpentering",
 	       // can only have one of each of these in a town; use 1 column!
 	       // "winegrower", "stonemason", "glassblowing", "alchemist",
-	       "vineyard", "architect", "optician", "fireworker"];
+	       "vineyard", "architect", "optician", "fireworker", "temple"];
   if (!serverVersionIsAtLeast("0.3.0")) names.splice(14);
   var imgbase = base +"gfx/icons/buildings/";
   for each (var name in names) {
