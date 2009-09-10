@@ -46,7 +46,7 @@ var buildingCapacities = serverVersionIsAtLeast("0.3.0") ? {
     [   0,
         8,   12,   16,   22,   28,   35,   43,   51,   60,   69,
        79,   89,  100,  111,  122,  134,  146,  159,  172,  185,
-      198,  212,  227],
+      198,  212,  227,  241],
 
   tavern: // max. served, lvl. 0 - 33
     [   0,
