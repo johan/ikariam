@@ -46,7 +46,7 @@ var buildingCapacities = serverVersionIsAtLeast("0.3.0") ? {
     [   0,
         8,   12,   16,   22,   28,   35,   43,   51,   60,   69,
        79,   89,  100,  111,  122,  134,  146,  159,  172,  185,
-      198,  212,  227,  241, 256],
+      198,  212,  227,  256],
 
   tavern: // max. served, lvl. 0 - 33
     [   0,
@@ -90,7 +90,7 @@ var buildingCapacities = serverVersionIsAtLeast("0.3.0") ? {
             2580, 2660, 2740, 2820, 2900, 2980, 3060, 3140, 3220, 3300]
     },
     temple: // max priests
-  [,,,54,73,94,,,,,,,,,355
+  [,,,,,,,,,,,,,,355
        ],
 } : // end v0.3.0+ section.
 
