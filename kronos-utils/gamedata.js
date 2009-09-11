@@ -90,7 +90,7 @@ var buildingCapacities = serverVersionIsAtLeast("0.3.0") ? {
             2580, 2660, 2740, 2820, 2900, 2980, 3060, 3140, 3220, 3300]
     },
     temple: // max priests
-  [0,,,,54,73,94,,,,,,,,,355,390
+  [0,,,,54,73,94,117,,,,,,,,355,390
        ],
 } : // end v0.3.0+ section.
 
