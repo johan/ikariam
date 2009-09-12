@@ -7,6 +7,8 @@ XML.setSettings({
   prettyPrinting: false, prettyIndent: 2
 });
 
+function revision() { return ""; } // compat with old Kronos Overview
+
 function isNull(n) { return null === n; }
 function isArray(a) { return isObject(a) && isNumber(a.length); }
 function isString(s) { return "string" == typeof s; }
