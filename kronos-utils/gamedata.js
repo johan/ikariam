@@ -354,7 +354,7 @@ V = volume (cargo ship)
 */
 var troops = serverVersionIsAtLeast("0.3.2") ? {
   301: {n:"Slinger",p:1,w:20,b:"10m",u:2,m:2,a:2,d:0,A:1,D:1,s:8,c:"Human",v:60,V:3,x:"Ranged",o:3},
-  315: {n:"Spear Thrower",i:"spear",p:1,w:30,b:"5m",u:1,m:1,a:4,d:0,A:1,D:1,s:13,c:"Human",v:60,V:3},
+  315: {n:"Spear Thrower",i:"spearman",p:1,w:30,b:"5m",u:1,m:1,a:4,d:0,A:1,D:1,s:13,c:"Human",v:60,V:3},
   302: {n:"Swordsman",p:1,w:30,S:30,b:"8m",u:4,m:6,a:10,d:11,A:3,D:1,s:18,c:"Human",v:60,V:3,x:"Assault"},
   303: {n:"Phalanx",p:1,w:40,S:30,b:"5m",u:3,m:4,a:18,d:1,A:2,D:5,s:56,c:"Human",v:60,V:5,x:"Resistance"},
   307: {n:"Ram",p:5,w:220,b:"30m",u:15,m:3,a:12,d:1,A:2,D:10,s:88,c:"Machina",v:40,V:30,x:"Ram"},
