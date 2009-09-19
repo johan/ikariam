@@ -380,18 +380,18 @@ function safehouseReportsView() {
 function warehouseSpy() {
   function steal(tr) {
     var n = integer($X('td[2]', tr));
-    var r = resourceFromUrl($X('td[1]/img', tr));
-    var id = r == "w" ? "wood" : "rest";
-    var safe = buildingCapacities.warehouse[id][warehouse];
+ //   var r = resourceFromUrl($X('td[1]/img', tr));	// not needed anymore
+ //   var id = r == "w" ? "wood" : "rest";		// always 'rest' now
+    var safe = buildingCapacities.warehouse["rest"][warehouse];
     var lootable = Math.max(0, n - safe);
-    //console.log(n, r, id, safe, lootable);
+    //console.log(n, warehouse, safe, lootable);
     if (count) {
       node({ tag: "td", text: safe, append: tr });
       all += lootable;
     } else {
-      lootable = all &&
-        Math.min((lootable / all) * 20 * buildingCapacities.port[port],
-                 lootable);
+ //     lootable = all &&		// ports don't limit loot anymore
+ //       Math.min((lootable / all) * 20 * buildingCapacities.port[port],
+ //               lootable);
       loot += lootable;
       node({ tag: "td", text: Math.floor(lootable), append: tr });
     }
@@ -401,6 +401,7 @@ function warehouseSpy() {
   if (!body) return;
 
   var found, loot = 0;
+// regrettably, we can only try to guess the city-id going by the city name.
   var nameTD = $X('id("mainview")//tr[2]/td[2]');
   var cityName = nameTD.textContent;
   var allCities = config.getServer("cities");
@@ -421,8 +422,8 @@ function warehouseSpy() {
     }
   }
   var guess = found && buildingLevel("port", 0, "save", id);
-  var port = isDefined(guess) ? guess : prompt("Port level? (0 for no port)", guess || 0);
-  if (port === null || !isNumber(port = integer(port))) return;
+  var port = 0//isDefined(guess) ? guess : prompt("Port level? (0 for no port)", guess || 0);
+  //if (port === null || !isNumber(port = integer(port))) return;
   guess = found && buildingLevel("warehouse", 0, "save", id);
   var warehouse = isDefined(guess) ? guess : prompt("Warehouse level? (0 for no warehouse)", guess || 0);
   if (warehouse === null || !isNumber(warehouse = integer(warehouse))) return;
@@ -1511,8 +1512,8 @@ function makeLootTable(table, reports) {
   for (var i = 0; i < 13; i++) {
     var r = cols[i];
     var t = title[i] || "";
-    var th = node({ className: r ? "$journeytime" == t ? "": "number" : "",
-                    tag: i && i < 12 ? "th" : "td",
+    var th = node({ className: r ? ("$journeytime" == t) ? "": "number" : "",
+                    tag: (i && i < 12) ? "th" : "td",
                     html: visualResources(t, { maxheight:"22px" }),
                     append: head });
     if (11 == i) th.style.width = "400px";
@@ -1880,12 +1881,14 @@ function showUnitLevels(specs) {
     var img = $X('img[@class="'+ what +'-icon"]', li);
     if (img)
       l = 4 - img.src.match(/(\d)\.gif$/)[1];
-    $X('div/h4', li).innerHTML += pre + (unit[is] + unit[up]*l) + post;
+	var upg = unit[up] ? unit[up] : 0
+    $X('div/h4', li).innerHTML += pre + (unit[is] + upg*l) + post;
   }
 
   function augmentUnit(li) {
     var stats = unitStatsFromImage($X('div[@class="unitinfo"]//img', li));
     level("att", stats, li, " (", "");
+	serverVersionIsAtLeast("0.3.2") && level("sta", stats, li, ")(", "");
     level("def", stats, li, "/", ")");
     var cnt = integer($X('div[@class="unitinfo"]/div[@class="unitcount"]', li));
     config.setCity(["T", stats.id], cnt);

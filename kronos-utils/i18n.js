@@ -927,7 +927,7 @@ org: { // English
    tooLowBldLvl: "Insufficient building level!", // buttons (with the reason)
 
 // ?view=safehouse texts:
-   spyWarehouse: "Spy out warehouse stock",
+   spyWarehouse: "Spy out warehouse",
 },
 // com: is also English; hopefully the same (until reported otherwise)
 

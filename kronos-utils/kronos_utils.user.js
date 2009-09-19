@@ -8,7 +8,6 @@
 // @exclude        http://board.ikariam.*/
 // @exclude        http://*.ikariam.*/index.php?view=renameCity*
 // @include        http://ikariamlibrary.com/?content=3&inline=yes&battleType=*
-// @require        http://ecmanaut.googlecode.com/svn/trunk/lib/gm/wget.js
 // @resource woody header.png
 // @resource all   gfx/places/all.png
 // @resource bc    gfx/places/culturegoods.png
@@ -41,6 +40,7 @@
 // @require        config.js
 // @require        memory.js
 // @require        views.js
+// @require        wget.js
 // @unwrap
 // ==/UserScript==
 
