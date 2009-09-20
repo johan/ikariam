@@ -36,11 +36,11 @@ var softCap = [24,21 /* sawmill */,,,,,24,,24,,8,4,,,,24,20,4]; // 16 for others
 var wineMultiplier = serverVersionIsAtLeast("0.3.0") ? 60 : 80 /* <= 0.2.8 */;
 
 var buildingCapacities = serverVersionIsAtLeast("0.3.0") ? {
-  townHall: // max. population, lvl. 0 - 27
+  townHall: // max. population, lvl. 0 - 28
     [   0,
        60,   96,  142,  200,  262,  332,  410,  492,  580,  672,
       768,  870,  976, 1086, 1200, 1320, 1440, 1566, 1696, 1828,
-     1964, 2102, 2246, 2390, 2540, 2690, 2844],
+     1964, 2102, 2246, 2390, 2540, 2690, 2844, 3002],
 
   academy: // max. scientists, lvl. 0 - 25
     [   0,
