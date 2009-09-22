@@ -535,7 +535,7 @@ html body div#container div#container2 a.text:hover {
 #cityNav #citypanel tr:first-child th.building {
   position: relative;
   text-align: center;
-  min-width: 27px; /* also adjust "td.building a" below, if changed */
+  min-width: 22px; /* also adjust "td.building a" below, if changed */
 }
 
 #cityNav #citypanel tr:first-child th.building img {
@@ -543,13 +543,13 @@ html body div#container div#container2 a.text:hover {
 }
 
 /* Show building levels larger, hover extra jumbo large */
-#cityNav #citypanel tr td.building a {       font-size: 16px; width: 27px; }
-#cityNav #citypanel tr td.building a:hover { font-size: 22px; }
+#cityNav #citypanel tr td.building a { font-size: 14px; width: 22px; }
+#cityNav #citypanel tr td.building a:hover { font-size: 14px; font-weight: bold; 17px; }
 
 #cityNav #citypanel tr:first-child th {
   background-position: center center;
   background-repeat: no-repeat;
-  min-width: 45px;
+  min-width: 52px;
   height: 24px;
   top: 2px;
 }

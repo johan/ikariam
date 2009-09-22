@@ -2350,7 +2350,7 @@ function showOverview() {
   if (!serverVersionIsAtLeast("0.3.0")) names.splice(14);
   var imgbase = base +"gfx/icons/buildings/";
   for each (var name in names) {
-    var img = <img src={base +"gfx/icons/buildings/"+ name +".png"}/>;
+    var img = <img src={base +"gfx/icons/buildings/"+ name +".png"} width="16"/>;
     if ("museum" == name)
       img = <a href={ urlTo("culturegoods") }>{ img }</a>;
     var title = "reaper" == name ? "resource reaper" : name;
