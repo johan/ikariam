@@ -670,6 +670,9 @@ function annotateBuilding(li, level) {
   if (isNumber(id) && li.id && isUndefined(level)) {
     config.setCity(["l", id], number(a.title));
     config.setCity(["p", id], number(li.id));
+    if (id == buildingIDs.warehouse) {
+        config.setCity("w", config.getCity("w") + number(a.title));
+    }
   }
   if ("original" == level) {
     level = buildingLevel(id, 0, "saved");
@@ -761,6 +764,7 @@ function levelBat() { // Ajout d'un du level sur les batiments.
   }
 
   config.setCity("l", []); // clear old broken config
+  config.setCity("w", 0);
   var all = $x('id("locations")/li[not(contains(@class,"buildingGround"))]');
   all.forEach(function(li) { annotateBuilding(li); });
 }

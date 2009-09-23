@@ -25,6 +25,9 @@ var wonders = [, {r:"S",c:353}, {r:"M", c:430}, {r:"W", c:395}, {r:"C", c:363},
 var softCap = [24,21 /* sawmill */,,,,,24,,24,,8,4,,,,24,20,4]; // 16 for others
 var wineMultiplier = 60;
 
+var townHallSafeRes = 100;
+var safeResMultiplier = 80;
+
 var buildingCapacities = {
   townHall: // max. population, lvl. 0 - 28
     [   0,

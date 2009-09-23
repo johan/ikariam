@@ -61,6 +61,7 @@ reports: {
       z: 0: normal, 1: vacation, 2: inactive
       Z: normal: last seen; vacation/inactive: 1st-seen
       c: aggregate capacity of city's warehouses
+      w: aggregate levels of city's warehouses
     }, ...
   },
   islands: {
