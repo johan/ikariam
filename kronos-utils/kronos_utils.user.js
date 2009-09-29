@@ -9,29 +9,28 @@
 // @exclude        http://*.ikariam.*/index.php?view=renameCity*
 // @include        http://ikariamlibrary.com/?content=3&inline=yes&battleType=*
 // @resource woody header.png
-// @resource all   gfx/places/all.png
-// @resource bc    gfx/places/culturegoods.png
-// @resource bw    gfx/places/wood.png
-// @resource bW    gfx/places/wine.png
-// @resource bM    gfx/places/marble.png
-// @resource bC    gfx/places/crystal.png
-// @resource bS    gfx/places/sulfur.png
-// @resource b0    gfx/places/townHall.png
-// @resource b3    gfx/places/port.png
-// @resource b4    gfx/places/academy.png
-// @resource b5    gfx/places/shipyard.png
-// @resource b6    gfx/places/barracks.png
-// @resource b7    gfx/places/warehouse.png
-// @resource b8    gfx/places/wall.png
-// @resource b9    gfx/places/tavern.png
-// @resource b10   gfx/places/museum.png
-// @resource b11   gfx/places/palace.png
-// @resource b12   gfx/places/embassy.png
-// @resource b13   gfx/places/branchOffice.png
-// @resource b15   gfx/places/workshop-army.png
-// @resource b15b  gfx/places/workshop-fleet.png
-// @resource b16   gfx/places/safehouse.png
-// @resource b17   gfx/places/palaceColony.png
+// @resource ico_townHall gfx/icons/buildings/townHall
+// @resource ico_barracks gfx/icons/buildings/barracks
+// @resource ico_shipyard gfx/icons/buildings/shipyard
+// @resource ico_port gfx/icons/buildings/port
+// @resource ico_branchOffice gfx/icons/buildings/branchOffice
+// @resource ico_tavern gfx/icons/buildings/tavern
+// @resource ico_museum gfx/icons/buildings/museum
+// @resource ico_academy gfx/icons/buildings/academy
+// @resource ico_workshop gfx/icons/buildings/workshop
+// @resource ico_safehouse gfx/icons/buildings/safehouse
+// @resource ico_embassy gfx/icons/buildings/embassy
+// @resource ico_warehouse gfx/icons/buildings/warehouse
+// @resource ico_wall gfx/icons/buildings/wall
+// @resource ico_palace gfx/icons/buildings/palace
+// @resource ico_forester gfx/icons/buildings/forester
+// @resource ico_reaper gfx/icons/buildings/reaper
+// @resource ico_carpentering gfx/icons/buildings/carpentering
+// @resource ico_vineyard gfx/icons/buildings/vineyard
+// @resource ico_architect gfx/icons/buildings/architect
+// @resource ico_optician gfx/icons/buildings/optician
+// @resource ico_fireworker gfx/icons/buildings/fireworker
+// @resource ico_temple gfx/icons/buildings/temple
 // @resource   css kronos.css
 // @require        i18n.js
 // @require        related.js
@@ -2352,9 +2351,12 @@ function showOverview() {
 	       // "winegrower", "stonemason", "glassblowing", "alchemist",
 	       "vineyard", "architect", "optician", "fireworker", "temple"];
   if (!serverVersionIsAtLeast("0.3.0")) names.splice(14);
-  var imgbase = base +"gfx/icons/buildings/";
+
+//  var imgbase = base +"gfx/icons/buildings/";
   for each (var name in names) {
-    var img = <img src={base +"gfx/icons/buildings/"+ name +".png"} width="16"/>;
+//    var img = <img id="aabbccddee1" src={base +"gfx/icons/buildings/"+ name +".png"} width="16"/>;
+    var miniicon = GM_getResourceURL("ico_"+name);
+    var img = <img src={miniicon} width="16"/>;
     if ("museum" == name)
       img = <a href={ urlTo("culturegoods") }>{ img }</a>;
     var title = "reaper" == name ? "resource reaper" : name;
