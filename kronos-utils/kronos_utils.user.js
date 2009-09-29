@@ -30,7 +30,6 @@
 // @resource ico_architect gfx/icons/buildings/architect.png
 // @resource ico_optician gfx/icons/buildings/optician.png
 // @resource ico_fireworker gfx/icons/buildings/fireworker.png
-// @resource ico_temple gfx/icons/buildings/temple.png
 // @resource   css kronos.css
 // @require        i18n.js
 // @require        related.js
@@ -2352,11 +2351,13 @@ function showOverview() {
 	       "vineyard", "architect", "optician", "fireworker", "temple"];
   if (!serverVersionIsAtLeast("0.3.0")) names.splice(14);
 
-//  var imgbase = base +"gfx/icons/buildings/";
   for each (var name in names) {
-//    var img = <img id="aabbccddee1" src={base +"gfx/icons/buildings/"+ name +".png"} width="16"/>;
-    var miniicon = GM_getResourceURL("ico_"+name);
-    var img = <img src={miniicon} width="16"/>;
+    if ("temple" != name) {
+        var miniicon = GM_getResourceURL("ico_"+name);
+	var img = <img src={miniicon} width="16"/>;
+    } else {
+	var img = "";
+    }
     if ("museum" == name)
       img = <a href={ urlTo("culturegoods") }>{ img }</a>;
     var title = "reaper" == name ? "resource reaper" : name;
