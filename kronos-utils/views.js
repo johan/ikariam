@@ -380,18 +380,11 @@ function safehouseReportsView() {
 function warehouseSpy() {
   function steal(tr) {
     var n = integer($X('td[2]', tr));
- //   var r = resourceFromUrl($X('td[1]/img', tr));	// not needed anymore
- //   var id = r == "w" ? "wood" : "rest";		// always 'rest' now
-    var safe = buildingCapacities.warehouse["rest"][warehouse];
     var lootable = Math.max(0, n - safe);
-    //console.log(n, warehouse, safe, lootable);
     if (count) {
       node({ tag: "td", text: safe, append: tr });
       all += lootable;
     } else {
- //     lootable = all &&		// ports don't limit loot anymore
- //       Math.min((lootable / all) * 20 * buildingCapacities.port[port],
- //               lootable);
       loot += lootable;
       node({ tag: "td", text: Math.floor(lootable), append: tr });
     }
@@ -421,15 +414,16 @@ function warehouseSpy() {
       break;
     }
   }
-  var guess = found && buildingLevel("port", 0, "save", id);
-  var port = 0//isDefined(guess) ? guess : prompt("Port level? (0 for no port)", guess || 0);
-  //if (port === null || !isNumber(port = integer(port))) return;
-  guess = found && buildingLevel("warehouse", 0, "save", id);
-  var warehouse = isDefined(guess) ? guess : prompt("Warehouse level? (0 for no warehouse)", guess || 0);
-  if (warehouse === null || !isNumber(warehouse = integer(warehouse))) return;
-  if (isUndefined(warehouse)) return;
-  port = integer(port);
+  if (found) {
+    var warehouse = config.getCity("w",0,id); // aggregated warehouse level
+  } else {
+    var warehouse = prompt("Warehouse level? (0 for no warehouse)");
+    if (warehouse === null || !isNumber(warehouse = integer(warehouse))) return;
+    if (isUndefined(warehouse)) return;
+  }
   warehouse = integer(warehouse);
+  var safe = townHallSafeRes + warehouse * safeResMultiplier;
+
   var head = $X('tr[1]', body);
   node({ tag: "th", className: "count", text: "Safe", append: head });
   node({ tag: "th", className: "count", text: "Loot", append: head });
@@ -444,13 +438,8 @@ function warehouseSpy() {
   boats.className = "boats";
   node({ tag: <div>
            <div class="loot">{ Math.ceil(loot/ships[201].V) }</div>
-           <!--<div class="all">({ Math.ceil(all/500) })</div>-->
          </div>, append: boats });
 }
-
-
-
-
 
 // map views:
 
