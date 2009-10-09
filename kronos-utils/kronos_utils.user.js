@@ -556,20 +556,22 @@ function buildingExpansionNeeds(b, level) {
   level = isDefined(level) ? level : buildingLevel(b);
   var needs = costs[b = buildingID(b)][level];
   var value = {};
-  var factor = 1.00;
-  if (config.getServer("techs.2020")) factor -= 0.02; // Pulley
-  if (config.getServer("techs.2060")) factor -= 0.04; // Geometry
-  if (config.getServer("techs.2100")) factor -= 0.08; // Spirit Level
+  var researchbonus = 1.00;
+  if (config.getServer("techs.2020")) researchbonus += 0.02; // Pulley
+  if (config.getServer("techs.2060")) researchbonus += 0.04; // Geometry
+  if (config.getServer("techs.2100")) researchbonus += 0.08; // Spirit Level
   //if (config.getServer("techs.2999"))               // Economic Future no
-  //  factor -= 0.02 * config.getServer("techs.2999");// longer has this effect
+  //  researchbonus -= 0.02 * config.getServer("techs.2999");// longer has this effect
   for (var r in needs)
     if ("t" == r) { // no time discount
       value[r] = needs[r];
     } else {
-      value[r] = needs[r] * factor;
       var bonus = buildingIDs[bonusBuildings[r]];
+      value[r] = needs[r];
       if (bonus && (bonus = buildingLevel(bonus)))
-        value[r] = value[r] * (1 - 0.01 * bonus);
+        value[r] = value[r] * (1 - (0.01 * bonus + researchbonus));
+      else
+        value[r] = needs[r] * (1 - researchbonus);
       value[r] = Math.floor(value[r]);
     }
   return value;
@@ -2817,7 +2819,7 @@ function projectBuildStart(root, result) {
         var rebated = facit[res]; // integer(facit[res]);
         var rebateBuilding = buildingIDs[bonusBuildings[res]];
         var buildBonus = buildingLevel(rebateBuilding, 0, !!"saved", cid) * 0.01;
-        facit[res] = Math.floor(rebated * (1 - techBonus) * (1 - buildBonus));
+        facit[res] = Math.floor(rebated * (1 - (techBonus + buildBonus)));
         //need[res] = Math.ceil(rebated / (1 - techBonus) / (1 - buildBonus/100));
         need[res] = integer(need[res]);
       }
