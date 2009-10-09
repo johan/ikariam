@@ -556,7 +556,7 @@ function buildingExpansionNeeds(b, level) {
   level = isDefined(level) ? level : buildingLevel(b);
   var needs = costs[b = buildingID(b)][level];
   var value = {};
-  var researchbonus = 1.00;
+  var researchbonus = 0.00;
   if (config.getServer("techs.2020")) researchbonus += 0.02; // Pulley
   if (config.getServer("techs.2060")) researchbonus += 0.04; // Geometry
   if (config.getServer("techs.2100")) researchbonus += 0.08; // Spirit Level
