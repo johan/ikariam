@@ -438,6 +438,7 @@ function warehouseSpy() {
   boats.className = "boats";
   node({ tag: <div>
            <div class="loot">{ Math.ceil(loot/ships[201].V) }</div>
+           <!--<div class="all">({ Math.ceil(all/500) })</div>-->
          </div>, append: boats });
 }
 

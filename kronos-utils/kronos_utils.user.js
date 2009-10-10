@@ -42,7 +42,7 @@
 // @unwrap
 // ==/UserScript==
 
-var kronos = this, version = "0.6", lang, scientists, growthDebug = 0;
+var kronos = this, version = "0.6", lang, scientists, growthDebug = 0, OtherCity = false;
 /*if (config.get("debug"))*/ unsafeWindow.kronos = kronos;
 if (document.URL == location.href) { // no network error?
   if (/^http:\/\/ikariam/i.test(location.href))
@@ -54,7 +54,7 @@ if (document.URL == location.href) { // no network error?
 }
 
 function init() {
-    try { upgradeConfig(); }
+  try { upgradeConfig(); }
   catch(e if e instanceof ReferenceError) {
     if (confirm("Kronos Utils requires Greasemonkey 0.8. Click OK for an " +
                 "installation tutorial."))
@@ -84,7 +84,8 @@ function init() {
         config.setCity(["l", building], number(level));
     }
   }
-
+  OtherCity = $("value_inhabitants") ? false : true;
+ 
   try {
     augment(view, action, lang);
   }
@@ -390,14 +391,22 @@ function gotoCity(url, id) {
 }
 
 function currentResources() {
-  var inhab = $("value_inhabitants").textContent.split(/\s+/);
-  return {
-    p: getFreeWorkers(), P: getPopulation(),
-    g: integer($("value_gold")), w: integer($("value_wood")),
-    W: integer($("value_wine")), M: integer($("value_marble")),
-    C: integer($("value_crystal")), S: integer($("value_sulfur")),
-    c: integer($X('//*[@class="tooltip"][span[@class="textLabel"]]/text()'))
-  };
+  if (!OtherCity) {
+	var inhab = $("value_inhabitants").textContent.split(/\s+/);
+	return {
+      p: getFreeWorkers(), P: getPopulation(),
+      g: integer($("value_gold")), w: integer($("value_wood")),
+      W: integer($("value_wine")), M: integer($("value_marble")),
+      C: integer($("value_crystal")), S: integer($("value_sulfur")),
+      c: integer($X('//*[@class="tooltip"][span[@class="textLabel"]]/text()'))
+    };
+  }
+  else // this city isn't ours. so, things may break
+  {
+	return {
+	p:0,P:0,g:integer($("value_gold")),w:0,W:0,M:0,C:0,S:0
+	}
+  }
 }
 
 function addResources(a, b, onlyIterateA) {
@@ -556,22 +565,20 @@ function buildingExpansionNeeds(b, level) {
   level = isDefined(level) ? level : buildingLevel(b);
   var needs = costs[b = buildingID(b)][level];
   var value = {};
-  var researchbonus = 0.00;
-  if (config.getServer("techs.2020")) researchbonus += 0.02; // Pulley
-  if (config.getServer("techs.2060")) researchbonus += 0.04; // Geometry
-  if (config.getServer("techs.2100")) researchbonus += 0.08; // Spirit Level
+  var factor = 1.00;
+  if (config.getServer("techs.2020")) factor -= 0.02; // Pulley
+  if (config.getServer("techs.2060")) factor -= 0.04; // Geometry
+  if (config.getServer("techs.2100")) factor -= 0.08; // Spirit Level
   //if (config.getServer("techs.2999"))               // Economic Future no
-  //  researchbonus -= 0.02 * config.getServer("techs.2999");// longer has this effect
+  //  factor -= 0.02 * config.getServer("techs.2999");// longer has this effect
   for (var r in needs)
     if ("t" == r) { // no time discount
       value[r] = needs[r];
     } else {
+      value[r] = needs[r] * factor;
       var bonus = buildingIDs[bonusBuildings[r]];
-      value[r] = needs[r];
       if (bonus && (bonus = buildingLevel(bonus)))
-        value[r] = value[r] * (1 - (0.01 * bonus + researchbonus));
-      else
-        value[r] = needs[r] * (1 - researchbonus);
+        value[r] = serverVersionIsAtLeast("0.3.2") ? needs[r]*(factor-bonus/100) : value[r] * (1 - 0.01 * bonus);
       value[r] = Math.floor(value[r]);
     }
   return value;
@@ -763,7 +770,8 @@ function levelBat() { // Ajout d'un du level sur les batiments.
     }, false);
   }
 
-  config.setCity("l", []); // clear old broken config
+  config.setCity("l", []); // clear old broken config (building-levels)
+  config.setCity("p", []); // clear old broken config (buildings built)
   config.setCity("w", 0);
   var all = $x('id("locations")/li[not(contains(@class,"buildingGround"))]');
   all.forEach(function(li) { annotateBuilding(li); });
@@ -803,7 +811,7 @@ function linkTo(url, node, styles, opts) {
     if (opts.text)
       a.textContent = opts.text;
   }
-  if (node)
+  if (node && node.parentNode)
     node.parentNode.replaceChild(a, node);
   return a;
 }
@@ -1404,7 +1412,7 @@ function evenShips(nodes) {
       }
     }
     var cid = integer($X('//input[@name="destinationCityId"]'));
-    if (cityIDs().indexOf(cid) != -1)
+    if (owncityIDs().indexOf(cid) != -1)
       a.addEventListener("dblclick", invoked, true);
   }
 
@@ -1708,7 +1716,7 @@ function stillRemains() {
 }
 
 function corruption(city, fullpct) {
-  var colonies = cityIDs().length - 1;
+  var colonies = owncityIDs().length - 1;
   var building = "palace" + (isCapital(city) ? "" : "Colony");
   var governor = buildingLevel(building, 0, city);
   var a = 1; // absorption factor; see http://ikariam.wikia.com/wiki/Corruption
@@ -1995,7 +2003,7 @@ function advisorLocations() {
     advDiplomacy: "embassy,tavern,museum,branchOffice,wood,wine".split(",")
   };
   if (!isCapital()) places.advCities[3] = "palaceColony";
-  for each (var id in cityIDs())
+  for each (var id in owncityIDs())
     if (config.getCity(["p", buildingIDs.museum], false, id))
       culture = "culturegoods";
   if (culture) places.advDiplomacy.splice(-3, 0, culture);
@@ -2059,7 +2067,7 @@ function resourceOverview() {
     wget(w, loaded, "GM");
   }
   document.body.id = "resourceOverview";
-  var cities = cityIDs();
+  var cities = owncityIDs();
   var left = cities.length * 2;
   var info = <><div class="buildingDescription">
     <h1>Resource overview</h1>
@@ -2306,7 +2314,8 @@ function cityProject(id) {
   return t && t > Date.now() && u && urlParse("view", u);
 }
 
-// extended city selection panel
+
+// extended city selection panel // city-panel overview // city overview
 function showOverview() {
   function reset(e) {
     var on = e.target;
@@ -2352,8 +2361,9 @@ function showOverview() {
 	       // "winegrower", "stonemason", "glassblowing", "alchemist",
 	       "vineyard", "architect", "optician", "fireworker", "temple"];
   if (!serverVersionIsAtLeast("0.3.0")) names.splice(14);
-
+  var imgbase = base +"gfx/icons/buildings/";
   for each (var name in names) {
+    var img = <img src={base +"gfx/icons/buildings/"+ name +".png"}/>;
     if ("temple" != name) {
         var miniicon = GM_getResourceURL("ico_"+name);
 	var img = <img src={miniicon} width="16"/>;
@@ -2369,7 +2379,7 @@ function showOverview() {
   }
 
   var city = referenceCityID();
-  for each (var id in cityIDs()) {
+  for each (var id in cityIDs()) { // display both one's own AND enemy/allied/treatied cities
     var data = cityData(id), p = data.p || {}, pace = cityReapingPace(id);
     var tr = <tr/>;
     if (id == city) tr.@class = "current";
@@ -2437,7 +2447,24 @@ function showOverview() {
           a.@style = (a.@style||"") + "font-weight: bold;";
         if (!serverVersionIsAtLeast("0.3.0") && // only makes sense up to 0.2.8?
 	    l >= (softCap[b] || 16))
-          a.@style = (a.@style||"") + "color: green;";
+          a.@style = (a.@style||"") + "color: green;"
+		else // add in HARDcaps in 0.3.0+
+		  { 
+			if (b <= 9) // building-ids <=9, these have a max at a higher lvl 
+			{
+			  if (l >= 64) // wild guess
+			  {
+				a.@class= "square2";
+				a.@style = (a.@style||"") + "color: green;";
+			  }
+			}
+			else if (l >= 32)
+			{
+			  a.@class= "square2";
+			  a.@style = (a.@style||"") + "color: green; font-size: 12px; font-weight: bold;";
+			}
+			//console.log("b:"+b+",l:"+l+",b<9;"+(b<9)+";"+name)
+		  }
       }
       tr.td += <td class="building">{ a }</td>;
     }
@@ -2467,7 +2494,7 @@ function showCityBuildCompletions() {
   var isles = <div id="islandLinks"></div>;
   var isle = $X('id("changeCityForm")/ul/li[@class="viewIsland"]');
   var lis = get("citynames");
-  var ids = cityIDs();
+  var ids = owncityIDs();
   var names = cityNames();
   if (names.length > 1) {
     var images = [];
@@ -2533,7 +2560,7 @@ function showCityBuildCompletions() {
 function cityTabs(cid, before) {
   cid = cid || mainviewCityID();
   var b = document.body.id;
-  var cities = cityIDs().filter(cityHasBuilding(b));
+  var cities = owncityIDs().filter(cityHasBuilding(b));
   if (cities.length < 2) return;
 
   GM_addStyle(<><![CDATA[
@@ -2627,6 +2654,7 @@ function showSafeWarehouseLevels() {
 }
 
 function showHousingOccupancy(opts) {
+ if (OtherCity) return 0;
   var txt = $("value_inhabitants").firstChild;
   var text = txt.nodeValue.replace(/\s/g, "\xA0");
   var pop = projectPopulation(opts);
@@ -2646,11 +2674,11 @@ function showHousingOccupancy(opts) {
 }
 
 function getFreeWorkers() {
-  return integer($("value_inhabitants").textContent.match(/^[\d,.]+/)[0]);
+  return OtherCity ? 0 : integer($("value_inhabitants").textContent.match(/^[\d,.]+/)[0]);
 }
 
 function getPopulation() {
-  return integer($("value_inhabitants").textContent.match(/\(([\d,.]+)/)[1]);
+  return OtherCity ? 0 : integer($("value_inhabitants").textContent.match(/\(([\d,.]+)/)[1]);
 }
 
 function getMaxPopulation(townHallLevel) {
@@ -2680,6 +2708,8 @@ function projectPopulation(opts) {
   var tavern = 12 * buildingLevel("tavern", 0, cid);
   var wineLevel = opts && opts.hasOwnProperty("wine") ? opts.wine :
     config.getCity(["x", buildingIDs.tavern], 0, cid);
+  // Fix the presence of Vineyards/wine growers
+    wineLevel = Math.floor(wineLevel / ( 1-((config.getCity(["l", buildingIDs.vineyard], 0, cid))/100)));
   var wine = wineMultiplier * buildingCapacities.tavern.indexOf(wineLevel);
   var museum = 20 * buildingLevel("museum", 0, cid);
   var culture = 50 * config.getCity(["x", buildingIDs.museum], 0, cid);
@@ -2819,7 +2849,8 @@ function projectBuildStart(root, result) {
         var rebated = facit[res]; // integer(facit[res]);
         var rebateBuilding = buildingIDs[bonusBuildings[res]];
         var buildBonus = buildingLevel(rebateBuilding, 0, !!"saved", cid) * 0.01;
-        facit[res] = Math.floor(rebated * (1 - (techBonus + buildBonus)));
+		facit[res] = serverVersionIsAtLeast("0.3.2") ? Math.floor(rebated *(1 - techBonus - buildBonus)) : Math.floor(rebated * (1 - techBonus) * (1 - buildBonus));
+        //facit[res] = Math.floor(rebated * (1 - techBonus) * (1 - buildBonus));
         //need[res] = Math.ceil(rebated / (1 - techBonus) / (1 - buildBonus/100));
         need[res] = integer(need[res]);
       }
@@ -2832,7 +2863,7 @@ function projectBuildStart(root, result) {
           var rebated = integer(need[res]);
           var rebateBuilding = buildingIDs[bonusBuildings[res]];
           var buildBonus = buildingLevel(rebateBuilding, 0, !!"saved", cid) * 0.01;
-          need[res] = Math.ceil(rebated / (1 - techBonus) / (1 - buildBonus));
+          need[res] = serverVersionIsAtLeast("0.3.2") ? Math.ceil(rebated / (1 - techBonus - buildBonus)) : Math.ceil(rebated / (1 - techBonus) / (1 - buildBonus));
         }
       }
       costs[id][level] = need;
@@ -2942,7 +2973,7 @@ function clickResourceToSell() {
 /*---------------------
 Ajout du panel dans le menu
 ---------------------*/
-function panelInfo() { // Ajoute un element en plus dans le menu.
+function panelInfo() { // Ajoute un element en plus dans le menu. // science thingy!
   var panel = <div class="dynamic">
     <h3 class="header">
       <a href="http://kronos-utils.notlong.com/">Kronos</a> { version }:
@@ -3007,6 +3038,18 @@ function cityIDs() {
   return pluck($x('id("citySelect")/option'), "value").map(integer);
 }
 
+function owncityIDs() {
+  return pluck($x('id("citySelect")/option[@class="coords"]'), "value").map(integer);
+}
+
+function occupiedcityIDs() {
+  return pluck($x('id("citySelect")/option[@class="occupiedCities coords"]'), "value").map(integer);
+}
+
+function deployedcityIDs() {
+  return pluck($x('id("citySelect")/option[@class="deployedCities coords"]'), "value").map(integer);
+}
+
 function mainviewIslandID() {
   var city = $X('id("breadcrumbs")//a[@class="island"]');
   return city && urlParse("id", city.search);
@@ -3043,7 +3086,7 @@ function cityName(id) {
 
 function cityNames() {
   function noCoords(name) {
-    return name.replace(/^(\[\d+:\d+\] )?/, "");
+	return name.replace(/^(\[\d+:\d+\]\s)?/, "");
   }
   return cityNames.names = cityNames.names ||
     pluck(get("citynames"), "textContent").map(noCoords);
