@@ -771,7 +771,7 @@ function levelBat() { // Ajout d'un du level sur les batiments.
   }
 
   config.setCity("l", []); // clear old broken config (building-levels)
-  config.setCity("p", []); // clear old broken config (buildings built)
+  //config.setCity("p", []); // clear old broken config (buildings built)
   config.setCity("w", 0);
   var all = $x('id("locations")/li[not(contains(@class,"buildingGround"))]');
   all.forEach(function(li) { annotateBuilding(li); });
