@@ -392,8 +392,8 @@ function gotoCity(url, id) {
 
 function currentResources() {
   if (!OtherCity) {
-	var inhab = $("value_inhabitants").textContent.split(/\s+/);
-	return {
+    var inhab = $("value_inhabitants").textContent.split(/\s+/);
+    return {
       p: getFreeWorkers(), P: getPopulation(),
       g: integer($("value_gold")), w: integer($("value_wood")),
       W: integer($("value_wine")), M: integer($("value_marble")),
@@ -403,9 +403,9 @@ function currentResources() {
   }
   else // this city isn't ours. so, things may break
   {
-	return {
-	p:0,P:0,g:integer($("value_gold")),w:0,W:0,M:0,C:0,S:0
-	}
+    return {
+     p:0,P:0,g:integer($("value_gold")),w:0,W:0,M:0,C:0,S:0
+    }
   }
 }
 
@@ -3115,3 +3115,8 @@ function hideshow(node, nodes) {
   nodes = nodes || [node];
   nodes.forEach(listen);
 }
+
+//   ;;; Local Variables: ***
+//   ;;; mode:java ***
+//   ;;; c-basic-offset:2 ***
+//   ;;; End: ***

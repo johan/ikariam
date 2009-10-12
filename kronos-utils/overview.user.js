@@ -380,3 +380,8 @@ function pct(lvl, tot, warn) {
     <td width={ r+"%" } class="ot-pct"/>
   </tr></table>;
 }
+
+//   ;;; Local Variables: ***
+//   ;;; mode:java ***
+//   ;;; c-basic-offset:2 ***
+//   ;;; End: ***
