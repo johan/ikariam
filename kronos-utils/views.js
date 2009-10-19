@@ -1013,7 +1013,7 @@ function researchAdvisorView() {
 
     a.title = a.textContent;
     a.href = urlTo("research", tech.id);
-    a.innerHTML = name.bold() +" — "+ tech.does;
+    a.innerHTML = name.bold() +" â "+ tech.does;
     // tech.does[0].toLowerCase() + tech.does.slice(1);
   }
 
@@ -1331,7 +1331,7 @@ function makeLootTable(table, reports) {
       var v = time ? parseTime(f.value) : integer(f.value || "0");
       if (!v && (time || bash)) v = "Infinity";
       var n = f.id.replace(/^v/, "");
-      var op = $("op"+ n).textContent == "≤" ? "<=" : ">=";
+      var op = $("op"+ n).textContent == "â¤" ? "<=" : ">=";
       var check = $(f.id.slice(1));
       if (check) {
         if (v) {
@@ -1509,7 +1509,7 @@ function makeLootTable(table, reports) {
     if (11 == i) th.style.width = "400px";
     if (r) { // only show filter for cols with relevant data
       var id = "#" == r ? "bash" : r;
-      var op = /[T#]/.test(r) ? "≤" : "≥"; // config.getCity(...+ r, def);
+      var op = /[T#]/.test(r) ? "â¤" : "â¥"; // config.getCity(...+ r, def);
       var val = ""; // config.getCity(...+ r, "");
       var html = <><span id={"op"+ id}>{op}</span><input
                          id={"v"+ id} value={val} type="text"/></>;
@@ -1771,7 +1771,7 @@ function workshopView() {
     var level = { bronze: 0, silber: 1, gold: 2 }[type];
     var opacity, stat, last, tag;
     for (var l = 2; l >= 0; l--) {
-      var l1 = base + delta * l; // \uFFEB \u27A0 #906646
+      var l1 = base + delta * l;
       var l2 = l1 + delta;
       var stat = l1;
       if (l != level) {
@@ -1878,8 +1878,12 @@ function showUnitLevels(specs) {
   function augmentUnit(li) {
     var stats = unitStatsFromImage($X('div[@class="unitinfo"]//img', li));
     level("att", stats, li, " (", "");
-	serverVersionIsAtLeast("0.3.2") && level("sta", stats, li, ")(", "");
-    level("def", stats, li, "/", ")");
+    if (serverVersionIsAtLeast("0.3.2")) {
+      level("def", stats, li, "/", "");
+      level("sta", stats, li, ", ", "hp)");
+    } else {
+      level("def", stats, li, "/", ")");
+    }
     var cnt = integer($X('div[@class="unitinfo"]/div[@class="unitcount"]', li));
     config.setCity(["T", stats.id], cnt);
   }
