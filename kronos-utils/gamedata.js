@@ -294,21 +294,21 @@ v = speed
 V = volume (cargo ship)
 */
 var troops = serverVersionIsAtLeast("0.3.2") ? {
-  301: {n:"Slinger",p:1,w:20,b:"10m",u:2,m:2,a:2,o:3,d:0,A:1,D:1,s:8,c:"Human",v:60,V:3,x:"Ranged"},
+  301: {n:"Slinger",p:1,w:20,b:"10m",u:2,m:2,a:3,o:3,d:0,A:1,D:1,s:8,c:"Human",v:60,V:3,x:"Ranged"},
   315: {n:"Spear Thrower",i:"spearman",p:1,w:30,b:"5m",u:1,m:1,a:4,d:0,A:1,D:1,s:13,c:"Human",v:60,V:3},
-  302: {n:"Swordsman",p:1,w:30,S:30,b:"8m",u:4,m:6,a:10,d:11,A:3,D:1,s:18,c:"Human",v:60,V:3},
-  303: {n:"Phalanx",i:"Hoplite",p:1,w:40,S:30,b:"5m",u:3,m:4,a:18,d:1,A:2,D:5,s:56,c:"Human",v:60,V:5},
-  307: {n:"Ram",i:"Battering ram",p:5,w:220,b:"30m",u:15,m:3,a:12,o:76,d:1,A:2,D:10,s:88,c:"Machina",v:40,V:30,x:"Ram"},
-  313: {n:"Archer",p:1,w:30,S:25,b:"8m",u:4,m:7,a:5,d:0,A:5,D:1,s:16,c:"Human",v:60,V:5,x:"Ranged",o:5},
-  306: {n:"Catapult",p:5,w:260,S:300,b:"30m",u:25,m:8,a:4,d:0,A:10,D:6,s:54,c:"Machina",v:40,V:30,x:"Ram",o:133},
-  304: {n:"Marksman",i:"Sulphur Carabineers",p:1,w:50,S:150,b:"5m",u:3,m:13,a:3,o:29,d:0,A:8,D:2,s:12,c:"Human",v:60,V:5,x:"Ranged"},
-  305: {n:"Mortar",p:5,w:300,S:1250,b:"30m",u:30,m:14,a:10,o:322,d:0,A:18,D:12,s:32,c:"Machina",v:40,x:"Ram"},
-  308: {n:"Steam Giant",i:"steamgiant",p:2,w:130,S:180,b:"15m",u:12,m:12,a:42,d:3,A:10,D:10,s:184,c:"Machina",v:40,V:15},
-  312: {n:"Gyrocopter",p:4,w:92,S:164,b:"19m 57s",u:10,m:15,o:17,a:35,d:30,A:5,D:4,s:3,c:"Machina",v:80,x:"Ranged"},
-  309: {n:"Bombardier",i:"Balloon-Bombardier",p:5,w:40,S:250,b:"30m",u:45,m:11,o:48,a:0,d:0,A:28,D:8,s:25,c:"Machina",v:20,V:30,x:"Bomber"},
-  311: {n:"Doctor",i:"medic",p:1,w:84,C:622,b:"38m 13s",u:30,m:16,o:28,a:8,d:22,A:0,D:0,s:10,c:"Human",v:60,x:"Healer"},
+  302: {n:"Swordsman",p:1,w:30,S:30,b:"8m",u:4,m:6,a:10,d:0,A:1,D:1,s:18,c:"Human",v:60,V:3},
+  303: {n:"Phalanx",i:"Hoplite",p:1,w:40,S:30,b:"5m",u:3,m:4,a:18,d:1,A:1,D:1,s:56,c:"Human",v:60,V:5},
+  307: {n:"Ram",i:"Battering ram",p:5,w:220,b:"30m",u:15,m:3,o:5,a:76,d:1,A:1,D:1,s:88,c:"Machina",v:40,V:30,x:"Ram"},
+  313: {n:"Archer",p:1,w:30,S:25,b:"8m",u:4,m:7,o:10,a:5,d:0,A:1,D:1,s:16,c:"Human",v:60,V:5,x:"Ranged"},
+  306: {n:"Catapult",p:5,w:260,S:300,b:"30m",u:25,m:8,o:10,a:133,d:0,A:1,D:1,s:54,c:"Machina",v:40,V:30,x:"Ram"},
+  304: {n:"Marksman",i:"Sulphur Carabineers",p:1,w:50,S:150,b:"5m",u:3,m:13,o:15,a:29,d:0,A:1,D:1,s:12,c:"Human",v:60,V:5,x:"Ranged"},
+  305: {n:"Mortar",p:5,w:300,S:1250,b:"30m",u:30,m:14,o:14,a:322,d:0,A:1,D:1,s:32,c:"Machina",v:40,V:30,x:"Ram"},
+  308: {n:"Steam Giant",i:"steamgiant",p:2,w:130,S:180,b:"15m",u:12,m:12,a:42,d:3,A:1,D:1,s:184,c:"Machina",v:40,V:15},
+  312: {n:"Gyrocopter",p:3,w:25,S:100,b:"15m ",u:15,m:10,o:12,a:13,d:0,A:1,D:1,s:21,c:"Machina",v:80,V:15,x:"Ranged"},
+  309: {n:"Bombardier",i:"Balloon-Bombardier",p:5,w:40,S:250,b:"30m",u:45,m:11,a:48,d:0,A:1,D:1,s:25,c:"Machina",v:20,V:30,x:"Bomber"},
+  311: {n:"Doctor",i:"medic",p:1,w:50,C:450,b:"20m",u:20,m:9,a:8,d:0,A:0,D:0,s:12,c:"Human",v:60,V:10,x:"Healer"},
   310: {n:"Cook",p:1,w:50,W:150,b:"20m",u:10,m:5,a:20,d:0,A:0,D:0,s:22,c:"Human",v:40,V:20,x:"Regeneration"},
-  316: {n:"Barbarian-Axe Swinger",p:1,w:108,W:345,b:"1h 52s",u:30,m:9,o:9,a:12,d:18,A:0,D:0,s:10,c:"Human",v:60}
+  316: {n:"Barbarian-Axe Swinger",a:7,d:1,A:0,D:0,s:12,c:"Human",v:0}
 } : // end v0.3.2+ section.
 
 { // v0.3.0 and v0.3.1
@@ -333,13 +333,13 @@ for (id in troops) troops[id].id = id;
 // sea units:
 var ships = serverVersionIsAtLeast("0.3.2") ? {
   201: {n:"Cargo Ship",a:15,d:0,s:30,c:"Steamship",v:60,A:0,D:0,V:500},
-  210: {n:"Ram-Ship",p:5,w:220,S:50,b:"40m",u:40,m:1,a:72,d:6,A:3,D:1,s:120,c:"Sailer",v:30},
-  211: {n:"Flamethrower",i:"Lightvessel",p:4,w:80,S:230,b:"30m",u:30,m:4,a:98,d:3,A:6,D:3,s:110,c:"Steamship",v:40},
-  212: {n:"Diving Boat",i:"submarine",p:6,w:160,C:750,b:"1h",u:70,m:7,a:48,d:3,A:21,D:8,s:47,c:"Steamship",v:40,x:"Bomber"},
-  213: {n:"Ballista Ship",p:6,w:180,S:160,b:"50m",u:45,m:2,a:48,o:28,d:4,A:2,D:3,s:132,c:"Sailer",v:30,x:"Ranged"},
-  214: {n:"Catapult Ship",p:5,w:180,S:140,b:"50m",u:50,m:3,a:28,o:37,d:0,A:4,D:6,s:86,c:"Sailer",v:30,x:"Ranged"},
-  215: {n:"Mortar Ship",p:5,w:220,S:900,b:"50m",u:130,m:6,a:34,o:66,d:2,A:8,D:16,s:56,c:"Steamship",v:20,x:"Ranged"},
-  216: {n:"Paddle Wheel Ram",i:"steamboat",p:2,w:300,S:1500,b:"40m",u:90,m:5,a:140,d:8,A:13,D:4,s:236,c:"Steamship",v:30}
+  210: {n:"Ram-Ship",p:5,w:220,S:50,b:"40m",u:40,m:1,a:72,d:6,A:2,D:2,s:120,c:"Sailer",v:30},
+  211: {n:"Flamethrower",i:"Lightvessel",p:4,w:80,S:230,b:"30m",u:30,m:4,a:98,d:3,A:2,D:2,s:110,c:"Steamship",v:40},
+  212: {n:"Diving Boat",i:"submarine",p:6,w:160,C:750,b:"1h",u:70,m:7,a:48,d:3,A:2,D:2,s:47,c:"Steamship",v:40,x:"Bomber"},
+  213: {n:"Ballista Ship",p:6,w:180,S:160,b:"50m",u:45,m:2,a:48,d:4,A:2,D:2,s:132,c:"Sailer",v:30,x:"Ranged"},
+  214: {n:"Catapult Ship",p:5,w:180,S:140,b:"50m",u:50,m:3,a:37,d:0,A:2,D:2,s:86,c:"Sailer",v:30,x:"Ranged"},
+  215: {n:"Mortar Ship",p:5,w:220,S:900,b:"50m",u:130,m:6,a:66,d:2,A:2,D:2,s:56,c:"Steamship",v:20,x:"Ranged"},
+  216: {n:"Paddle Wheel Ram",i:"steamboat",p:2,w:300,S:1500,b:"40m",u:90,m:5,a:140,d:8,A:2,D:2,s:236,c:"Steamship",v:30}
 
 } : // end v0.3.2+ section.
 { // v0.3+ section.
