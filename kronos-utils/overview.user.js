@@ -384,4 +384,5 @@ function pct(lvl, tot, warn) {
 //   ;;; Local Variables: ***
 //   ;;; mode:java ***
 //   ;;; c-basic-offset:2 ***
+//   ;;; coding: utf-8 ***
 //   ;;; End: ***
