@@ -2136,3 +2136,10 @@ function scrapeIkipediaBuilding(doc, id) {
   //}
   return cost;
 }
+
+//   ;;; Local Variables: ***
+//   ;;; mode:java ***
+//   ;;; c-basic-offset:2 ***
+//   ;;; coding: utf-8 ***
+//   ;;; End: ***
+

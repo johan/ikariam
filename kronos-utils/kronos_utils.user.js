@@ -3119,3 +3119,9 @@ function hideshow(node, nodes) {
   nodes = nodes || [node];
   nodes.forEach(listen);
 }
+
+//   ;;; Local Variables: ***
+//   ;;; mode:java ***
+//   ;;; c-basic-offset:2 ***
+//   ;;; coding: utf-8 ***
+//   ;;; End: ***
