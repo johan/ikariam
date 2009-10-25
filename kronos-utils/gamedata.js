@@ -175,7 +175,7 @@ carpentering: "/skin/img/city/building_carpentering.gif",
 };
 
 
-// These tables are not yet full coverage for 0.3.0. If you want to provide any
+// These tables are not yet full coverage for 0.3.0+. If you want to provide any
 // updates, you must figure out what each level of each house would cost BEFORE
 // applying the research and building bonuses you have, though, or Kronos won't
 // get the figures right (easiest by harvesting the wiki, if it contains data
@@ -223,11 +223,11 @@ var costs = [
 [{w:220,M:95,t:"42m"},{w:383,M:167,t:"54m"},{w:569,M:251,t:"1h 6m"},{w:781,M:349,t:"1h 19m"},{w:1023,M:461,t:"1h 33m"},{w:1299,M:592,t:"1h 48m"},{w:1613,M:744,t:"2h 3m"},{w:1972,M:920,t:"2h 19m"},{w:2380,M:1125,t:"2h 36m"},{w:2846,M:1362,t:"2h 54m"},{w:3377,M:1637,t:"3h 12m"},{w:3982,M:1956,t:"3h 32m"},{w:4672,M:2326,t:"3h 53m"},{w:5458,M:2755,t:"4h 14m"},{w:6355,M:3253,t:"4h 37m"},{w:7377,M:3831,t:"5h 57s"},{w:8542,M:4500,t:"5h 25m"},{w:9870,M:5278,t:"5h 52m"},{w:11385,M:6180,t:"6h 19m"},{w:13111,M:7226,t:"6h 48m"},{w:15078,M:8439,t:"7h 18m"},{w:17321,M:9847,t:"7h 50m"},{w:19481,M:11477,t:"8h 24m"},{w:22796,M:13373,t:"8h 59m"},{w:26119,M:15570,t:"9h 36m"},{w:29909,M:18118,t:"10h 14m"},{w:34228,M:21074,t:""},{w:39153,M:24503,t:""}],
 
 // safehouse (32) MAX
-[{w:113,t:"24m"},{w:248,t:"36m"},{w:402,t:"48m 36s"},{w:578,M:129,t:"1h 1m"},{w:779,M:197,t:"1h 15m"},{w:1007,M:275,t:"1h 30m"},{w:1267,M:366,t:"1h 45m"},{w:1564,M:471,t:"2h 1m"},{w:1903,M:593,t:"2h 18m"},{w:2288,M:735,t:"2h 36m"},{w:2728,M:900,t:"2h 54m"},{w:3230,M:1090,t:"3h 14m"},{w:3801,M:1312,t:"3h 35m"},{w:4453,M:1569,t:"3h 56m"},{w:5195,M:1866,t:"4h 19m"},{w:6042,M:2212,t:"4h 42m"},{w:7008,M:2613,t:"5h 7m"},{w:8108,M:3078,t:"5h 34m"},{w:9363,M:3617,t:"6h 1m"},{w:10793,M:4243,t:"6h 30m"},{w:12422,M:4968,t:"7h 47s"},{w:14282,M:5810,t:"7h 32m"},{w:16401,M:6787,t:"8h 6m"},{w:18816,M:7919,t:"8h 41m"},{w:21570,M:9233,t:"9h 18m"},{w:24709,M:10758,t:"9h 56m"},{w:28288,M:12526,t:"10h 37m"},{w:32368,M:14577,t:"11h 20m"},{w:37019,M:16956,t:"12h 4m"},{w:42321,M:19716,t:"12h 51m"},{w:48365,M:22917,t:"13h 41m"},{w:55255,M:26631,t:"14h 33m"},{t:"MAX"}],
+[{w:113,t:"24m"},{w:248,t:"36m"},{w:402,t:"48m 36s"},{w:578,M:129,t:"1h 1m"},{w:779,M:197,t:"1h 15m"},{w:1007,M:275,t:"1h 30m"},{w:1267,M:366,t:"1h 45m"},{w:1564,M:471,t:"2h 1m"},{w:1903,M:593,t:"2h 18m"},{w:2288,M:735,t:"2h 36m"},{w:2728,M:900,t:"2h 54m"},{w:3230,M:1090,t:"3h 14m"},{w:3801,M:1312,t:"3h 35m"},{w:4453,M:1569,t:"3h 56m"},{w:5195,M:1866,t:"4h 19m"},{w:6042,M:2212,t:"4h 42m"},{w:7008,M:2613,t:"5h 7m"},{w:8108,M:3078,t:"5h 34m"},{w:9363,M:3617,t:"6h 1m"},{w:10793,M:4243,t:"6h 30m"},{w:12423,M:4968,t:"7h 47s"},{w:14282,M:5810,t:"7h 32m"},{w:16401,M:6787,t:"8h 6m"},{w:18816,M:7919,t:"8h 41m"},{w:21570,M:9233,t:"9h 18m"},{w:24709,M:10758,t:"9h 56m"},{w:28288,M:12526,t:"10h 37m"},{w:32368,M:14577,t:"11h 20m"},{w:37019,M:16956,t:"12h 4m"},{w:42321,M:19716,t:"12h 51m"},{w:48365,M:22917,t:"13h 41m"},{w:55255,M:26631,t:"14h 33m"},{t:"MAX"}],
 /* 17: palaceColony / governor's mansion */,
 
 // forester (27)
-[{w:250,t:"18m"},{w:430,M:104,t:"30m"},{w:664,M:237,t:"43m 12s"},{w:968,M:410,t:"57m 43s"},{w:1364,M:635,t:"1h 13m"},{w:1878,M:928,t:"1h 31m"},{w:2546,M:1309,t:"1h 50m"},{w:3415,M:1803,t:"2h 11m"},{w:4544,M:2446,t:"2h 35m"},{w:6013,M:3282,t:"3h 57s"},{w:7922,M:4368,t:"3h 29m"},{w:10403,M:5781,t:"4h 22s"},{w:13629,M:7617,t:"4h 34m"},{w:17823,M:10004,t:"5h 12m"},{w:23274,M:13108,t:"5h 53m"},{w:30362,M:17142,t:"6h 39m"},{w:39575,M:22387,t:"7h 29m"},{w:51552,M:29204,t:"8h 24m"},{w:67123,M:38068,t:"9h 25m"},{w:87365,M:49590,t:"10h 31m"},{w:113680,M:64569,t:"11h 45m"},{w:147889,M:84042,t:"13h 6m"},{w:192360,M:109357,t:"14h 34m"},{w:250173,M:142266,t:"16h 12m"},{w:325330,M:185047,t:"17h 59m"},{w:423034,M:240663,t:"19h 58m"},{w:550049,M:312965,t:"22h 8m"}],
+[{w:250,t:"18m"},{w:430,M:104,t:"30m"},{w:664,M:237,t:"43m 12s"},{w:968,M:410,t:"57m 43s"},{w:1364,M:635,t:"1h 13m"},{w:1878,M:928,t:"1h 31m"},{w:2546,M:1309,t:"1h 50m"},{w:3415,M:1803,t:"2h 11m"},{w:4544,M:2446,t:"2h 35m"},{w:6013,M:3282,t:"3h 57s"},{w:7922,M:4368,t:"3h 29m"},{w:10403,M:5781,t:"4h 22s"},{w:13629,M:7617,t:"4h 34m"},{w:17823,M:10004,t:"5h 12m"},{w:23274,M:13108,t:"5h 53m"},{w:30362,M:17142,t:"6h 39m"},{w:39575,M:22387,t:"7h 29m"},{w:51552,M:29204,t:"8h 24m"},{w:67123,M:38068,t:"9h 25m"},{w:87365,M:49590,t:"10h 31m"},{w:113680,M:64569,t:"11h 45m"},{w:147889,M:84042,t:"13h 6m"},{w:192360,M:109357,t:"14h 34m"},{w:250173,M:142266,t:"16h 12m"},{w:325330,M:185047,t:"17h 59m"},{w:423035,M:240664,t:"19h 58m"},{w:550049,M:312965,t:"22h 8m"}],
 
 // stonemason (26)
 [{w:274,t:"18m"},{w:467,M:116,t:"30m"},{w:718,M:255,t:"43m 12s"},{w:1045,M:436,t:"57m 43s"},{w:1469,M:671,t:"1h 13m"},{w:2021,M:977,t:"1h 31m"},{w:2738,M:1375,t:"1h 50m"},{w:3671,M:1892,t:"2h 11m"},{w:4883,M:2564,t:"2h 35m"},{w:6459,M:3437,t:"3h 57s"},{w:8508,M:4572,t:"3h 29m"},{w:11172,M:6049,t:"4h 22s"},{w:14634,M:7968,t:"4h 34m"},{w:19135,M:10462,t:"5h 12m"},{w:24987,M:13705,t:"5h 53m"},{w:32594,M:17921,t:"6h 39m"},{w:42483,M:23402,t:"7h 29m"},{w:55339,M:30527,t:"8h 24m"},{w:72051,M:39790,t:"9h 25m"},{w:93778,M:51831,t:"10h 31m"},{w:122022,M:67485,t:"11h 45m"},{w:158740,M:87835,t:"13h 6m"},{w:206471,M:114290,t:"14h 34m"},{w:268525,M:148681,t:"16h 12m"},{w:349193,M:193390,t:"17h 59m"},{w:454063,M:251512,t:"19h 58m"}],
@@ -294,17 +294,17 @@ v = speed
 V = volume (cargo ship)
 */
 var troops = serverVersionIsAtLeast("0.3.2") ? {
-  301: {n:"Slinger",p:1,w:20,b:"10m",u:2,m:2,a:3,o:3,d:0,A:1,D:1,s:8,c:"Human",v:60,V:3,x:"Ranged"},
+  301: {n:"Slinger",p:1,w:20,b:"10m",u:2,m:2,a:2,o:3,d:0,A:1,D:1,s:8,c:"Human",v:60,V:3,x:"Ranged"},
   315: {n:"Spear Thrower",i:"spearman",p:1,w:30,b:"5m",u:1,m:1,a:4,d:0,A:1,D:1,s:13,c:"Human",v:60,V:3},
   302: {n:"Swordsman",p:1,w:30,S:30,b:"8m",u:4,m:6,a:10,d:0,A:1,D:1,s:18,c:"Human",v:60,V:3},
   303: {n:"Phalanx",i:"Hoplite",p:1,w:40,S:30,b:"5m",u:3,m:4,a:18,d:1,A:1,D:1,s:56,c:"Human",v:60,V:5},
-  307: {n:"Ram",i:"Battering ram",p:5,w:220,b:"30m",u:15,m:3,o:5,a:76,d:1,A:1,D:1,s:88,c:"Machina",v:40,V:30,x:"Ram"},
-  313: {n:"Archer",p:1,w:30,S:25,b:"8m",u:4,m:7,o:10,a:5,d:0,A:1,D:1,s:16,c:"Human",v:60,V:5,x:"Ranged"},
-  306: {n:"Catapult",p:5,w:260,S:300,b:"30m",u:25,m:8,o:10,a:133,d:0,A:1,D:1,s:54,c:"Machina",v:40,V:30,x:"Ram"},
-  304: {n:"Marksman",i:"Sulphur Carabineers",p:1,w:50,S:150,b:"5m",u:3,m:13,o:15,a:29,d:0,A:1,D:1,s:12,c:"Human",v:60,V:5,x:"Ranged"},
-  305: {n:"Mortar",p:5,w:300,S:1250,b:"30m",u:30,m:14,o:14,a:322,d:0,A:1,D:1,s:32,c:"Machina",v:40,V:30,x:"Ram"},
+  307: {n:"Ram",i:"Battering ram",p:5,w:220,b:"30m",u:15,m:3,a:12,o:76,d:1,A:1,D:1,s:88,c:"Machina",v:40,V:30,x:"Ram"},
+  313: {n:"Archer",p:1,w:30,S:25,b:"8m",u:4,m:7,a:5,d:0,A:1,D:1,s:16,c:"Human",v:60,V:5,x:"Ranged",o:5},
+  306: {n:"Catapult",p:5,w:260,S:300,b:"30m",u:25,m:8,a:4,d:0,A:1,D:1,s:54,c:"Machina",v:40,V:30,x:"Ram",o:133},
+  304: {n:"Marksman",i:"Sulphur Carabineers",p:1,w:50,S:150,b:"5m",u:3,m:13,a:3,o:29,d:0,A:1,D:1,s:12,c:"Human",v:60,V:5,x:"Ranged"},
+  305: {n:"Mortar",p:5,w:300,S:1250,b:"30m",u:30,m:14,a:10,o:322,d:0,A:1,D:1,s:32,c:"Machina",v:40,V:30,x:"Ram"},
   308: {n:"Steam Giant",i:"steamgiant",p:2,w:130,S:180,b:"15m",u:12,m:12,a:42,d:3,A:1,D:1,s:184,c:"Machina",v:40,V:15},
-  312: {n:"Gyrocopter",p:3,w:25,S:100,b:"15m ",u:15,m:10,o:12,a:13,d:0,A:1,D:1,s:21,c:"Machina",v:80,V:15,x:"Ranged"},
+  312: {n:"Gyrocopter",p:3,w:25,S:100,b:"15m",u:15,m:10,o:13,d:0,A:1,D:1,s:21,c:"Machina",v:80,V:15,x:"Ranged"},
   309: {n:"Bombardier",i:"Balloon-Bombardier",p:5,w:40,S:250,b:"30m",u:45,m:11,a:48,d:0,A:1,D:1,s:25,c:"Machina",v:20,V:30,x:"Bomber"},
   311: {n:"Doctor",i:"medic",p:1,w:50,C:450,b:"20m",u:20,m:9,a:8,d:0,A:0,D:0,s:12,c:"Human",v:60,V:10,x:"Healer"},
   310: {n:"Cook",p:1,w:50,W:150,b:"20m",u:10,m:5,a:20,d:0,A:0,D:0,s:22,c:"Human",v:40,V:20,x:"Regeneration"},
@@ -336,9 +336,9 @@ var ships = serverVersionIsAtLeast("0.3.2") ? {
   210: {n:"Ram-Ship",p:5,w:220,S:50,b:"40m",u:40,m:1,a:72,d:6,A:2,D:2,s:120,c:"Sailer",v:30},
   211: {n:"Flamethrower",i:"Lightvessel",p:4,w:80,S:230,b:"30m",u:30,m:4,a:98,d:3,A:2,D:2,s:110,c:"Steamship",v:40},
   212: {n:"Diving Boat",i:"submarine",p:6,w:160,C:750,b:"1h",u:70,m:7,a:48,d:3,A:2,D:2,s:47,c:"Steamship",v:40,x:"Bomber"},
-  213: {n:"Ballista Ship",p:6,w:180,S:160,b:"50m",u:45,m:2,a:48,d:4,A:2,D:2,s:132,c:"Sailer",v:30,x:"Ranged"},
-  214: {n:"Catapult Ship",p:5,w:180,S:140,b:"50m",u:50,m:3,a:37,d:0,A:2,D:2,s:86,c:"Sailer",v:30,x:"Ranged"},
-  215: {n:"Mortar Ship",p:5,w:220,S:900,b:"50m",u:130,m:6,a:66,d:2,A:2,D:2,s:56,c:"Steamship",v:20,x:"Ranged"},
+  213: {n:"Ballista Ship",p:6,w:180,S:160,b:"50m",u:45,m:2,a:48,o:28,d:4,A:2,D:2,s:132,c:"Sailer",v:30,x:"Ranged"},
+  214: {n:"Catapult Ship",p:5,w:180,S:140,b:"50m",u:50,m:3,a:28,o:37,d:0,A:2,D:2,s:86,c:"Sailer",v:30,x:"Ranged"},
+  215: {n:"Mortar Ship",p:5,w:220,S:900,b:"50m",u:130,m:6,a:34,o:66,d:2,A:2,D:2,s:56,c:"Steamship",v:20,x:"Ranged"},
   216: {n:"Paddle Wheel Ram",i:"steamboat",p:2,w:300,S:1500,b:"40m",u:90,m:5,a:140,d:8,A:2,D:2,s:236,c:"Steamship",v:30}
 
 } : // end v0.3.2+ section.

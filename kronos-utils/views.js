@@ -380,7 +380,11 @@ function safehouseReportsView() {
 function warehouseSpy() {
   function steal(tr) {
     var n = integer($X('td[2]', tr));
+ //   var r = resourceFromUrl($X('td[1]/img', tr));	// not needed anymore
+ //   var id = r == "w" ? "wood" : "rest";		// always 'rest' now
+    var safe = buildingCapacities.warehouse["rest"][warehouse];
     var lootable = Math.max(0, n - safe);
+    //console.log(n, warehouse, safe, lootable);
     if (count) {
       node({ tag: "td", text: safe, append: tr });
       all += lootable;
@@ -414,16 +418,15 @@ function warehouseSpy() {
       break;
     }
   }
-  if (found) {
-    var warehouse = config.getCity("w",0,id); // aggregated warehouse level
-  } else {
-    var warehouse = prompt("Warehouse level? (0 for no warehouse)");
-    if (warehouse === null || !isNumber(warehouse = integer(warehouse))) return;
-    if (isUndefined(warehouse)) return;
-  }
+  var guess = found && buildingLevel("port", 0, "save", id);
+  var port = 0//isDefined(guess) ? guess : prompt("Port level? (0 for no port)", guess || 0);
+  //if (port === null || !isNumber(port = integer(port))) return;
+  guess = found && buildingLevel("warehouse", 0, "save", id);
+  var warehouse = isDefined(guess) ? guess : prompt("Warehouse level? (0 for no warehouse)", guess || 0);
+  if (warehouse === null || !isNumber(warehouse = integer(warehouse))) return;
+  if (isUndefined(warehouse)) return;
+  port = integer(port);
   warehouse = integer(warehouse);
-  var safe = townHallSafeRes + warehouse * safeResMultiplier;
-
   var head = $X('tr[1]', body);
   node({ tag: "th", className: "count", text: "Safe", append: head });
   node({ tag: "th", className: "count", text: "Loot", append: head });
@@ -441,6 +444,10 @@ function warehouseSpy() {
            <!--<div class="all">({ Math.ceil(all/500) })</div>-->
          </div>, append: boats });
 }
+
+
+
+
 
 // map views:
 
@@ -868,6 +875,35 @@ function townHallView() {
 function safehouseView() {
   $x('//li/div[starts-with(@id,"SpyCountDown")]').forEach(projectCompletion);
   altClickTo($X('id("units")/li/div/a[@class="button"]'), spySelf);
+// saving spies-built and spies-home
+  var city = city = mainviewCityID();
+  level = buildingLevel("safehouse");
+  thl = buildingLevel("townHall");
+  var spHome = $X('//div[@id="reportInboxLeft"]/div[@class="content"]/ul/li[2]').innerHTML.match(/^\d+/);
+  var spBuilt = level - $X('//div[@id="reportInboxLeft"]/div[@class="content"]/ul/li[1]').innerHTML.match(/^\d+/);
+  var spanX = document.createElement('span');
+  spanX.setAttribute('id', 'Kron_spyBox');
+  level = buildingLevel("safehouse");
+  thl = buildingLevel("townHall");
+  config.setCity(["x", buildingIDs.safehouse], spBuilt, city);   // save spies built
+  config.setCity(["x", buildingIDs.palaceColony], spHome, city); // save spies home
+  var formula = (5+5*spHome + 2*level -2* thl/* TH*/ -2*32/*EnemyHO*/); // MissionBase +5*SpiesHome+2*hideout-2*townHall-2*enemyHideout
+  var FREE = 0;
+  if (formula < 5) formula = 5
+  else if (formula > 95) {FREE = formula - 95; formula = 95; }
+  spanX.innerHTML = "We have <strong>"+spHome+"</strong> spies home out of <strong>"+spBuilt+"</strong> built"+
+		"<br />Failure chance of enemy spies:<strong> "+formula+"%</strong>"+
+		"<br />Free spy-points: <strong>"+FREE+"</strong><br />(1 spy is worth 5, a TH level 2)";
+
+// build the spy-panel
+  var Spypanel = document.createElement('div');
+  Spypanel.setAttribute('class', 'dynamic');
+  Spypanel.innerHTML = '<h3 class="header">Defensive Spy-strength Information </h3>' +
+    '<div id="kronos-spy" class="content" style="margin: 3px 10px;">'+ spanX.innerHTML +'</div>'+
+    '<div class="footer"></div>';
+
+  var bar = document.getElementById("unitConstructionList");
+  bar.parentNode.insertBefore(Spypanel, bar);
 }
 
 function spySelf() {
@@ -1013,7 +1049,7 @@ function researchAdvisorView() {
 
     a.title = a.textContent;
     a.href = urlTo("research", tech.id);
-    a.innerHTML = name.bold() +" â "+ tech.does;
+    a.innerHTML = name.bold() +" — "+ tech.does;
     // tech.does[0].toLowerCase() + tech.does.slice(1);
   }
 
@@ -1113,7 +1149,7 @@ function militaryAdvisorCombatReportsView() {
              'tr[td[contains(@class,"subject")]]', !"runGM", !!"div");
       a.style.opacity = "0.5";
     } else {
-      hide(paginationbar);
+      hide(paginationbar);//modify? -> want it to show every 3 pages? or every 5?
       doneunpage();
     }
   }
@@ -1331,7 +1367,7 @@ function makeLootTable(table, reports) {
       var v = time ? parseTime(f.value) : integer(f.value || "0");
       if (!v && (time || bash)) v = "Infinity";
       var n = f.id.replace(/^v/, "");
-      var op = $("op"+ n).textContent == "â¤" ? "<=" : ">=";
+      var op = $("op"+ n).textContent == "≤" ? "<=" : ">=";
       var check = $(f.id.slice(1));
       if (check) {
         if (v) {
@@ -1509,7 +1545,7 @@ function makeLootTable(table, reports) {
     if (11 == i) th.style.width = "400px";
     if (r) { // only show filter for cols with relevant data
       var id = "#" == r ? "bash" : r;
-      var op = /[T#]/.test(r) ? "â¤" : "â¥"; // config.getCity(...+ r, def);
+      var op = /[T#]/.test(r) ? "≤" : "≥"; // config.getCity(...+ r, def);
       var val = ""; // config.getCity(...+ r, "");
       var html = <><span id={"op"+ id}>{op}</span><input
                          id={"v"+ id} value={val} type="text"/></>;
@@ -1771,7 +1807,7 @@ function workshopView() {
     var level = { bronze: 0, silber: 1, gold: 2 }[type];
     var opacity, stat, last, tag;
     for (var l = 2; l >= 0; l--) {
-      var l1 = base + delta * l;
+      var l1 = base + delta * l; // \uFFEB \u27A0 #906646
       var l2 = l1 + delta;
       var stat = l1;
       if (l != level) {
@@ -1869,21 +1905,37 @@ function showUnitLevels(specs) {
     var l = 0;
     var is = what.charAt(), up = is.toUpperCase();
     var img = $X('img[@class="'+ what +'-icon"]', li);
+	if (what == "opt")
+	{
+		if (unit["x"]=="Regeneration" || unit["x"]=="Healer" || unit["x"]=="Bomber" )
+		{
+			$X('div/h4', li).innerHTML +=" (";
+			return 0;
+		}
+		img = $X('img[@class="att-icon"]', li);
+		up = "A";
+	}
     if (img)
       l = 4 - img.src.match(/(\d)\.gif$/)[1];
 	var upg = unit[up] ? unit[up] : 0
-    $X('div/h4', li).innerHTML += pre + (unit[is] + upg*l) + post;
+	switch (what)
+	{
+	case "opt": post = '<img style="position: relative; left:0;top:0;" title="'+unit['x']+' is '+unit[is]+'+'+(l*upg)+'" src="'+getSword(l)+'"> '; break;
+	case "att": /*post = '<img style="position: relative; left:0;top:0;" src="skin/layout/sword-icon'+(4-l)+'.gif">';break; //*/post = '<img style="position: relative; left:0;top:0;" title="Attack is '+unit[is]+'+'+(l*upg)+'" src="'+getSword(l)+'">'+post; break;
+	case "def": /*post = '<img style="position: relative; left:0;top:0;" src="skin/layout/shield-icon'+(4-l)+'.gif">';break;//*/post = '<img style="position: relative; left:0;top:0;" title="Armor is '+unit[is]+'+'+(l*upg)+'"src="'+getShield(l)+'">'+post; break;
+	case "sta": post = '<img style="position: relative; left:0;top:0;" title="Health is '+unit[is]+'" src="/skin/layout/icon-endurance2.gif">'+post; break;
+	
+	}
+    if (unit[is]!= 'undefined')
+	$X('div/h4', li).innerHTML += pre + (unit[is] + upg*l) + post;
   }
 
   function augmentUnit(li) {
     var stats = unitStatsFromImage($X('div[@class="unitinfo"]//img', li));
-    level("att", stats, li, " (", "");
-    if (serverVersionIsAtLeast("0.3.2")) {
-      level("def", stats, li, "/", "");
-      level("sta", stats, li, ", ", "hp)");
-    } else {
-      level("def", stats, li, "/", ")");
-    }
+	serverVersionIsAtLeast("0.3.2") && (stats["x"]!= undefined) ? level("opt", stats, li, " (", "") : $X('div/h4', li).innerHTML +=" ("; //alternate
+    level("att", stats, li, "", "");
+	serverVersionIsAtLeast("0.3.2") && level("sta", stats, li, ")(", "");
+    level("def", stats, li, "/", ")");
     var cnt = integer($X('div[@class="unitinfo"]/div[@class="unitcount"]', li));
     config.setCity(["T", stats.id], cnt);
   }
@@ -1894,7 +1946,7 @@ function showUnitLevels(specs) {
 function buildViewCompactor() {
   addMeta("items-xpath", 'id("units")/li');
   var me = document.body.id;
-  var cities = cityIDs().filter(cityHasBuilding(me));
+  var cities = owncityIDs().filter(cityHasBuilding(me));
   var hash = "#keep:header,mainview,breadcrumbs," +
     "unitConstructionList,reportInboxLeft,buildingUpgrade";
   if (location.hash == hash) {
@@ -1966,7 +2018,7 @@ function showWorkerYield(resourceID) {
   var max = read("maxValue"), overdrive = read("overcharge");
   var building = prodIncreasers[resourceID]; // "forester", "winegrower", et c
   var iWonder = wonders[config.getIsle("W", 0)] || {};
-  var bWonder = iWonder.r == resourceID ? 0.1 : 0;
+  //var bWonder = iWonder.r == resourceID ? 0.1 : 0;
 
   $x('//td[@class="cityWorkers" or @class="countWorkers"]').forEach(showYield);
   $x('//td[@class="cityname"]/a').forEach(showPlayerInactivity);
@@ -2084,8 +2136,3 @@ function scrapeIkipediaBuilding(doc, id) {
   //}
   return cost;
 }
-
-//   ;;; Local Variables: ***
-//   ;;; mode:java ***
-//   ;;; c-basic-offset:2 ***
-//   ;;; End: ***

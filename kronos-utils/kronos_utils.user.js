@@ -404,7 +404,7 @@ function currentResources() {
   else // this city isn't ours. so, things may break
   {
     return {
-     p:0,P:0,g:integer($("value_gold")),w:0,W:0,M:0,C:0,S:0
+      p:0,P:0,g:integer($("value_gold")),w:0,W:0,M:0,C:0,S:0
     }
   }
 }
@@ -666,6 +666,13 @@ function buildingExtraInfo(div, id, name, level) {
       var showMultiplier = serverVersionIsAtLeast("0.3.0") ? 1 : -20;
       annotate(buildingCapacity("port", level) * showMultiplier);
       break;
+    case "safehouse": // TODO
+      var spHome = config.getCity(["x", buildingIDs.palaceColony], 0);
+      var spBuilt = config.getCity(["x", buildingIDs.safehouse], 0);
+      var formula = (-59 /*5-64*/+5*spHome + 2*level -2* config.getCity(["l",buildingIDs.townhall],0)/* TH*/ /*-2*32 EnemyHO*/);
+      if (formula > 95) formula = 95;
+      annotate(spHome+"/"+spBuilt+":"+formula+"%");
+      break;
   }
 }
 
@@ -677,9 +684,6 @@ function annotateBuilding(li, level) {
   if (isNumber(id) && li.id && isUndefined(level)) {
     config.setCity(["l", id], number(a.title));
     config.setCity(["p", id], number(li.id));
-    if (id == buildingIDs.warehouse) {
-        config.setCity("w", config.getCity("w") + number(a.title));
-    }
   }
   if ("original" == level) {
     level = buildingLevel(id, 0, "saved");
@@ -2495,14 +2499,13 @@ function showCityBuildCompletions() {
   var isle = $X('id("changeCityForm")/ul/li[@class="viewIsland"]');
   var lis = get("citynames");
   var ids = owncityIDs();
-  var names = cityNames();
+  var names = cityNames(); // do other stuff with those not ours. later [TODO]
   if (names.length > 1) {
     var images = [];
     var links = <div style="left: -50%; position: absolute;"></div>;
   }
-  for (var i = 0; i < lis.length; i++) {
+  for (var i = 0; i < ids.length; i++) { //TODO: place island-links elsewhere for cities that do not belong to us. use properly saved kronos-cityids for this.
     var id = ids[i];
-    if (!id>0) break; //To prevent listing deployed/occupied cities, which don't work anyway
     var url = config.getCity("u", 0, ids[i]);
     var res = config.getIsle("r", "", config.getCity("i", 0, id));
     var li = lis[i];
@@ -3116,9 +3119,3 @@ function hideshow(node, nodes) {
   nodes = nodes || [node];
   nodes.forEach(listen);
 }
-
-//   ;;; Local Variables: ***
-//   ;;; mode:java ***
-//   ;;; c-basic-offset:2 ***
-//   ;;; coding: utf-8 ***
-//   ;;; End: ***
