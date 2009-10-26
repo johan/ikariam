@@ -2018,7 +2018,7 @@ function showWorkerYield(resourceID) {
   var max = read("maxValue"), overdrive = read("overcharge");
   var building = prodIncreasers[resourceID]; // "forester", "winegrower", et c
   var iWonder = wonders[config.getIsle("W", 0)] || {};
-  //var bWonder = iWonder.r == resourceID ? 0.1 : 0;
+  var bWonder = iWonder.r == resourceID ? 0.1 : 0;
 
   $x('//td[@class="cityWorkers" or @class="countWorkers"]').forEach(showYield);
   $x('//td[@class="cityname"]/a').forEach(showPlayerInactivity);
