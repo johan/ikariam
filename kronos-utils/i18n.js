@@ -1052,3 +1052,10 @@ function getLanguage() {
   langs[id] = lang;
   return id;
 }
+
+//   ;;; Local Variables: ***
+//   ;;; mode:java ***
+//   ;;; c-basic-offset:2 ***
+//   ;;; coding: utf-8 ***
+//   ;;; End: ***
+
