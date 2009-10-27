@@ -1926,7 +1926,7 @@ function showUnitLevels(specs) {
 	case "sta": post = '<img style="position: relative; left:0;top:0;" title="Health is '+unit[is]+'" src="/skin/layout/icon-endurance2.gif">'+post; break;
 	
 	}
-    if (unit[is]!= 'undefined')
+    if (unit[is]!= undefined)
 	$X('div/h4', li).innerHTML += pre + (unit[is] + upg*l) + post;
   }
 
