@@ -8,7 +8,7 @@
 // @unwrap
 // ==/UserScript==
 
-var borrowed = "version,base,node,lang,urlTo,cityIDs,cityNames,cityData,css," +
+var borrowed = "version,base,node,lang,urlTo,owncityIDs,cityNames,cityData,css," +
   "$,$X,config,gfx,resourceIDs,buildingIDs,cityProject,cityReapingPace,sign," +
   "formatNumber,cityMaxPopulation,warehouseCapacity,milScoreFor,upkeepFor," +
   "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime,rm," +
@@ -34,7 +34,7 @@ function init(next) {
     me.totals = lang.totals||"Σ";
   }
 
-  if (!document.domain || kronos && !cityIDs().length) return; // (not in-game)
+  if (!document.domain || kronos && !owncityIDs().length) return; // (not in-game)
   if (!kronos || !okay || parseFloat(version) < 0.6) {
     if (confirm(error))
       location.href = "http://ecmanaut.googlecode.com/svn/trunk/" +
@@ -135,7 +135,7 @@ function resources() {
     { th({ id: "ot-time", bg: gfx.time, title: "Click to redraw the tables" }) }
   </>;
 
-  var ids = cityIDs(), names = cityNames(), current = referenceCityID();
+  var ids = owncityIDs(), names = cityNames(), current = referenceCityID();
   var tot = {}, rates = {}, link = { g: "port", w: "shipyard", W: "tavern",
                                      C: "workshop-army", S: "barracks" };
   for (var i = 0; i < ids.length; i++) {
@@ -258,7 +258,7 @@ function military() {
     { th({ bg: gfx.bigcity || gfx.city }) }
   </tr></table>;
 
-  var ids = cityIDs(), names = cityNames(), current = referenceCityID();
+  var ids = owncityIDs(), names = cityNames(), current = referenceCityID();
   var tot = {}, all = {}, byCity = ids.map(getMil);
   for (var uid in all) {
     if (!all[uid]) {
