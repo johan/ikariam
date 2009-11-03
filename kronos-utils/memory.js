@@ -54,8 +54,8 @@ reports: {
       q: [ bID, ...], // buildings sceduled to be built
       o: owner, // player name
       r: { }, // saved resource inventory / info for the city
-      x: { bID:building-special - tavern: wine level; academy: scientists,
-           r: resourceWorkers, w: woodWorkers, museum: culture items,
+      x: { bID:building-special - tavern: wine level, academy: scientists,
+           r: resourceWorkers, w: woodWorkers, museum: culture items, temple: priests,
            safehouse: spies built, palaceColony: spies home },
       b: { bID:time busy to },
       z: 0: normal, 1: vacation, 2: inactive

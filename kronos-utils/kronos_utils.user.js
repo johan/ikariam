@@ -144,6 +144,7 @@ function augment(view, action, lang) {
     case "safehouseReports": safehouseReportsView(); break;
     case "academy": academyView(); break;
     case "options": optionsView(); break;
+    case "temple": templeView(); break;
     default:
       if (buildingIDs.hasOwnProperty(view))
 	;
@@ -671,7 +672,18 @@ function buildingExtraInfo(div, id, name, level) {
       var spBuilt = config.getCity(["x", buildingIDs.safehouse], 0);
       var formula = (-59 /*5-64*/+5*spHome + 2*level -2* config.getCity(["l",buildingIDs.townhall],0)/* TH*/ /*-2*32 EnemyHO*/);
       if (formula > 95) formula = 95;
-      annotate(spHome+"/"+spBuilt+":"+formula+"%");
+      if (formula < 5) formula = 5;
+      if (level != spHome)
+	annotate(spHome+"/"+spBuilt+":"+formula+"%")
+      else
+	annotate(formula+"%");
+      break;
+
+    case "temple":
+      var seats = buildingCapacity(name, level);
+      var working = config.getCity(["x", buildingIDs.temple], 0);
+      if (working != seats)
+        annotate(working +"/"+ seats);
       break;
   }
 }

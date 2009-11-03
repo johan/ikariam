@@ -871,6 +871,13 @@ function townHallView() {
     config.setServer("capital", cityID());
 }
 
+function spyCalc(base,spies,thlevel,spyshack)
+{
+var formula = base + 5* spies + 2*spyshack - 2*thlevel -2*32/*EnemyHO. always worst-case*/;
+if (formula < 5) formula = 5;
+if (formula > 95) formula = 95;
+return formula;
+}
 
 function safehouseView() {
   $x('//li/div[starts-with(@id,"SpyCountDown")]').forEach(projectCompletion);
@@ -889,11 +896,13 @@ function safehouseView() {
   config.setCity(["x", buildingIDs.palaceColony], spHome, city); // save spies home
   var formula = (5+5*spHome + 2*level -2* thl/* TH*/ -2*32/*EnemyHO*/); // MissionBase +5*SpiesHome+2*hideout-2*townHall-2*enemyHideout
   var FREE = 0;
-  if (formula < 5) formula = 5
-  else if (formula > 95) {FREE = formula - 95; formula = 95; }
+  if (formula > 95) {FREE = formula - 95; formula = 95; }
   spanX.innerHTML = "We have <strong>"+spHome+"</strong> spies home out of <strong>"+spBuilt+"</strong> built"+
-		"<br />Failure chance of enemy spies:<strong> "+formula+"%</strong>"+
-		"<br />Free spy-points: <strong>"+FREE+"</strong><br />(1 spy is worth 5, a TH level 2)";
+		"<br />Failure-chance for enemy spies:"+
+		"<table width='100%'><tr><td width='75%'>Getting into town:</td><td width='25%'><strong> "+formula+"%</strong></td></tr>"+
+		"<tr><td>Spy out warehouse:</td><td><strong> "+spyCalc(30,spHome,thl,level)+"%</strong></td></tr>"+
+		"<tr><td>Spy out garrison:</td><td><strong> "+spyCalc(70,spHome,thl,level)+"%</strong></td></tr>"+
+		"<tr><td>Free spy-points:</td><td><strong> "+FREE+"</strong></td></tr></table>"+"(1 spy is worth 5, a TH level 2)";
 
 // build the spy-panel
   var Spypanel = document.createElement('div');
@@ -959,6 +968,11 @@ function museumView() {
   $x('//td[@class="capital"]').map(link);
 }
 
+function templeView() {
+  var faith = $("inputPriests");
+  if (faith)
+    config.setCity(["x", buildingIDs.temple], integer(faith));
+}
 
 function academyView() {
   updateCurrentResearch();
