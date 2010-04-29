@@ -42,7 +42,7 @@
 // @unwrap
 // ==/UserScript==
 
-var kronos = this, version = "0.6", lang, scientists, growthDebug = 0, OtherCity = false;
+var kronos = this, version = "0.7", lang, scientists, growthDebug = 0, OtherCity = false;
 /*if (config.get("debug"))*/ unsafeWindow.kronos = kronos;
 if (document.URL == location.href) { // no network error?
   if (/^http:\/\/ikariam/i.test(location.href))
