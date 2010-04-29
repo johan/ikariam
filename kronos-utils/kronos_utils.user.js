@@ -48,7 +48,7 @@ if (document.URL == location.href) { // no network error?
   if (/^http:\/\/ikariam/i.test(location.href))
     augmentIkaFight();
   if (location.hostname.match(/^s\d+\./))
-    init();
+    window.addEventListener("load", function() { init(); }, false);
   else
     login();
 }

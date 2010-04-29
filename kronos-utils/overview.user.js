@@ -14,7 +14,12 @@ var borrowed = "version,base,node,lang,urlTo,owncityIDs,cityNames,cityData,css,"
   "visualResources,imageFromUnit,integer,secsToDHMS,resolveTime,rm," +
   "referenceCityID,clickTo,cssToggler:6,upgradedUnitStats,resUrl";
 var me = this, tries = 0;
-setTimeout(init, 0, 10);
+
+window.addEventListener("load", function() { pre_init(); }, false);
+
+function pre_init() {
+  setTimeout(init, 0, 10);
+}
 
 function init(next) {
   var error = "Too old Kronos Utils; install a newer version now?";
