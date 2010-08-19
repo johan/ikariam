@@ -576,8 +576,16 @@ function serverVersionIsAtLeast(what) {
   var ver = serverVersion().split(".").map(integer);
   what = what.split(".").map(integer);
   for (var i = 0; i < what.length; i++)
+  {
     if (ver[i] < what[i])
+    {
       return false;
+    }
+    else if (ver[i] > what[i])
+    {
+      return true;
+    }
+  } 
   return true;
 }
 
@@ -647,3 +655,10 @@ if (!console.time)
     x = isString(x) ? string(x) : x;
     location.href = "javascript:void console.log(" + x +")";
   }};
+
+//   ;;; Local Variables: ***
+//   ;;; mode:java ***
+//   ;;; c-basic-offset:2 ***
+//   ;;; coding: utf-8 ***
+//   ;;; End: ***
+
