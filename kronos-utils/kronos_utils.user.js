@@ -30,6 +30,8 @@
 // @resource ico_architect gfx/icons/buildings/architect.png
 // @resource ico_optician gfx/icons/buildings/optician.png
 // @resource ico_fireworker gfx/icons/buildings/fireworker.png
+// @resource ico_temple gfx/icons/buildings/temple.png
+// @resource ico_dump gfx/icons/buildings/dump.png
 // @resource   css kronos.css
 // @require        i18n.js
 // @require        related.js
@@ -905,7 +907,7 @@ function urlTo(what, id, opts) {
     case "stonemason":	case "forester":case "glassblowing":
     case "winegrower":	case "vineyard":case "carpentering":
     case "architect":	case "optician":case "alchemist":
-    case "fireworker":  case "temple":
+    case "fireworker":  case "temple":  case "dump":
       return building();
 
     case "culturegoods":
@@ -2375,16 +2377,16 @@ function showOverview() {
 	       "forester", "reaper" /* see below comment: */, "carpentering",
 	       // can only have one of each of these in a town; use 1 column!
 	       // "winegrower", "stonemason", "glassblowing", "alchemist",
-	       "vineyard", "architect", "optician", "fireworker", "temple"];
+	       "vineyard", "architect", "optician", "fireworker", "temple", "dump"];
   if (!serverVersionIsAtLeast("0.3.0")) names.splice(14);
   var imgbase = base +"gfx/icons/buildings/";
   for each (var name in names) {
     var img = <img src={base +"gfx/icons/buildings/"+ name +".png"}/>;
-    if ("temple" != name) {
-        var miniicon = GM_getResourceURL("ico_"+name);
-	var img = <img src={miniicon} width="16"/>;
+    if (1) { //("temple" != name && "dump" != name) {
+      var miniicon = GM_getResourceURL("ico_"+name);
+      var img = <img src={miniicon} width="16"/>;
     } else {
-	var img = "";
+      var img = "";
     }
     if ("museum" == name)
       img = <a href={ urlTo("culturegoods") }>{ img }</a>;
