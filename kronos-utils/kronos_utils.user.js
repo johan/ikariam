@@ -32,6 +32,8 @@
 // @resource ico_fireworker gfx/icons/buildings/fireworker.png
 // @resource ico_temple gfx/icons/buildings/temple.png
 // @resource ico_dump gfx/icons/buildings/dump.png
+// @resource ico_sword_silver gfx/icons/sword_silver.gif
+// @resource ico_shield_silver gfx/icons/shield_silver.gif
 // @resource   css kronos.css
 // @require        i18n.js
 // @require        related.js

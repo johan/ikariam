@@ -92,7 +92,7 @@ var buildingCapacities = {
 };
 
 function getSword(level) {
-  if (!level) return "http://img185.imageshack.us/img185/2054/22786730ag3.gif";
+  if (!level) return GM_getResourceURL("ico_sword_silver");
   return "/skin/layout/sword-icon"+ (4-level) +".gif";
 }
 function getShield(level) {
