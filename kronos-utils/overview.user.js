@@ -4,7 +4,7 @@
 // @description	Ikariam overview table of your empire. Requires Kronos Utils.
 // @include	http://s*.ikariam.com.pt/*
 // @include	http://s*.ikariam.tld/*
-// @resource ss	http://ecmanaut.googlecode.com/svn/trunk/sites/ikariam.org/kronos-utils/overview.css
+// @resource ss	overview.css
 // @unwrap
 // ==/UserScript==
 

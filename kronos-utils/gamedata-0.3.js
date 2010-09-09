@@ -135,11 +135,11 @@ var buildingCapacities = serverVersionIsAtLeast("0.3.0") ? {
 };
 
 function getSword(level) {
-  if (!level) return "http://img185.imageshack.us/img185/2054/22786730ag3.gif";
+  if (!level) return GM_getResourceURL("ico_sword_silver");
   return "/skin/layout/sword-icon"+ (4-level) +".gif";
 }
 function getShield(level) {
-  if (!level) return "http://img262.imageshack.us/img262/800/72814733ej8.gif";
+  if (!level) return GM_getResourceURL("ico_shield_silver");
   return "/skin/layout/shield-icon"+ (4-level) +".gif";
 }
 function getCity(level, col) {
