@@ -96,7 +96,7 @@ function getSword(level) {
   return "/skin/layout/sword-icon"+ (4-level) +".gif";
 }
 function getShield(level) {
-  if (!level) return "http://img262.imageshack.us/img262/800/72814733ej8.gif";
+  if (!level) return GM_getResourceURL("ico_shield_silver");
   return "/skin/layout/shield-icon"+ (4-level) +".gif";
 }
 function getCity(level, col) {
