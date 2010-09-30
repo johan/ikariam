@@ -2384,12 +2384,8 @@ function showOverview() {
   var imgbase = base +"gfx/icons/buildings/";
   for each (var name in names) {
     var img = <img src={base +"gfx/icons/buildings/"+ name +".png"}/>;
-    if (1) { //("temple" != name && "dump" != name) {
-      var miniicon = GM_getResourceURL("ico_"+name);
-      var img = <img src={miniicon} width="16"/>;
-    } else {
-      var img = "";
-    }
+    var miniicon = GM_getResourceURL("ico_"+name);
+    var img = <img src={miniicon} width="16"/>;
     if ("museum" == name)
       img = <a href={ urlTo("culturegoods") }>{ img }</a>;
     var title = "reaper" == name ? "resource reaper" : name;
