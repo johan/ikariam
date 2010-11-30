@@ -2468,7 +2468,7 @@ function showOverview() {
           a.@style = (a.@style||"") + "color: green;"
 		else // add in HARDcaps in 0.3.0+
 		  { 
-			if (b <= 9) // building-ids <=9, these have a max at a higher lvl 
+			if (b <= 9 || b == 29) // building-ids <=9, these have a max at a higher lvl 
 			{
 			  if (l >= 64) // wild guess
 			  {
