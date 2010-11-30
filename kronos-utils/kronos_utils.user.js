@@ -591,7 +591,7 @@ function buildingExpansionNeeds(b, level) {
 
 function haveEnoughToUpgrade(b, level, have) {
   //lvl 32 is max for a lot of buildings, so it's never enough [MKoR]
-  if (level == 32 && buildingID(b) > 9 && buildingId(b) != 29)
+  if (level == 32 && buildingID(b) > 9 && buildingID(b) != 29)
     return false;
   var upgrade = buildingExpansionNeeds(b, level);
   have = have || currentResources();
