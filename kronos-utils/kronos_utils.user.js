@@ -2469,8 +2469,7 @@ function showOverview() {
           else // add in HARDcaps in 0.3.0+
           { 
             if ((b <= 9) || (b == 29)) // building-ids <=9, these have a max
-                                       // at a higher lvl apart from 29
-            {
+            {                          // at a higher lvl apart from 29
               if (l >= 64) // wild guess
               {
                 a.@class= "square2";
