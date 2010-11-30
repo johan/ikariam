@@ -2481,7 +2481,7 @@ function showOverview() {
               a.@class= "square2";
               a.@style = (a.@style||"") + "color: green; font-size: 12px; font-weight: bold;";
             }
-            //console.log("b:"+b+",l:"+l+",b<9;"+(b<9)+";"+name)
+            console.log("b:"+b+",l:"+l+",b<9;"+(b<9)+";"+name)
           }
       }
       tr.td += <td class="building">{ a }</td>;
