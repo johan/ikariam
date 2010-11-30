@@ -2467,9 +2467,11 @@ function showOverview() {
 	    l >= (softCap[b] || 16))
           a.@style = (a.@style||"") + "color: green;";
         else // add in HARDcaps in 0.3.0+
-        { 
-          if ((b <= 9) || (b == 29)) // building-ids <=9, these have a max
-          {                          // at a higher lvl apart from 29
+        {
+          // building-ids <=9, these have a max
+          // at a higher lvl apart from 29
+          if ((b <= 9) || (b == 29))
+          {                          
             if (l >= 64) // wild guess
             {
               a.@class= "square2";
