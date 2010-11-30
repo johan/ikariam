@@ -709,7 +709,7 @@ function annotateBuilding(li, level) {
   } else {
     level = level || number(a.title);
   } // [MKoR] Give maxed buildings a special visual, buildings with id <=9 probably have more levels
-  var div = (level == 32 && id > 9) ? node({className: "square", text: level, append: li }) : node({ className: "rounded", text: level, append: li });
+  var div = (level == 32 && id > 9 && id != 29) ? node({className: "square", text: level, append: li }) : node({ className: "rounded", text: level, append: li });
 
   if (haveEnoughToUpgrade(a, level)) {
     div.style.backgroundColor = "#FEFCE8";
