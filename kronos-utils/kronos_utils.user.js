@@ -550,12 +550,15 @@ function buildingLevels() {
 }
 
 function warehouseCapacity(city) {
-  var level = config.getCity(["l", buildingIDs.warehouse], 0, city);
+  var wlevel = config.getCity(["l", buildingIDs.warehouse], 0, city);
+  var dlevel = config.getCity(["l", buildingIDs.dump], 0, city);
   var data = config.getCity("r", 0, city);
   var cap = isDefined(data.r) ? data.r.c : 0;
-  var max = { w: cap || buildingCapacities.warehouse.w[level || 0] };
+  var max = { w: cap || buildingCapacities.warehouse.w[wlevel || 0] +
+              buildingCapacities.dump.w[dlevel || 0]};
   for each (var r in ["W", "M", "C", "S"])
-    max[r] = cap || buildingCapacities.warehouse.r[level || 0];
+    max[r] = cap || buildingCapacities.warehouse.r[wlevel || 0] +
+             buildingCapacities.dump.r[dlevel || 0];
   return max; // FIXME: if we don't have a tradeport, we can't ship here => 0!
 }
 
@@ -1882,7 +1885,9 @@ function improveTopPanel() {
   }
 
   function projectWarehouseFull(node, what, have, pace) {
-    var capacity = integer($X('../*[@class="tooltip"]', get(what)));
+    var capacity = integer($X('../*[@class="tooltip"]', get(what)).textContent.replace(/.*\d+\D+(\d+)/, "$1"));
+    var foo = $X('../*[@class="tooltip"]', get(what)).textContent.replace(/.*\d+\D+(\d+)/, "$1");
+    //    console.log("capacity="+capacity+", what="+what+",X="+integer(foo));
     var time = resolveTime((capacity - have) / (pace/3600), 1);
     node.title = (node.title ? node.title +", " : "") + lang.full + time;
   }
@@ -2652,7 +2657,7 @@ function showSafeWarehouseLevels() {
     safe = Math.min(safe, have[good]);
     loot = lootable(have)[good];
     left = Math.max(0, have[good] - loot - safe);
-    //console.log([good, have[good], safe, rest, loot].join(" "));
+    console.log([good, have[good], safe, rest, loot].join(" "));
 
     [safe, left, loot] = [safe, left, loot].map(percent);
     var last = 100 - safe - left - loot;
@@ -2665,7 +2670,8 @@ function showSafeWarehouseLevels() {
   var level = config.getCity(["l", buildingIDs.warehouse], 0);
   if (isUndefined(level)) return;
   var wood = buildingCapacity("warehouse", "wood", level);
-  var rest = buildingCapacity("warehouse", "rest", level);
+  var rest = wood;
+  console.log("wood="+ buildingCapacity("warehouse", "wood", level) + ", rest="+buildingCapacity("dump", "wood", level));
   $x('id("cityResources")/ul/li/*[@class="tooltip"]').map(showSafeLevel);
 }
 
