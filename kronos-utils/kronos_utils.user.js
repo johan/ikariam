@@ -593,7 +593,9 @@ function buildingExpansionNeeds(b, level) {
 }
 
 function haveEnoughToUpgrade(b, level, have) {
-  if (level == 32 && buildingID(b) > 9) return false; //lvl 32 is max, so it's never enough [MKoR]
+  //lvl 32 is max for a lot of buildings, so it's never enough [MKoR]
+  if (level == 32 && buildingID(b) > 9 && buildingID(b) != 29)
+    return false;
   var upgrade = buildingExpansionNeeds(b, level);
   have = have || currentResources();
   for (var resource in upgrade)
@@ -710,7 +712,7 @@ function annotateBuilding(li, level) {
   } else {
     level = level || number(a.title);
   } // [MKoR] Give maxed buildings a special visual, buildings with id <=9 probably have more levels
-  var div = (level == 32 && id > 9) ? node({className: "square", text: level, append: li }) : node({ className: "rounded", text: level, append: li });
+  var div = (level == 32 && id > 9 && id != 29) ? node({className: "square", text: level, append: li }) : node({ className: "rounded", text: level, append: li });
 
   if (haveEnoughToUpgrade(a, level)) {
     div.style.backgroundColor = "#FEFCE8";
@@ -2468,24 +2470,26 @@ function showOverview() {
           a.@style = (a.@style||"") + "font-weight: bold;";
         if (!serverVersionIsAtLeast("0.3.0") && // only makes sense up to 0.2.8?
 	    l >= (softCap[b] || 16))
-          a.@style = (a.@style||"") + "color: green;"
-		else // add in HARDcaps in 0.3.0+
-		  { 
-			if (b <= 9) // building-ids <=9, these have a max at a higher lvl 
-			{
-			  if (l >= 64) // wild guess
-			  {
-				a.@class= "square2";
-				a.@style = (a.@style||"") + "color: green;";
-			  }
-			}
-			else if (l >= 32)
-			{
-			  a.@class= "square2";
-			  a.@style = (a.@style||"") + "color: green; font-size: 12px; font-weight: bold;";
-			}
-			//console.log("b:"+b+",l:"+l+",b<9;"+(b<9)+";"+name)
-		  }
+          a.@style = (a.@style||"") + "color: green;";
+        else // add in HARDcaps in 0.3.0+
+        {
+          // building-ids <=9, these have a max
+          // at a higher lvl apart from 29
+          if ((b <= 9) || (b == 29))
+          {                          
+            if (l >= 64) // wild guess
+            {
+              a.@class= "square2";
+              a.@style = (a.@style||"") + "color: green;";
+            }
+          }
+          else if (l >= 32)
+          {
+            a.@class= "square2";
+            a.@style = (a.@style||"") + "color: blue; font-size: 14px; font-weight: bold;";
+          }
+          console.log("cityid"+id+",b:"+b+",l:"+l+",b<9;"+(b<9)+";"+name);
+        }
       }
       tr.td += <td class="building">{ a }</td>;
     }
