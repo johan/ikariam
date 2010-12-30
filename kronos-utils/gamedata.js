@@ -30,11 +30,11 @@ var townHallSafeRes = 100;
 var safeResMultiplier = 80;
 
 var buildingCapacities = {
-  townHall: // max. population, lvl. 0 - 28
+  townHall: // max. population, lvl. 0 - 29
     [   0,
        60,   96,  142,  200,  262,  332,  410,  492,  580,  672,
       768,  870,  976, 1086, 1200, 1320, 1440, 1566, 1696, 1828,
-     1964, 2102, 2246, 2390, 2540, 2690, 2844, 3002],
+     1964, 2102, 2246, 2390, 2540, 2690, 2844, 3002, 3162],
 
   academy: // max. scientists, lvl. 0 - 27
     [   0,
