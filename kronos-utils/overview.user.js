@@ -42,8 +42,7 @@ function init(next) {
   if (!document.domain || kronos && !owncityIDs().length) return; // (not in-game)
   if (!kronos || !okay || parseFloat(version) < 0.7) {
     if (confirm(error))
-      location.href = "http://ecmanaut.googlecode.com/svn/trunk/" +
-        "sites/ikariam.org/kronos-utils/kronos_utils.user.js";
+      location.href = "https://github.com/johan/ikariam/raw/master/kronos-utils/kronos_utils.user.js";
     return;
   }
 
