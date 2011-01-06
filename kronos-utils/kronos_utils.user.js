@@ -3002,7 +3002,7 @@ Ajout du panel dans le menu
 function panelInfo() { // Ajoute un element en plus dans le menu. // science thingy!
   var panel = <div class="dynamic">
     <h3 class="header">
-      <a href="http://kronos-utils.notlong.com/">Kronos</a> { version }:
+      <a href="https://github.com/johan/ikariam/raw/master/kronos-utils/kronos_utils.user.js">Kronos</a> { version }:
       <a href={"#"+ config.get("language")} id="language">{ lang.language }</a>
       <a href={ urlTo("library") } title="Library" class="help">
         <span class="textLabel">Library</span>
