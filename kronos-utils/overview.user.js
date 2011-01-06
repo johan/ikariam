@@ -105,12 +105,11 @@ function resources() {
     }
     var last = "@ " + resolveTime(0, true);
     var t = secsToDHMS(next, 1);
-    var a = "http://kronos-", b = ".notlong.com/";
     if (d == h)
-      last = <><a href="http://kronos-utils.notlong.com/">Kronos Utils</a>
+      last = <><a href="https://github.com/johan/ikariam/raw/master/kronos-utils/kronos_utils.user.js">Kronos Utils</a>
                v{ version }</>;
     if (w == h)
-      last = <a href="http://kronos-overview.notlong.com/">Kronos Overview</a>;
+      last = <a href="https://github.com/johan/ikariam/raw/master/kronos-utils/overview.user.js">Kronos Overview</a>;
     sum.td += <td colspan="2" class="new ot-time">{ last }</td>;
     table.tr += sum;
   }
