@@ -403,7 +403,7 @@ function currentResources() {
       g: integer($("value_gold")), w: integer($("value_wood")),
       W: integer($("value_wine")), M: integer($("value_marble")),
       C: integer($("value_crystal")), S: integer($("value_sulfur")),
-      c: integer($X('//*[@class="tooltip"][span[@class="textLabel"]]/text()'))
+      c: integer($X('//div[@class="tooltip"][span[2]]/text()[4][not(contains(.,"k"))]'))
     };
   }
   else // this city isn't ours. so, things may break
