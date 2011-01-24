@@ -403,7 +403,7 @@ function currentResources() {
       g: integer($("value_gold")), w: integer($("value_wood")),
       W: integer($("value_wine")), M: integer($("value_marble")),
       C: integer($("value_crystal")), S: integer($("value_sulfur")),
-      c: integer($X('//div[@class="tooltip"][span[2]]/text()[4][not(contains(.,"k"))]'))
+      c: integer($X('//*[@class="tooltip"][span[2]]/text()[4][not(contains(.,"k"))]'))
     };
   }
   else // this city isn't ours. so, things may break
@@ -2629,39 +2629,39 @@ function unitStatsFromImage(img) {
   }
 }
 
-function lootable(res, port, warehouse) {
-  var all = 0, safe = buildingCapacities.warehouse;
-  if (isUndefined(port))	   port = buildingLevel("port") || 0;
-  if (isUndefined(warehouse)) warehouse = buildingLevel("warehouse") || 0;
-  var loot = {};
-  for (var r in res) {
-    if (!/^[wWMCS]$/.test(r)) continue;
-    loot[r] = Math.max(0, res[r] - safe[r == "w" ? "wood" : "rest"][warehouse]);
-    all += loot[r];
-  }
-  var load = 20 * buildingCapacities.port[port];
-  for (var r in loot)
-    loot[r] = Math.min(loot[r], Math.round((loot[r] / all) * load));
-  return loot;
-}
+// function lootable(res, port, warehouse) {
+//   var all = 0, safe = buildingCapacities.warehouse;
+//   if (isUndefined(port))	   port = buildingLevel("port") || 0;
+//   if (isUndefined(warehouse)) warehouse = buildingLevel("warehouse") || 0;
+//   var loot = {};
+//   for (var r in res) {
+//     if (!/^[wWMCS]$/.test(r)) continue;
+//     loot[r] = Math.max(0, res[r] - safe[r == "w" ? "wood" : "rest"][warehouse]);
+//     all += loot[r];
+//   }
+//   var load = 20 * buildingCapacities.port[port];
+//   for (var r in loot)
+//     loot[r] = Math.min(loot[r], Math.round((loot[r] / all) * load));
+//   return loot;
+// }
 
 function showSafeWarehouseLevels() {
   function showSafeLevel(div) {
     function percent(amt) {
       return Math.floor(100 * amt / space);
     }
-    var space = integer(div);
+    var space, left, loot;
+    space = have["c"];
     var type = div.parentNode.className;
-    var good = resourceIDs[type], have, left, loot;
-    var safe = "wood" == type ? wood : rest;
+    var good = resourceIDs[type];
+    var safe = Math.round((((space-(level*32000)-1500)/8000)*480)) + 100
     node({ tag: "span", className: "ellipsis", text: safe, append: div });
     type = "goods " + type;
 
-    have = currentResources();
     safe = Math.min(safe, have[good]);
-    loot = lootable(have)[good];
+    loot = Math.round((have[good]/total)*80000);
     left = Math.max(0, have[good] - loot - safe);
-    console.log([good, have[good], safe, rest, loot].join(" "));
+ //   console.log([good, have[good], safe, loot, left].join(" "));
 
     [safe, left, loot] = [safe, left, loot].map(percent);
     var last = 100 - safe - left - loot;
@@ -2671,11 +2671,12 @@ function showSafeWarehouseLevels() {
       <div class={"loot " + type} style={"width: "+loot+"%;"}> </div>
       <div class={"last " + type} style={"width: "+last+"%;"}> </div></div> });
   }
-  var level = config.getCity(["l", buildingIDs.warehouse], 0);
+
+  var level = config.getCity(["l", buildingIDs.dump], 0);
   if (isUndefined(level)) return;
   var wood = buildingCapacity("warehouse", "wood", level);
-  var rest = wood;
-  console.log("wood="+ buildingCapacity("warehouse", "wood", level) + ", rest="+buildingCapacity("dump", "wood", level));
+  var have = currentResources();
+  var total = have["w"] + have["W"] + have["M"] + have["C"] + have["S"]
   $x('id("cityResources")/ul/li/*[@class="tooltip"]').map(showSafeLevel);
 }
 
