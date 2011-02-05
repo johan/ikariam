@@ -149,6 +149,8 @@ function augment(view, action, lang) {
     case "academy": academyView(); break;
     case "options": optionsView(); break;
     case "temple": templeView(); break;
+    case "cityMilitary-army": cityMilitaryArmyView(); break;
+    case "cityMilitary-fleet": cityMilitaryFleetView(); break;
     default:
       if (buildingIDs.hasOwnProperty(view))
 	;

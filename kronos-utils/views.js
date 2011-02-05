@@ -1891,6 +1891,30 @@ function workshopView() {
 }
 
 
+function cityMilitaryArmyView() {
+  function setUnit(li, index) {
+    var stats = unitStatsFromImage($X('img', li));
+    var count = integer(numbers[index]);
+    config.setCity(["T", stats.id], count);
+  }
+  
+  var numbers = $x('//div[@id="demo"]//td');
+  var units = $x('//th');
+  units.forEach(setUnit);
+}
+
+function cityMilitaryFleetView() {
+  function setUnit(li, index) {
+    var stats = unitStatsFromImage($X('img', li));
+    var count = integer(numbers[index]);
+    config.setCity(["T", stats.id], count);
+  }
+  
+  var numbers = $x('//div[@id="demo"]//td');
+  var units = $x('//th');
+  units.forEach(setUnit);
+}
+
 function shipyardView() {
   dontSubmitZero();
   showUnitLevels(ships);
