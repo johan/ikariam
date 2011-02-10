@@ -1049,33 +1049,51 @@ function tradeAdvisorView() {
 }
 
 
+// Completely new researchAdvisorView
+// Old one below for now
 function researchAdvisorView() {
-  function learnTech(a) {
-    var name = a.textContent.match(/['"]([^'"]+)['"]/);
-    if (!name) return;
-    name = name[1];
-
-    var tech = techs.filter(function(t) { return t.name == name; });
-    if (!tech.length) return;
-    tech = tech[0];
-
-    config.setServer(["techs", tech.id], 1);
-
-    a.title = a.textContent;
-    a.href = urlTo("research", tech.id);
-    a.innerHTML = name.bold() +" — "+ tech.does;
-    // tech.does[0].toLowerCase() + tech.does.slice(1);
+  function addTime(ul) {
+    var pointsNeeded = integer(ul);
+    var timeComplete = (pointsNeeded - rp)/perHour;
+    timeComplete = secsToDHMS(timeComplete*3600, 2, "&nbsp;");
+    ul.innerHTML = ul.innerHTML.replace("</li>", "</li> <li class=\"time\">" + timeComplete + "</li>");    
   }
 
-  var rp = $X('id("breadcrumbs")/following::div[1]/div[@class="content"]/p[2]');
+  var rp = integer($X('//li[@class="points"]'));
   if (rp) {
-    rp = integer(rp.textContent.split("/")[0]);
     config.setServer("techs.points", { count: rp, at: Date.now() });
   }
-  updateCurrentResearch();
-  var techs = techinfo();
-  $x('id("inboxResearch")/tbody/tr/td[@class="text"]/a').forEach(learnTech);
+  var perHour = integer($X('//li[@class="time"]'));
+  $x('//div[@class="researchInfo"]//ul').forEach(addTime);
 }
+
+// function researchAdvisorView() {
+//   function learnTech(a) {
+//     var name = a.textContent.match(/['"]([^'"]+)['"]/);
+//     if (!name) return;
+//     name = name[1];
+// 
+//     var tech = techs.filter(function(t) { return t.name == name; });
+//     if (!tech.length) return;
+//     tech = tech[0];
+// 
+//     config.setServer(["techs", tech.id], 1);
+// 
+//     a.title = a.textContent;
+//     a.href = urlTo("research", tech.id);
+//     a.innerHTML = name.bold() +" — "+ tech.does;
+//     // tech.does[0].toLowerCase() + tech.does.slice(1);
+//   }
+// 
+//   var rp = $X('id("breadcrumbs")/following::div[1]/div[@class="content"]/p[2]');
+//   if (rp) {
+//     rp = integer(rp.textContent.split("/")[0]);
+//     config.setServer("techs.points", { count: rp, at: Date.now() });
+//   }
+//   updateCurrentResearch();
+//   var techs = techinfo();
+//   $x('id("inboxResearch")/tbody/tr/td[@class="text"]/a').forEach(learnTech);
+// }
 
 
 function diplomacyAdvisorView() {
