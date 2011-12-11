@@ -364,7 +364,11 @@ var ships = serverVersionIsAtLeast("0.3.2") ? {
   213: {n:"Ballista Ship",p:6,w:180,S:160,b:"50m",u:45,m:2,a:48,o:28,d:4,A:2,D:2,s:132,c:"Sailer",v:30,x:"Ranged"},
   214: {n:"Catapult Ship",p:5,w:180,S:140,b:"50m",u:50,m:3,a:28,o:37,d:0,A:2,D:2,s:86,c:"Sailer",v:30,x:"Ranged"},
   215: {n:"Mortar Ship",p:5,w:220,S:900,b:"50m",u:130,m:6,a:34,o:66,d:2,A:2,D:2,s:56,c:"Steamship",v:20,x:"Ranged"},
-  216: {n:"Paddle Wheel Ram",i:"steamboat",p:2,w:300,S:1500,b:"40m",u:90,m:5,a:140,d:8,A:2,D:2,s:236,c:"Steamship",v:30}
+  216: {n:"Paddle Wheel Ram",i:"steamboat",p:2,w:300,S:900,b:"40m",u:90,m:5,a:140,d:8,A:2,D:2,s:236,c:"Steamship",v:30},
+  217: {n:"Rocket Ship",i:"rocketship",p:2,w:200,S:900,b:"55m 20s",u:50,m:5,a:380,d:6,A:2,D:2,s:236,c:"Steamship",v:30},
+  218: {n:"Paddle Speedboat",i:"paddlespeedboat",p:2,w:40,S:280,b:"27m",u:5,m:5,a:12,d:0,A:2,D:2,s:236,c:"Steamship",v:60},
+  219: {n:"Balloon Carrier",i:"ballooncarrier",p:2,w:700,S:700,b:"45m",u:100,m:5,a:100,d:0,A:2,D:2,s:236,c:"Steamship",v:20},
+  220: {n:"Tender",i:"tender",p:2,w:300,C:250,S:250,b:"30m",u:100,m:5,a:15,d:0,A:2,D:2,s:236,c:"Steamship",v:30}
 
 } : // end v0.3.2+ section.
 { // v0.3+ section.
