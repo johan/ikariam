@@ -596,7 +596,8 @@ function buildingExpansionNeeds(b, level) {
 
 function haveEnoughToUpgrade(b, level, have) {
   //lvl 32 is max for a lot of buildings, so it's never enough [MKoR]
-  if (level == 32 && buildingID(b) > 9 && buildingID(b) != 29)
+  if (level == 32 && ((buildingID(b) > 9 && buildingID(b) != 29) ||
+                      buildingID(b) == 5))
     return false;
   var upgrade = buildingExpansionNeeds(b, level);
   have = have || currentResources();
@@ -714,7 +715,8 @@ function annotateBuilding(li, level) {
   } else {
     level = level || number(a.title);
   } // [MKoR] Give maxed buildings a special visual, buildings with id <=9 probably have more levels
-  var div = (level == 32 && id > 9 && id != 29) ? node({className: "square", text: level, append: li }) : node({ className: "rounded", text: level, append: li });
+  // [khris] Shipyard also maxes at 32
+  var div = (level == 32 && ((id > 9 && id != 29) || id == 5)) ? node({className: "square", text: level, append: li }) : node({ className: "rounded", text: level, append: li });
 
   if (haveEnoughToUpgrade(a, level)) {
     div.style.backgroundColor = "#FEFCE8";
